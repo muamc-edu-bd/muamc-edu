@@ -17,7 +17,7 @@ try:
 except ImportError:
     pass
 
-DATABASE_URL = os.environ.get('DATABASE_URL', 'postgresql://user:password@localhost:5432/hsc_academy')
+DATABASE_URL = os.environ.get('DATABASE_URL', 'postgresql://hsc_academy_db_obhw_user:<password>@dpg-d8pu0r3eo5us73ai1glg-a:5432/hsc_academy_db_obhw')
 
 # ── Option A: run via psql shell ────────────────────────────────────────
 SQL = """

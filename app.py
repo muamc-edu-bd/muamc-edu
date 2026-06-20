@@ -43,11 +43,9 @@ app = Flask(__name__, static_folder='static')
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Database Configuration
-# Priority: DATABASE_URL env var → local SQLite
-# Render provides DATABASE_URL starting with 'postgres://' which SQLAlchemy 1.4+ rejects.
-# We normalise it to 'postgresql://' here.
-_DEFAULT_DB = 'sqlite:///' + os.path.join(BASE_DIR, 'hsc_academy.db')
-_db_url = os.environ.get('DATABASE_URL') or _DEFAULT_DB
+# Priority: DATABASE_URL env var → local SQLite fallback
+# DATABASE_URL is loaded from .env if python-dotenv is installed.
+_db_url = os.environ.get('DATABASE_URL') or 'sqlite:///app.db'
 if _db_url.startswith('postgres://'):
     _db_url = _db_url.replace('postgres://', 'postgresql://', 1)
 app.config['SQLALCHEMY_DATABASE_URI'] = _db_url
@@ -1702,7 +1700,7 @@ if __name__ == '__main__':
         print("  Moinuddin Adarsha Mohila College, Sylhet")
         print("  PostgreSQL Database Edition")
         print("=" * 60)
-        db_url = os.environ.get('DATABASE_URL', 'postgresql://localhost:5432/hsc_academy')
+        db_url = _db_url
         # Mask password in log output
         safe_url = db_url.split('@')[-1] if '@' in db_url else db_url
         print(f"  Database: ...@{safe_url}")
