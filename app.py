@@ -43,11 +43,11 @@ app = Flask(__name__, static_folder='static')
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Database Configuration
-# Priority: DATABASE_URL env var → hardcoded Render PostgreSQL → local SQLite
+# Priority: DATABASE_URL env var → local SQLite
 # Render provides DATABASE_URL starting with 'postgres://' which SQLAlchemy 1.4+ rejects.
 # We normalise it to 'postgresql://' here.
-_RENDER_DB = 'postgresql://admin1234:7ayjqjRTsn9tE9JcQG5F8pCS2YR6C9nc@dpg-d7mtruvavr4c73f9l2i0-a:5432/hsc_academy_db'
-_db_url = os.environ.get('DATABASE_URL') or _RENDER_DB
+_DEFAULT_DB = 'sqlite:///' + os.path.join(BASE_DIR, 'hsc_academy.db')
+_db_url = os.environ.get('DATABASE_URL') or _DEFAULT_DB
 if _db_url.startswith('postgres://'):
     _db_url = _db_url.replace('postgres://', 'postgresql://', 1)
 app.config['SQLALCHEMY_DATABASE_URI'] = _db_url
