@@ -333,7 +333,8 @@ function handleBulkImport(inp) {
       dob: r.DOB || r.dob || "",
       phone: r.Phone || r.phone || "",
       religion: r.Religion || r.religion || "",
-      session: r.Session || r.session || "2024–2025"
+      session: r.Session || r.session || "2024–2025",
+      optional_subject: String(r['Optional Subjects'] || r['optional subjects'] || r.OptionalSubjects || r.optional_subject || r.Optional || "")
     }));
 
     try {
@@ -345,7 +346,7 @@ function handleBulkImport(inp) {
       const resData = await res.json();
       if(resData.ok) {
         document.getElementById('bulk-progress').style.width = '100%';
-        setMsg('bulk-alert', 'ok', `Successfully imported ${resData.count} students!`);
+        setMsg('bulk-alert', 'ok', `Successfully imported ${resData.imported} students! (Skipped: ${resData.skipped || 0})`);
       } else {
         setMsg('bulk-alert', 'err', resData.message || 'Import failed.');
       }
@@ -355,12 +356,41 @@ function handleBulkImport(inp) {
 }
 
 function downloadTemplate() {
-  const headers = ['Name', 'Roll', 'Registration', 'Class', 'Group', 'Section', 'Father', 'Mother', 'DOB', 'Phone', 'Religion', 'Session'];
-  const data = [headers, ['Sample Name', '1001', '123456', 'Class-XI', 'Science', 'A', 'Father Name', 'Mother Name', '2005-01-01', '01700000000', 'Islam', '2024–2025']];
+  const headers = ['Name', 'Roll', 'Registration', 'Class', 'Group', 'Section', 'Father', 'Mother', 'DOB', 'Phone', 'Religion', 'Session', 'Optional Subjects'];
+  const data = [
+    headers,
+    ['Fatima Begum',   '2024001', 'REG001', 'Class-XI', 'Science',    'A', 'Ahmed Ali',    'Rahela Begum',  '2008-01-15', '01712345678', 'Islam', '2024–2025', '178/179'],
+    ['Sumaiya Khanam', '2024002', 'REG002', 'Class-XI', 'Humanities', 'B', 'Karim Uddin',  'Nasrin Akter',  '2008-03-22', '01798765432', 'Islam', '2024–2025', '109/110'],
+    ['Nusrat Jahan',   '2024003', 'REG003', 'Class-XI', 'Business',   'A', 'Abdul Rahman', 'Moriam Begum',  '2008-05-10', '01856789012', 'Islam', '2024–2025', '292/293'],
+  ];
   const ws = XLSX.utils.aoa_to_sheet(data);
+  // Column widths
+  ws['!cols'] = [18,12,14,12,14,10,16,16,12,14,12,12,16].map(w => ({ wch: w }));
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Template");
-  XLSX.writeFile(wb, "Student_Import_Template.xlsx");
+  XLSX.utils.book_append_sheet(wb, ws, 'Students');
+
+  // Instructions sheet
+  const inst = XLSX.utils.aoa_to_sheet([
+    ['Optional Subjects — বিষয় কোড ফরম্যাট:  CODE1/CODE2'],
+    [''],
+    ['Science শিক্ষার্থী:'],
+    ['  • Biology         → 178/179'],
+    ['  • Higher Math     → 265/266'],
+    [''],
+    ['Humanities শিক্ষার্থী:'],
+    ['  • Economics       → 109/110'],
+    ['  • Logic           → 121/122'],
+    ['  • Home Science    → 273/274'],
+    [''],
+    ['Class: Class-XI অথবা Class-XII'],
+    ['Group: Science, Humanities, Business'],
+    ['DOB format: YYYY-MM-DD (e.g. 2008-06-15)'],
+    ['ফাঁকা রাখলে Optional Subjects পরে Student Portal থেকে দেওয়া যাবে।'],
+  ]);
+  inst['!cols'] = [{ wch: 50 }];
+  XLSX.utils.book_append_sheet(wb, inst, 'Instructions');
+
+  XLSX.writeFile(wb, 'Student_Import_Template.xlsx');
 }
 
 (async function init(){
