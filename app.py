@@ -468,7 +468,6 @@ def _resolve_optional_subjects(group: str, optional_subject: str) -> list:
     'optional' placeholder entries with the student's specific chosen codes.
 
     optional_subject format: "CODE1/CODE2"  e.g. "178/179" or "265/266"
-    For Humanities, a single code is also accepted (e.g. "111").
     """
     import copy
     opt_codes = [c.strip() for c in (optional_subject or '').split('/') if c.strip()]
@@ -480,28 +479,21 @@ def _resolve_optional_subjects(group: str, optional_subject: str) -> list:
 
     # Code→name lookup (extend as needed)
     OPT_NAMES = {
-        '178': 'Biology 1st Paper',          '179': 'Biology 2nd Paper',
+        '178': 'Biology 1st Paper',           '179': 'Biology 2nd Paper',
         '265': 'Higher Mathematics 1st Paper','266': 'Higher Mathematics 2nd Paper',
-        '292': 'Finance, Banking & Ins. 1st', '293': 'Finance, Banking & Ins. 2nd',
-        '294': 'Production Mgmt & Mktg 1st',  '295': 'Production Mgmt & Mktg 2nd',
-        '111': 'Economics',                   '112': 'Logic 1st Paper',
-        '113': 'Psychology',                  '114': 'Geography',
-        '115': 'Home Economics',              '116': 'Sociology',
-        '117': 'Agriculture',
+        '121': 'Logic 1st Paper',             '122': 'Logic 2nd Paper',
+        '273': 'Home Science 1st Paper',      '274': 'Home Science 2nd Paper',
+        '109': 'Economics 1st Paper',         '110': 'Economics 2nd Paper',
     }
 
     resolved = []
-    opt_cursor = 0  # index into opt_codes for sequential assignment
     for sub in base:
         if not sub.get('optional'):
             resolved.append(sub)
             continue
-        # This is an optional-slot entry: substitute with student's chosen code
-        if opt_cursor < len(opt_codes):
-            code = opt_codes[opt_cursor]
-            resolved.append({**sub, 'code': code, 'name': OPT_NAMES.get(code, f'Subject {code}')})
-            opt_cursor += 1
-        # else: skip the placeholder (student didn't fill all optional slots)
+        # This is an optional-slot entry: only keep if its code is in the student's opt_codes
+        if sub['code'] in opt_codes:
+            resolved.append({**sub, 'name': OPT_NAMES.get(sub['code'], sub['name'])})
     return resolved
 
 
@@ -513,6 +505,23 @@ def get_student_subjects(sid):
     if not student:
         return jsonify({'ok': False, 'message': 'Student not found'}), 404
     subjects = _resolve_optional_subjects(student.group, getattr(student, 'optional_subjects', '') or '')
+    cls = student.cls or 'Class-XI'
+    if cls == 'Class-XI':
+        subjects = [sub for sub in subjects if not ('2nd' in sub['name'] or '2nd Paper' in sub['name'] or sub['name'].endswith(' 2nd'))]
+    elif cls == 'Class-XII':
+        subjects = [sub for sub in subjects if not ('1st' in sub['name'] or '1st Paper' in sub['name'] or sub['name'].endswith(' 1st'))]
+
+    # Dynamically rename Sociology (116) and Islamic History & Culture (267) to append paper number
+    import copy
+    temp_subs = []
+    for sub in subjects:
+        s = copy.deepcopy(sub)
+        if s['code'] in ['116', '267']:
+            suffix = ' 1st Paper' if cls == 'Class-XI' else ' 2nd Paper'
+            s['name'] = s['name'].replace(' 1st Paper', '').replace(' 2nd Paper', '') + suffix
+        temp_subs.append(s)
+    subjects = temp_subs
+
     return jsonify({'ok': True, 'data': subjects, 'optional_subject': getattr(student, 'optional_subjects', '')})
 
 
@@ -863,7 +872,7 @@ def public_result_search():
     all_marks = _get_marks_dict()
     peer_scores = []
     for peer in peers:
-        t, g, _ = _compute_student_result(peer.id, all_marks, peer.group, getattr(peer, "optional_subject", "") or "")
+        t, g, _ = _compute_student_result(peer.id, all_marks, peer.group, getattr(peer, "optional_subjects", "") or "")
         peer_scores.append((peer.id, g, t))
     peer_scores.sort(key=lambda x: (-x[1], -x[2]))
     merit_position = next((i + 1 for i, ps in enumerate(peer_scores) if ps[0] == student.id), None)
@@ -1197,16 +1206,16 @@ SUBJECT_LIST = {
         {'name': 'ICT',                          'code': '275', 'hasPrac': True,  'cqMax': 50, 'mcqMax': 25, 'optional': False},
         {'name': 'Civics & Good Governance 1st', 'code': '269', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': False},
         {'name': 'Civics & Good Governance 2nd', 'code': '270', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': False},
-        {'name': 'History',                      'code': '304', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': False},
         {'name': 'Economics 1st Paper',          'code': '109', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': False},
         {'name': 'Economics 2nd Paper',          'code': '110', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': False},
         {'name': 'Sociology',                    'code': '116', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': False},
         {'name': 'Social Work 1st Paper',        'code': '271', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': False},
         {'name': 'Social Work 2nd Paper',        'code': '272', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': False},
-        {'name': 'Logic 1st Paper',              'code': '121', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': False},
-        {'name': 'Logic 2nd Paper',              'code': '122', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': False},
         {'name': 'Islamic History & Culture',    'code': '267', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': False},
-        {'name': 'Optional Subject',             'code': '111', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': True},
+        {'name': 'Logic 1st Paper',              'code': '121', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': True},
+        {'name': 'Logic 2nd Paper',              'code': '122', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': True},
+        {'name': 'Home Science 1st Paper',       'code': '273', 'hasPrac': True,  'cqMax': 50, 'mcqMax': 25, 'optional': True},
+        {'name': 'Home Science 2nd Paper',       'code': '274', 'hasPrac': True,  'cqMax': 50, 'mcqMax': 25, 'optional': True},
     ],
     'Business': [
         {'name': 'Bangla 1st Paper',                 'code': '101', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': False},
@@ -1220,8 +1229,10 @@ SUBJECT_LIST = {
         {'name': 'Business Org. & Mgmt 2nd',         'code': '278', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': False},
         {'name': 'Finance, Banking & Insurance 1st', 'code': '292', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': False},
         {'name': 'Finance, Banking & Insurance 2nd', 'code': '293', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': False},
-        {'name': 'Production Mgmt & Marketing 1st',  'code': '294', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': False},
-        {'name': 'Production Mgmt & Marketing 2nd',  'code': '295', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': False},
+        {'name': 'Economics 1st Paper',              'code': '109', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': True},
+        {'name': 'Economics 2nd Paper',              'code': '110', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': True},
+        {'name': 'Home Science 1st Paper',           'code': '273', 'hasPrac': True,  'cqMax': 50, 'mcqMax': 25, 'optional': True},
+        {'name': 'Home Science 2nd Paper',           'code': '274', 'hasPrac': True,  'cqMax': 50, 'mcqMax': 25, 'optional': True},
     ],
 }
 
@@ -1256,7 +1267,24 @@ def export_csv():
             if not grp_students:
                 continue
 
+            # Filter subjects based on class (Class-XI -> 1st Paper; Class-XII -> 2nd Paper)
             subs = SUBJECT_LIST.get(g, [])
+            if c == 'Class-XI':
+                subs = [sub for sub in subs if not ('2nd' in sub['name'] or '2nd Paper' in sub['name'] or sub['name'].endswith(' 2nd'))]
+            elif c == 'Class-XII':
+                subs = [sub for sub in subs if not ('1st' in sub['name'] or '1st Paper' in sub['name'] or sub['name'].endswith(' 1st'))]
+
+            # Dynamically rename Sociology (116) and Islamic History & Culture (267) to append paper number
+            import copy
+            temp_subs = []
+            for sub in subs:
+                s = copy.deepcopy(sub)
+                if s['code'] in ['116', '267']:
+                    suffix = ' 1st Paper' if c == 'Class-XI' else ' 2nd Paper'
+                    s['name'] = s['name'].replace(' 1st Paper', '').replace(' 2nd Paper', '') + suffix
+                temp_subs.append(s)
+            subs = temp_subs
+
             writer.writerow([f'{g} Group — {c}'])
             header = ['#', 'Name', 'Roll Number', 'Registration']
             for sub in subs:
@@ -1272,10 +1300,26 @@ def export_csv():
                 tgt       = exam_filter or (exam_keys[-1] if exam_keys else None)
                 stu_marks = marks.get(sid, {}).get(tgt, {}) if tgt else {}
                 optional_selected = stu_marks.get('selectedOptional')
+                opt_subject_str = getattr(stu, 'optional_subjects', '') or ''
+                opt_codes = [code.strip() for code in opt_subject_str.split('/') if code.strip()]
+
                 total_gpa = cnt = fail_cnt = total_mark = 0
                 row = [i, stu.name, stu.roll, stu.reg or '']
 
                 for sub in subs:
+                    is_unchosen_optional = False
+                    if sub.get('optional'):
+                        if opt_codes:
+                            if sub['code'] not in opt_codes:
+                                is_unchosen_optional = True
+                        elif optional_selected:
+                            if sub['code'] != optional_selected:
+                                is_unchosen_optional = True
+
+                    if is_unchosen_optional:
+                        row += ['', '', '']
+                        continue
+
                     m      = stu_marks.get(sub['code'], {})
                     cq     = min(int(m.get('cq')  or 0), sub['cqMax'])
                     mcq    = min(int(m.get('mcq') or 0), sub['mcqMax'])
@@ -1284,8 +1328,7 @@ def export_csv():
                     tot    = theory + prac
                     lg, gp = _grade_letter(tot)
                     absent = not m or (m.get('cq', '') == '' and m.get('mcq', '') == '')
-                    is_optional = (sub.get('optional', False) and optional_selected
-                                   and sub['code'] == optional_selected)
+                    is_optional = sub.get('optional', False)
 
                     if not absent:
                         if is_optional:
@@ -1322,7 +1365,7 @@ def export_csv():
 # ANALYTICS — Promotion, Archive, Roll Gen, Detain, TC
 # ─────────────────────────────────────────────
 
-def _compute_student_result(sid, marks_data, group, optional_subject=''):
+def _compute_student_result(sid, marks_data, group, optional_subject='', cls=None):
     """Return (total_marks, gpa, passed) for a student given their marks dict.
     
     Uses optional_subject (e.g. '178/179') from the student record to determine
@@ -1336,10 +1379,37 @@ def _compute_student_result(sid, marks_data, group, optional_subject=''):
     exam_key  = list(all_exams.keys())[-1]
     stu_marks = all_exams[exam_key]
 
+    if not cls or not optional_subject:
+        stu = Student.query.filter_by(id=sid).first()
+        if stu:
+            if not cls:
+                cls = stu.cls
+            if not optional_subject:
+                optional_subject = getattr(stu, 'optional_subjects', '') or ''
+        if not cls:
+            cls = 'Class-XI'
+
     # Resolve subjects: use student.optional_subject preferentially
     subs = _resolve_optional_subjects(group, optional_subject)
     if not subs:
         subs = SUBJECT_LIST.get(group, [])
+
+    # Filter subjects based on student's class (Class-XI -> 1st Paper; Class-XII -> 2nd Paper)
+    if cls == 'Class-XI':
+        subs = [sub for sub in subs if not ('2nd' in sub['name'] or '2nd Paper' in sub['name'] or sub['name'].endswith(' 2nd'))]
+    elif cls == 'Class-XII':
+        subs = [sub for sub in subs if not ('1st' in sub['name'] or '1st Paper' in sub['name'] or sub['name'].endswith(' 1st'))]
+
+    # Dynamically rename Sociology (116) and Islamic History & Culture (267) to append paper number
+    import copy
+    temp_subs = []
+    for sub in subs:
+        s = copy.deepcopy(sub)
+        if s['code'] in ['116', '267']:
+            suffix = ' 1st Paper' if cls == 'Class-XI' else ' 2nd Paper'
+            s['name'] = s['name'].replace(' 1st Paper', '').replace(' 2nd Paper', '') + suffix
+        temp_subs.append(s)
+    subs = temp_subs
 
     # Backwards-compat: selectedOptional from marks entry (single code)
     selected_optional = stu_marks.get('selectedOptional', '')
@@ -1385,7 +1455,7 @@ def analyze_promotion():
     eligible = []
 
     for stu in students:
-        total, gpa, passed = _compute_student_result(stu.id, marks, stu.group, getattr(stu, "optional_subject", "") or "")
+        total, gpa, passed = _compute_student_result(stu.id, marks, stu.group, getattr(stu, "optional_subjects", "") or "")
         data = stu.to_dict()
         data.update({
             'total_marks': total,
@@ -1423,7 +1493,7 @@ def execute_promotion():
 
     scored = []
     for stu in to_promote:
-        total, gpa, _ = _compute_student_result(stu.id, marks, stu.group, getattr(stu, "optional_subject", "") or "")
+        total, gpa, _ = _compute_student_result(stu.id, marks, stu.group, getattr(stu, "optional_subjects", "") or "")
         scored.append((stu, gpa, total))
     scored.sort(key=lambda x: (-x[1], -x[2]))
 
@@ -1482,7 +1552,7 @@ def archive_graduates():
 
     to_archive = []
     for stu in students:
-        total, gpa, passed = _compute_student_result(stu.id, marks, stu.group, getattr(stu, "optional_subject", "") or "")
+        total, gpa, passed = _compute_student_result(stu.id, marks, stu.group, getattr(stu, "optional_subjects", "") or "")
         if passed and total > 0:
             db.session.add(Archive(
                 id=stu.id, name=stu.name, roll=stu.roll, reg=stu.reg,
@@ -1534,7 +1604,7 @@ def analyze_archive_candidates():
     candidates = []
 
     for stu in students:
-        total, gpa, passed = _compute_student_result(stu.id, marks, stu.group, getattr(stu, "optional_subject", "") or "")
+        total, gpa, passed = _compute_student_result(stu.id, marks, stu.group, getattr(stu, "optional_subjects", "") or "")
         if passed:
             data = stu.to_dict()
             data.update({'totalMarks': total, 'gpa': gpa, 'result': 'Pass'})
@@ -1557,7 +1627,7 @@ def generate_rolls():
     marks  = _get_marks_dict()
     scored = []
     for stu in students:
-        total, gpa, _ = _compute_student_result(stu.id, marks, stu.group, getattr(stu, "optional_subject", "") or "")
+        total, gpa, _ = _compute_student_result(stu.id, marks, stu.group, getattr(stu, "optional_subjects", "") or "")
         data = stu.to_dict()
         data.update({'gpa': gpa, 'totalMarks': total})
         scored.append(data)
@@ -1589,7 +1659,7 @@ def detain_list():
     detained = []
 
     for stu in students:
-        total, gpa, passed = _compute_student_result(stu.id, marks, stu.group, getattr(stu, "optional_subject", "") or "")
+        total, gpa, passed = _compute_student_result(stu.id, marks, stu.group, getattr(stu, "optional_subjects", "") or "")
         if not passed and total > 0:
             data = stu.to_dict()
             data.update({'total_marks': total, 'gpa': gpa, 'result': 'Fail'})
@@ -1632,7 +1702,7 @@ def generate_certificate(sid):
         return jsonify({'ok': False, 'message': 'Student not found'}), 404
 
     marks           = _get_marks_dict()
-    total, gpa, passed = _compute_student_result(sid, marks, getattr(stu, "group", "Science"), getattr(stu, "optional_subject", "") or "")
+    total, gpa, passed = _compute_student_result(sid, marks, getattr(stu, "group", "Science"), getattr(stu, "optional_subjects", "") or "")
 
     settings = {s.key: s.value for s in Setting.query.all()}
 

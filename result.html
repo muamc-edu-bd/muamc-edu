@@ -802,7 +802,7 @@ function downloadResultPDF() {
 function buildResultCardHTML(student, marks, examType, merit) {
   merit = merit || { position: null, total: null };
   const examMarks = (marks && marks[examType]) ? marks[examType] : {};
-  const allSubjects  = getSubjectsForGroup(student.group);
+  const allSubjects  = getSubjectsForGroup(student.group, student.cls);
   const optionalCodes = (student.optional_subjects || student.optionalSubjects || student.optional_subject || '').split('/').map(c => c.trim());
 
   let compulsoryRows = '', optionalRows = '';
@@ -1011,8 +1011,7 @@ function getResultPrintCSS() {
 
 
 
-// Get subjects for group
-function getSubjectsForGroup(group) {
+function getSubjectsForGroup(group, cls) {
   const subs = {
     'Science': [
       {name: 'Bangla 1st Paper', code: '101'},
@@ -1026,8 +1025,8 @@ function getSubjectsForGroup(group) {
       {name: 'Chemistry 2nd Paper', code: '177'},
       {name: 'Biology 1st Paper', code: '178'},
       {name: 'Biology 2nd Paper', code: '179'},
-      {name: 'Higher Math 1st Paper', code: '265'},
-      {name: 'Higher Math 2nd Paper', code: '266'},
+      {name: 'Higher Mathematics 1st Paper', code: '265'},
+      {name: 'Higher Mathematics 2nd Paper', code: '266'},
     ],
     'Humanities': [
       {name: 'Bangla 1st Paper', code: '101'},
@@ -1035,14 +1034,18 @@ function getSubjectsForGroup(group) {
       {name: 'English 1st Paper', code: '107'},
       {name: 'English 2nd Paper', code: '108'},
       {name: 'ICT', code: '275'},
-      {name: 'Civics & Good Governance 1st', code: '269'},
-      {name: 'Civics & Good Governance 2nd', code: '270'},
-      {name: 'History', code: '304'},
+      {name: 'Civics & Good Governance 1st Paper', code: '269'},
+      {name: 'Civics & Good Governance 2nd Paper', code: '270'},
       {name: 'Economics 1st Paper', code: '109'},
       {name: 'Economics 2nd Paper', code: '110'},
       {name: 'Sociology', code: '116'},
+      {name: 'Social Work 1st Paper', code: '271'},
+      {name: 'Social Work 2nd Paper', code: '272'},
+      {name: 'Islamic History & Culture', code: '267'},
       {name: 'Logic 1st Paper', code: '121'},
       {name: 'Logic 2nd Paper', code: '122'},
+      {name: 'Home Science 1st Paper', code: '273'},
+      {name: 'Home Science 2nd Paper', code: '274'},
     ],
     'Business': [
       {name: 'Bangla 1st Paper', code: '101'},
@@ -1052,13 +1055,29 @@ function getSubjectsForGroup(group) {
       {name: 'ICT', code: '275'},
       {name: 'Accounting 1st Paper', code: '253'},
       {name: 'Accounting 2nd Paper', code: '254'},
-      {name: 'Business Org. & Mgmt 1st', code: '277'},
-      {name: 'Business Org. & Mgmt 2nd', code: '278'},
-      {name: 'Finance, Banking & Insurance 1st', code: '292'},
-      {name: 'Finance, Banking & Insurance 2nd', code: '293'},
+      {name: 'Business Organization & Management 1st Paper', code: '277'},
+      {name: 'Business Organization & Management 2nd Paper', code: '278'},
+      {name: 'Finance, Banking & Insurance 1st Paper', code: '292'},
+      {name: 'Finance, Banking & Insurance 2nd Paper', code: '293'},
+      {name: 'Economics 1st Paper', code: '109'},
+      {name: 'Economics 2nd Paper', code: '110'},
+      {name: 'Home Science 1st Paper', code: '273'},
+      {name: 'Home Science 2nd Paper', code: '274'},
     ],
   };
-  return subs[group] || [];
+  let list = subs[group] || [];
+  if (cls === 'Class-XI') {
+    list = list.filter(sub => !sub.name.includes('2nd') && !sub.name.includes('2nd Paper') && !sub.name.endsWith(' 2nd'));
+  } else if (cls === 'Class-XII') {
+    list = list.filter(sub => !sub.name.includes('1st') && !sub.name.includes('1st Paper') && !sub.name.endsWith(' 1st'));
+  }
+  return list.map(sub => {
+    if (sub.code === '116' || sub.code === '267') {
+      const suffix = cls === 'Class-XI' ? ' 1st Paper' : ' 2nd Paper';
+      return Object.assign({}, sub, { name: sub.name.replace(' 1st Paper', '').replace(' 2nd Paper', '') + suffix });
+    }
+    return sub;
+  });
 }
 
 // Calculate grade

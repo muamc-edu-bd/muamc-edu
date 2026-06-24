@@ -508,44 +508,46 @@
       ],
       'Humanities': [
         { cat: 'Common Subjects', items: [
-          { name: 'Bangla 1st Paper', code: '101', hasPrac: false, cqMax: 70, mcqMax: 30 },
-          { name: 'Bangla 2nd Paper', code: '102', hasPrac: false, cqMax: 70, mcqMax: 30 },
-          { name: 'English 1st Paper', code: '107', hasPrac: false, cqMax: 70, mcqMax: 30 },
-          { name: 'English 2nd Paper', code: '108', hasPrac: false, cqMax: 70, mcqMax: 30 },
-          { name: 'ICT', code: '275', hasPrac: true, cqMax: 50, mcqMax: 25 }
+          { name: 'Bangla 1st Paper', code: '101', hasPrac: false, cqMax: 70, mcqMax: 30, isRequired: true },
+          { name: 'Bangla 2nd Paper', code: '102', hasPrac: false, cqMax: 70, mcqMax: 30, isRequired: true },
+          { name: 'English 1st Paper', code: '107', hasPrac: false, cqMax: 70, mcqMax: 30, isRequired: true },
+          { name: 'English 2nd Paper', code: '108', hasPrac: false, cqMax: 70, mcqMax: 30, isRequired: true },
+          { name: 'ICT', code: '275', hasPrac: true, cqMax: 50, mcqMax: 25, isRequired: true }
         ]},
         { cat: 'Humanities Group Subjects', items: [
-          { name: 'Civics & Good Governance 1st Paper', code: '269', hasPrac: false, cqMax: 70, mcqMax: 30 },
-          { name: 'Civics & Good Governance 2nd Paper', code: '270', hasPrac: false, cqMax: 70, mcqMax: 30 },
-          { name: 'History of Bangladesh & World Civilization', code: '304', hasPrac: false, cqMax: 70, mcqMax: 30 },
-          { name: 'Economics 1st Paper', code: '109', hasPrac: false, cqMax: 70, mcqMax: 30, optionalGroup: 'humEcon' },
-          { name: 'Economics 2nd Paper', code: '110', hasPrac: false, cqMax: 70, mcqMax: 30, optionalGroup: 'humEcon' },
-          { name: 'Sociology', code: '116', hasPrac: false, cqMax: 70, mcqMax: 30 },
-          { name: 'Social Work 1st Paper', code: '271', hasPrac: false, cqMax: 70, mcqMax: 30 },
-          { name: 'Social Work 2nd Paper', code: '272', hasPrac: false, cqMax: 70, mcqMax: 30 },
+          { name: 'Civics & Good Governance 1st Paper', code: '269', hasPrac: false, cqMax: 70, mcqMax: 30, isRequired: true },
+          { name: 'Civics & Good Governance 2nd Paper', code: '270', hasPrac: false, cqMax: 70, mcqMax: 30, isRequired: true },
+          { name: 'Economics 1st Paper', code: '109', hasPrac: false, cqMax: 70, mcqMax: 30, isRequired: true },
+          { name: 'Economics 2nd Paper', code: '110', hasPrac: false, cqMax: 70, mcqMax: 30, isRequired: true },
+          { name: 'Sociology', code: '116', hasPrac: false, cqMax: 70, mcqMax: 30, isRequired: true },
+          { name: 'Social Work 1st Paper', code: '271', hasPrac: false, cqMax: 70, mcqMax: 30, isRequired: true },
+          { name: 'Social Work 2nd Paper', code: '272', hasPrac: false, cqMax: 70, mcqMax: 30, isRequired: true },
+          { name: 'Islamic History & Culture', code: '267', hasPrac: false, cqMax: 70, mcqMax: 30, isRequired: true },
           { name: 'Logic 1st Paper', code: '121', hasPrac: false, cqMax: 70, mcqMax: 30, optionalGroup: 'humLogic' },
           { name: 'Logic 2nd Paper', code: '122', hasPrac: false, cqMax: 70, mcqMax: 30, optionalGroup: 'humLogic' },
-          { name: 'Islamic History & Culture', code: '267', hasPrac: false, cqMax: 70, mcqMax: 30 },
-          { name: 'Optional Subject', code: '111', hasPrac: false, cqMax: 70, mcqMax: 30 }
+          { name: 'Home Science 1st Paper', code: '273', hasPrac: true, cqMax: 50, mcqMax: 25, optionalGroup: 'humHome' },
+          { name: 'Home Science 2nd Paper', code: '274', hasPrac: true, cqMax: 50, mcqMax: 25, optionalGroup: 'humHome' }
         ]}
       ],
       'Business': [
         { cat: 'Common Subjects', items: [
-          { name: 'Bangla 1st Paper', code: '101', hasPrac: false, cqMax: 70, mcqMax: 30 },
-          { name: 'Bangla 2nd Paper', code: '102', hasPrac: false, cqMax: 70, mcqMax: 30 },
-          { name: 'English 1st Paper', code: '107', hasPrac: false, cqMax: 70, mcqMax: 30 },
-          { name: 'English 2nd Paper', code: '108', hasPrac: false, cqMax: 70, mcqMax: 30 },
-          { name: 'ICT', code: '275', hasPrac: true, cqMax: 50, mcqMax: 25 }
+          { name: 'Bangla 1st Paper', code: '101', hasPrac: false, cqMax: 70, mcqMax: 30, isRequired: true },
+          { name: 'Bangla 2nd Paper', code: '102', hasPrac: false, cqMax: 70, mcqMax: 30, isRequired: true },
+          { name: 'English 1st Paper', code: '107', hasPrac: false, cqMax: 70, mcqMax: 30, isRequired: true },
+          { name: 'English 2nd Paper', code: '108', hasPrac: false, cqMax: 70, mcqMax: 30, isRequired: true },
+          { name: 'ICT', code: '275', hasPrac: true, cqMax: 50, mcqMax: 25, isRequired: true }
         ]},
         { cat: 'Business Studies Group Subjects', items: [
-          { name: 'Accounting 1st Paper', code: '253', hasPrac: false, cqMax: 70, mcqMax: 30 },
-          { name: 'Accounting 2nd Paper', code: '254', hasPrac: false, cqMax: 70, mcqMax: 30 },
-          { name: 'Business Org. & Mgmt 1st', code: '277', hasPrac: false, cqMax: 70, mcqMax: 30 },
-          { name: 'Business Org. & Mgmt 2nd', code: '278', hasPrac: false, cqMax: 70, mcqMax: 30 },
-          { name: 'Finance, Banking & Insurance 1st', code: '292', hasPrac: false, cqMax: 70, mcqMax: 30, optionalGroup: 'busFBI' },
-          { name: 'Finance, Banking & Insurance 2nd', code: '293', hasPrac: false, cqMax: 70, mcqMax: 30, optionalGroup: 'busFBI' },
-          { name: 'Production Mgmt & Marketing 1st', code: '294', hasPrac: false, cqMax: 70, mcqMax: 30, optionalGroup: 'busPMM' },
-          { name: 'Production Mgmt & Marketing 2nd', code: '295', hasPrac: false, cqMax: 70, mcqMax: 30, optionalGroup: 'busPMM' }
+          { name: 'Accounting 1st Paper', code: '253', hasPrac: false, cqMax: 70, mcqMax: 30, isRequired: true },
+          { name: 'Accounting 2nd Paper', code: '254', hasPrac: false, cqMax: 70, mcqMax: 30, isRequired: true },
+          { name: 'Business Organization & Management 1st Paper', code: '277', hasPrac: false, cqMax: 70, mcqMax: 30, isRequired: true },
+          { name: 'Business Organization & Management 2nd Paper', code: '278', hasPrac: false, cqMax: 70, mcqMax: 30, isRequired: true },
+          { name: 'Finance, Banking & Insurance 1st Paper', code: '292', hasPrac: false, cqMax: 70, mcqMax: 30, isRequired: true },
+          { name: 'Finance, Banking & Insurance 2nd Paper', code: '293', hasPrac: false, cqMax: 70, mcqMax: 30, isRequired: true },
+          { name: 'Economics 1st Paper', code: '109', hasPrac: false, cqMax: 70, mcqMax: 30, optionalGroup: 'busEcon' },
+          { name: 'Economics 2nd Paper', code: '110', hasPrac: false, cqMax: 70, mcqMax: 30, optionalGroup: 'busEcon' },
+          { name: 'Home Science 1st Paper', code: '273', hasPrac: true, cqMax: 50, mcqMax: 25, optionalGroup: 'busHome' },
+          { name: 'Home Science 2nd Paper', code: '274', hasPrac: true, cqMax: 50, mcqMax: 25, optionalGroup: 'busHome' }
         ]}
       ]
     };
@@ -557,15 +559,42 @@
       ],
       'Humanities': [
         { id: 'humLogic', label: 'Logic (1st & 2nd Paper)', codes: ['121','122'] },
-        { id: 'humEcon', label: 'Economics (1st & 2nd Paper)', codes: ['109','110'] }
+        { id: 'humHome', label: 'Home Science (1st & 2nd Paper)', codes: ['273','274'] }
       ],
       'Business': [
-        { id: 'busFBI', label: 'Finance, Banking & Insurance (1st & 2nd Paper)', codes: ['292','293'] },
-        { id: 'busPMM', label: 'Production Management & Marketing (1st & 2nd Paper)', codes: ['294','295'] }
+        { id: 'busEcon', label: 'Economics (1st & 2nd Paper)', codes: ['109','110'] },
+        { id: 'busHome', label: 'Home Science (1st & 2nd Paper)', codes: ['273','274'] }
       ]
     };
 
-    function flatSubs(g) { return (SUBS[g] || []).flatMap(c => c.items); }
+    function getFilteredCats(group, cls) {
+      const cats = SUBS[group] || [];
+      const res = [];
+      cats.forEach(cat => {
+        const filteredItems = cat.items.filter(sub => {
+          if (cls === 'Class-XI') {
+            return !sub.name.includes('2nd') && !sub.name.includes('2nd Paper') && !sub.name.endsWith(' 2nd');
+          } else if (cls === 'Class-XII') {
+            return !sub.name.includes('1st') && !sub.name.includes('1st Paper') && !sub.name.endsWith(' 1st');
+          }
+          return true;
+        }).map(sub => {
+          if (sub.code === '116' || sub.code === '267') {
+            const suffix = cls === 'Class-XI' ? ' 1st Paper' : ' 2nd Paper';
+            return Object.assign({}, sub, { name: sub.name.replace(' 1st Paper', '').replace(' 2nd Paper', '') + suffix });
+          }
+          return sub;
+        });
+        if (filteredItems.length > 0) {
+          res.push({ cat: cat.cat, items: filteredItems });
+        }
+      });
+      return res;
+    }
+
+    function flatSubs(g, cls) {
+      return getFilteredCats(g, cls).flatMap(c => c.items);
+    }
 
     function isOptionalForFailCount(sub, selectedOptionalId) {
       if (!sub.optionalGroup) return false;
@@ -788,8 +817,8 @@
       if (!stu) return;
       const db = _marks;
       const marks = db[id][examType];
-      const cats = SUBS[stu.group] || [];
-      const subs = flatSubs(stu.group);
+      const cats = getFilteredCats(stu.group, stu.cls);
+      const subs = flatSubs(stu.group, stu.cls);
       const optionalSelected = marks.selectedOptional;
 
       // Merit position
@@ -800,7 +829,7 @@
         if (!pKey || !pMarks[pKey]) return { id: p.id, gpa: 0, total: 0 };
         const pm = pMarks[pKey]; const pOpt = pm.selectedOptional;
         let pGPA = 0, pCnt = 0, pTotal = 0;
-        flatSubs(p.group).forEach(sub => {
+        flatSubs(p.group, p.cls).forEach(sub => {
           const m = pm[sub.code] || {};
           if (!m || (m.cq === '' && m.mcq === '')) return;
           const cq = Math.min(+m.cq||0,sub.cqMax), mcq = Math.min(+m.mcq||0,sub.mcqMax);

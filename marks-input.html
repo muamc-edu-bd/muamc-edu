@@ -549,16 +549,16 @@ const SUBS = {
     {cat:'Humanities Group Subjects', items:[
       {name:'Civics & Good Governance 1st Paper',  code:'269', hasPrac:false, cqMax:70, mcqMax:30, isRequired:true},
       {name:'Civics & Good Governance 2nd Paper',  code:'270', hasPrac:false, cqMax:70, mcqMax:30, isRequired:true},
-      {name:'History of Bangladesh & World Civilization', code:'304', hasPrac:false, cqMax:70, mcqMax:30, isRequired:true},
-      {name:'Economics 1st Paper',                 code:'109', hasPrac:false, cqMax:70, mcqMax:30, optionalGroup:'humEcon'},
-      {name:'Economics 2nd Paper',                 code:'110', hasPrac:false, cqMax:70, mcqMax:30, optionalGroup:'humEcon'},
+      {name:'Economics 1st Paper',                 code:'109', hasPrac:false, cqMax:70, mcqMax:30, isRequired:true},
+      {name:'Economics 2nd Paper',                 code:'110', hasPrac:false, cqMax:70, mcqMax:30, isRequired:true},
       {name:'Sociology',                           code:'116', hasPrac:false, cqMax:70, mcqMax:30, isRequired:true},
       {name:'Social Work 1st Paper',               code:'271', hasPrac:false, cqMax:70, mcqMax:30, isRequired:true},
       {name:'Social Work 2nd Paper',               code:'272', hasPrac:false, cqMax:70, mcqMax:30, isRequired:true},
+      {name:'Islamic History & Culture',           code:'267', hasPrac:false, cqMax:70, mcqMax:30, isRequired:true},
       {name:'Logic 1st Paper',                     code:'121', hasPrac:false, cqMax:70, mcqMax:30, optionalGroup:'humLogic'},
       {name:'Logic 2nd Paper',                     code:'122', hasPrac:false, cqMax:70, mcqMax:30, optionalGroup:'humLogic'},
-      {name:'Islamic History & Culture',           code:'267', hasPrac:false, cqMax:70, mcqMax:30, isRequired:true},
-      {name:'Islamic Studies / Psychology / Arts & Crafts (Optional/4th Subject)', code:'111', hasPrac:false, cqMax:70, mcqMax:30, isRequired:true},
+      {name:'Home Science 1st Paper',              code:'273', hasPrac:true,  cqMax:50, mcqMax:25, optionalGroup:'humHome'},
+      {name:'Home Science 2nd Paper',              code:'274', hasPrac:true,  cqMax:50, mcqMax:25, optionalGroup:'humHome'},
     ]}
   ],
   'Business': [
@@ -574,10 +574,12 @@ const SUBS = {
       {name:'Accounting 2nd Paper',                        code:'254', hasPrac:false, cqMax:70, mcqMax:30, isRequired:true},
       {name:'Business Organization & Management 1st Paper', code:'277', hasPrac:false, cqMax:70, mcqMax:30, isRequired:true},
       {name:'Business Organization & Management 2nd Paper', code:'278', hasPrac:false, cqMax:70, mcqMax:30, isRequired:true},
-      {name:'Finance, Banking & Insurance 1st Paper',      code:'292', hasPrac:false, cqMax:70, mcqMax:30, optionalGroup:'busFBI'},
-      {name:'Finance, Banking & Insurance 2nd Paper',      code:'293', hasPrac:false, cqMax:70, mcqMax:30, optionalGroup:'busFBI'},
-      {name:'Production Management & Marketing 1st Paper', code:'294', hasPrac:false, cqMax:70, mcqMax:30, optionalGroup:'busPMM'},
-      {name:'Production Management & Marketing 2nd Paper', code:'295', hasPrac:false, cqMax:70, mcqMax:30, optionalGroup:'busPMM'},
+      {name:'Finance, Banking & Insurance 1st Paper',      code:'292', hasPrac:false, cqMax:70, mcqMax:30, isRequired:true},
+      {name:'Finance, Banking & Insurance 2nd Paper',      code:'293', hasPrac:false, cqMax:70, mcqMax:30, isRequired:true},
+      {name:'Economics 1st Paper',                         code:'109', hasPrac:false, cqMax:70, mcqMax:30, optionalGroup:'busEcon'},
+      {name:'Economics 2nd Paper',                         code:'110', hasPrac:false, cqMax:70, mcqMax:30, optionalGroup:'busEcon'},
+      {name:'Home Science 1st Paper',                      code:'273', hasPrac:true,  cqMax:50, mcqMax:25, optionalGroup:'busHome'},
+      {name:'Home Science 2nd Paper',                      code:'274', hasPrac:true,  cqMax:50, mcqMax:25, optionalGroup:'busHome'},
     ]}
   ]
 };
@@ -589,23 +591,59 @@ const OPTIONAL_SUBJECTS = {
   ],
   'Humanities': [
     {id:'humLogic', label:'Logic (1st & 2nd Paper)', codes:['121','122']},
-    {id:'humEcon', label:'Economics (1st & 2nd Paper)', codes:['109','110']}
+    {id:'humHome', label:'Home Science (1st & 2nd Paper)', codes:['273','274']}
   ],
   'Business': [
-    {id:'busFBI', label:'Finance, Banking & Insurance (1st & 2nd Paper)', codes:['292','293']},
-    {id:'busPMM', label:'Production Management & Marketing (1st & 2nd Paper)', codes:['294','295']}
+    {id:'busEcon', label:'Economics (1st & 2nd Paper)', codes:['109','110']},
+    {id:'busHome', label:'Home Science (1st & 2nd Paper)', codes:['273','274']}
   ]
 };
 
 function getOptionalIdByCode(group, code){
   if(!code) return null;
   const opts = OPTIONAL_SUBJECTS[group] || [];
-  const normalized = code.toString().trim();
-  const match = opts.find(opt => opt.codes.includes(normalized));
+  const codes = code.toString().trim().split('/').map(c => c.trim()).filter(Boolean);
+  const match = opts.find(opt => codes.some(c => opt.codes.includes(c)));
   return match ? match.id : null;
 }
 
-function flatSubs(g){ return (SUBS[g]||[]).flatMap(c=>c.items); }
+function getStudentOptionalString(stu){
+  return String(stu.optional_subject || stu.optionalSubjects || stu.optional_subjects || stu.optional || '').trim();
+}
+
+function getStudentSelectedOptional(stu){
+  const optionalStr = getStudentOptionalString(stu);
+  if(!optionalStr) return null;
+  const codes = optionalStr.split('/').map(c => c.trim()).filter(Boolean);
+  for(const code of codes){
+    const optId = getOptionalIdByCode(stu.group, code);
+    if(optId) return optId;
+  }
+  return null;
+}
+
+function flatSubs(g, cls){
+  const cats = SUBS[g] || [];
+  let all = [];
+  cats.forEach(c => {
+    const items = c.items.filter(sub => {
+      if (cls === 'Class-XI') {
+        return !sub.name.includes('2nd') && !sub.name.includes('2nd Paper') && !sub.name.endsWith(' 2nd');
+      } else if (cls === 'Class-XII') {
+        return !sub.name.includes('1st') && !sub.name.includes('1st Paper') && !sub.name.endsWith(' 1st');
+      }
+      return true;
+    }).map(sub => {
+      if (sub.code === '116' || sub.code === '267') {
+        const suffix = cls === 'Class-XI' ? ' 1st Paper' : ' 2nd Paper';
+        return Object.assign({}, sub, { name: sub.name.replace(' 1st Paper', '').replace(' 2nd Paper', '') + suffix });
+      }
+      return sub;
+    });
+    all = all.concat(items);
+  });
+  return all;
+}
 
 function getSelectedOptional(sid, examType){
   const db=LS.marks();
@@ -893,6 +931,23 @@ async function loadMarksForm(){
   html+=`<div class="alert alert-info" style="margin-bottom:14px;">Group: <strong>${stu.group}</strong> &nbsp;|&nbsp; Class: <strong>${stu.cls}</strong> &nbsp;|&nbsp; ${groupNote}</div>`;
 
   cats.forEach(cat=>{
+    const filteredItems = cat.items.filter(sub => {
+      if (stu.cls === 'Class-XI') {
+        return !sub.name.includes('2nd') && !sub.name.includes('2nd Paper') && !sub.name.endsWith(' 2nd');
+      } else if (stu.cls === 'Class-XII') {
+        return !sub.name.includes('1st') && !sub.name.includes('1st Paper') && !sub.name.endsWith(' 1st');
+      }
+      return true;
+    }).map(sub => {
+      if (sub.code === '116' || sub.code === '267') {
+        const suffix = stu.cls === 'Class-XI' ? ' 1st Paper' : ' 2nd Paper';
+        return Object.assign({}, sub, { name: sub.name.replace(' 1st Paper', '').replace(' 2nd Paper', '') + suffix });
+      }
+      return sub;
+    });
+
+    if(filteredItems.length === 0) return;
+
     html+=`<div class="marks-panel">
       <div class="marks-panel-hd ${hd[stu.group]}">
         <span>${gl[stu.group]}</span>
@@ -907,7 +962,7 @@ async function loadMarksForm(){
           <span style="text-align:center;">Total</span>
           <span style="text-align:center;">Grade</span>
         </div>`;
-    cat.items.forEach(sub=>{
+    filteredItems.forEach(sub=>{
       const sv=ex[sub.code]||{};
       const cqM=sub.cqMax||70, mcqM=sub.mcqMax||30;
       const isSelectedOptional=sub.optionalGroup===currentSelected;
@@ -933,7 +988,7 @@ async function loadMarksForm(){
     </div>
   </div>`;
   out.innerHTML=html;
-  flatSubs(stu.group).forEach(sub=>calcRow(sub.code,sub.hasPrac,sub.cqMax||70,sub.mcqMax||30));
+  flatSubs(stu.group, stu.cls).forEach(sub=>calcRow(sub.code,sub.hasPrac,sub.cqMax||70,sub.mcqMax||30));
 }
 
 function selectOptionalSubject(sid, examType, optionalId){
@@ -952,7 +1007,7 @@ function calcRow(code,hasPrac,cqMax,mcqMax){
 
 async function saveMarks(sid){
   const stu=LS.students().find(s=>s.id===sid);
-  const subs=flatSubs(stu.group), et=$$('m-exam'), ey=$$('m-session');
+  const subs=flatSubs(stu.group, stu.cls), et=$$('m-exam'), ey=$$('m-session');
   const optionalSelected=getSelectedOptional(sid, et);
   
   if(OPTIONAL_SUBJECTS[stu.group] && !optionalSelected){
@@ -1050,7 +1105,7 @@ async function submitBulkMarks() {
     const optionalCode = String(row['Optional Subject Code']||row['Optional Code']||row.Optional||row.optional||'').trim();
     const selectedOptional = getOptionalIdByCode(stu.group, optionalCode);
     const marksObj = {};
-    const subs = flatSubs(stu.group);
+    const subs = flatSubs(stu.group, stu.cls);
 
     subs.forEach(sub => {
       const mark = row[sub.code];
