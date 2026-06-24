@@ -29,6 +29,7 @@ class Student(db.Model):
     session  = db.Column(db.String(50),  default='')
     photo    = db.Column(db.String(500), default='')       # e.g. /photos/abc.jpg
     optional_subjects = db.Column(db.String(50), default='')  # e.g. '178/179'
+    student_submitted = db.Column(db.Boolean, default=False)  # True once student self-submits via portal
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Cascade-delete marks when student is deleted
@@ -51,9 +52,10 @@ class Student(db.Model):
             'religion':  self.religion,
             'year':      self.year,
             'session':   self.session,
-            'photo':     self.photo,
-            'optionalSubjects': self.optional_subjects,
-            'createdAt': self.created_at.strftime('%d/%m/%Y') if self.created_at else '',
+            'photo':            self.photo,
+            'optionalSubjects':  self.optional_subjects,
+            'studentSubmitted':  self.student_submitted or False,
+            'createdAt':         self.created_at.strftime('%d/%m/%Y') if self.created_at else '',
         }
 
 

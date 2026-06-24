@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Portal — Moinuddin Adarsha Mohila College</title>
+<meta name="description" content="Student self-service portal for Moinuddin Adarsha Mohila College. Upload your photo and select your optional subject.">
+<link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700;900&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:   #0d2b45;
+  --navy2:  #174070;
+  --navy3:  #1f5490;
+  --gold:   #a97c28;
+  --gold2:  #c9973a;
+  --gold3:  #e8b84b;
+  --slate:  #f1f4f8;
+  --slate2: #e8ecf2;
+  --white:  #fff;
+  --txt:    #0f172a;
+  --txt2:   #334155;
+  --muted:  #64748b;
+  --border: #dde3ed;
+  --border2:#c8d2e0;
+  --green:  #166534;
+  --green-bg:#f0fdf4;
+  --green-border:#bbf7d0;
+  --red:    #991b1b;
+  --red-bg: #fef2f2;
+  --red-border:#fecaca;
+  --amber:  #92400e;
+  --amber-bg:#fffbeb;
+  --r:6px; --r-md:10px; --r-lg:16px; --r-xl:22px;
+  --shadow-sm:0 2px 8px rgba(13,43,69,.10);
+  --shadow:0 8px 32px rgba(13,43,69,.14);
+  --shadow-lg:0 20px 60px rgba(0,0,0,.18);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{min-height:100%;font-family:'Source Sans 3',sans-serif;color:var(--txt);}
+body{
+  background:linear-gradient(135deg, #0d2b45 0%, #1a4a7a 50%, #0d2b45 100%);
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+.site-header{
+  padding:20px 24px;display:flex;align-items:center;gap:16px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+  background:rgba(0,0,0,.15);backdrop-filter:blur(6px);
+}
+.hdr-logo{
+  width:52px;height:52px;border-radius:50%;background:#fff;
+  border:2.5px solid var(--gold2);
+  display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;
+}
+.hdr-logo img{width:100%;height:100%;object-fit:contain;}
+.hdr-text h1{font-family:'Merriweather',serif;font-size:.88rem;font-weight:700;color:#fff;line-height:1.3;}
+.hdr-text p{font-size:.62rem;color:rgba(255,255,255,.55);margin-top:2px;}
+.hdr-badge{
+  margin-left:auto;
+  background:linear-gradient(135deg,var(--gold2),var(--gold3));
+  color:var(--navy);font-size:.72rem;font-weight:700;
+  padding:6px 14px;border-radius:999px;letter-spacing:.3px;white-space:nowrap;
+}
+.main{flex:1;display:flex;align-items:center;justify-content:center;padding:40px 16px;}
+.portal-card{
+  background:#fff;border-radius:var(--r-xl);box-shadow:var(--shadow-lg);
+  width:100%;max-width:520px;overflow:hidden;
+  animation:slideUp .4s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes slideUp{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:none;}}
+.card-accent{height:5px;background:linear-gradient(90deg,var(--navy),var(--gold2),var(--navy2));}
+.card-hero{
+  padding:28px 28px 20px;
+  background:linear-gradient(180deg,#f8faff 0%,#fff 100%);
+  border-bottom:1px solid var(--border);text-align:center;
+}
+.card-hero-icon{
+  width:64px;height:64px;border-radius:50%;
+  background:linear-gradient(135deg,var(--navy),var(--navy2));
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 14px;font-size:1.6rem;
+  box-shadow:0 4px 16px rgba(13,43,69,.25);
+}
+.card-hero h2{font-family:'Merriweather',serif;font-size:1.15rem;font-weight:700;color:var(--navy);margin-bottom:6px;}
+.card-hero p{font-size:.85rem;color:var(--muted);line-height:1.5;}
+.steps{
+  display:flex;align-items:center;justify-content:center;
+  padding:16px 28px;gap:0;border-bottom:1px solid var(--border);background:#fafcff;
+}
+.step-item{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;}
+.step-dot{
+  width:28px;height:28px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.75rem;font-weight:700;
+  border:2px solid var(--border2);background:#fff;color:var(--muted);transition:all .3s;
+}
+.step-item.active .step-dot{background:var(--navy);border-color:var(--navy);color:#fff;}
+.step-item.done .step-dot{background:var(--green);border-color:var(--green);color:#fff;}
+.step-label{font-size:.65rem;font-weight:600;color:var(--muted);text-align:center;}
+.step-item.active .step-label{color:var(--navy);}
+.step-item.done .step-label{color:var(--green);}
+.step-line{flex:1;height:2px;background:var(--border2);max-width:40px;transition:background .3s;}
+.step-line.done{background:var(--green);}
+.card-body{padding:28px;}
+.alert{
+  padding:12px 16px;border-radius:var(--r-md);font-size:.84rem;
+  line-height:1.5;margin-bottom:20px;display:none;
+  animation:fadeIn .2s ease both;
+}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+.alert-ok{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border);}
+.alert-err{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border);}
+.alert-info{background:#eff6ff;color:#1e40af;border:1px solid #bfdbfe;}
+.alert-warn{background:var(--amber-bg);color:var(--amber);border:1px solid #fde68a;}
+.fg-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.fg{display:flex;flex-direction:column;gap:6px;}
+.fg label{font-size:.78rem;font-weight:600;color:var(--navy);}
+.fg select,.fg input[type=text]{
+  padding:11px 12px;border:1.5px solid var(--border2);border-radius:var(--r);
+  font-family:inherit;font-size:.88rem;color:var(--txt);background:#fafcff;
+  transition:border-color .15s,box-shadow .15s;width:100%;
+}
+.fg select:focus,.fg input[type=text]:focus{
+  outline:none;border-color:var(--navy2);box-shadow:0 0 0 3px rgba(31,84,144,.12);
+}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:12px 24px;border-radius:var(--r);border:none;
+  font-family:inherit;font-size:.9rem;font-weight:700;
+  cursor:pointer;transition:all .2s;text-decoration:none;letter-spacing:.2px;
+}
+.btn-primary{background:var(--navy);color:#fff;}
+.btn-primary:hover{background:var(--navy2);transform:translateY(-1px);box-shadow:0 4px 12px rgba(13,43,69,.3);}
+.btn-primary:disabled{background:#94a3b8;cursor:not-allowed;transform:none;box-shadow:none;}
+.btn-outline{background:transparent;border:1.5px solid var(--border2);color:var(--txt2);}
+.btn-outline:hover{border-color:var(--navy);color:var(--navy);}
+.btn-full{width:100%;}
+.photo-zone{
+  border:2px dashed var(--border2);border-radius:var(--r-lg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:10px;padding:24px;cursor:pointer;
+  transition:border-color .2s,background .2s;background:#fafcff;text-align:center;
+  position:relative;overflow:hidden;min-height:160px;
+}
+.photo-zone:hover{border-color:var(--navy);background:#f0f4ff;}
+.photo-zone img{width:120px;height:150px;object-fit:cover;border-radius:var(--r);border:2px solid var(--border);}
+.photo-zone .ph-hint{font-size:.8rem;color:var(--muted);}
+.photo-zone .ph-hint strong{display:block;color:var(--navy);font-size:.9rem;margin-bottom:4px;}
+.photo-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;}
+.photo-strip{display:flex;gap:10px;align-items:center;margin-top:8px;}
+.photo-preview-thumb{width:60px;height:75px;object-fit:cover;border-radius:var(--r);border:2px solid var(--border);}
+.opt-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.opt-card{
+  border:2px solid var(--border);border-radius:var(--r-md);
+  padding:14px;cursor:pointer;transition:all .2s;background:#fafcff;
+}
+.opt-card:hover{border-color:var(--navy2);background:#eff6ff;}
+.opt-card.selected{border-color:var(--navy);background:#e8f0ff;}
+.opt-card-icon{font-size:1.5rem;margin-bottom:6px;}
+.opt-card-name{font-size:.82rem;font-weight:700;color:var(--navy);line-height:1.3;}
+.opt-card-codes{font-size:.72rem;color:var(--muted);margin-top:3px;}
+.opt-check{
+  width:20px;height:20px;border-radius:50%;border:2px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;
+  float:right;margin-top:-2px;transition:all .2s;font-size:.7rem;
+}
+.opt-card.selected .opt-check{background:var(--navy);border-color:var(--navy);color:#fff;}
+.student-badge{
+  background:linear-gradient(135deg,#f0f4ff,#e8f0ff);border:1.5px solid #c7d7f0;
+  border-radius:var(--r-md);padding:14px 18px;margin-bottom:22px;
+  display:flex;align-items:center;gap:14px;
+}
+.student-badge-avatar{
+  width:42px;height:42px;border-radius:50%;
+  background:linear-gradient(135deg,var(--navy),var(--navy2));
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:1rem;font-weight:700;flex-shrink:0;
+}
+.student-badge-info .sbi-name{font-weight:700;color:var(--navy);font-size:.95rem;}
+.student-badge-info .sbi-meta{font-size:.75rem;color:var(--muted);margin-top:2px;}
+.divider{display:flex;align-items:center;gap:10px;margin:20px 0;}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border);}
+.divider span{font-size:.75rem;color:var(--muted);font-weight:600;white-space:nowrap;}
+.locked-wrap{text-align:center;padding:8px 0;}
+.locked-icon{font-size:3rem;margin-bottom:12px;}
+.locked-title{font-family:'Merriweather',serif;font-size:1.05rem;font-weight:700;color:var(--navy);margin-bottom:8px;}
+.locked-msg{font-size:.85rem;color:var(--muted);line-height:1.6;margin-bottom:20px;}
+.locked-submitted-data{
+  display:flex;flex-direction:column;gap:12px;
+  background:var(--slate);border-radius:var(--r-md);
+  padding:16px;margin-bottom:20px;text-align:left;
+}
+.lsd-row{display:flex;align-items:center;gap:12px;}
+.lsd-label{font-size:.75rem;font-weight:600;color:var(--muted);width:120px;flex-shrink:0;}
+.lsd-value{font-size:.85rem;color:var(--txt);font-weight:600;}
+.lsd-photo{width:70px;height:88px;object-fit:cover;border-radius:var(--r);border:2px solid var(--border);}
+.lsd-no-photo{
+  width:70px;height:88px;background:var(--slate2);border-radius:var(--r);
+  display:flex;align-items:center;justify-content:center;
+  font-size:.65rem;color:var(--muted);text-align:center;padding:8px;
+}
+.success-wrap{text-align:center;padding:8px 0;}
+.success-icon{
+  width:72px;height:72px;border-radius:50%;
+  background:linear-gradient(135deg,#16a34a,#22c55e);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.8rem;margin:0 auto 16px;
+  box-shadow:0 8px 24px rgba(22,163,74,.3);
+  animation:scaleIn .4s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes scaleIn{from{transform:scale(0);}to{transform:scale(1);}}
+.success-title{font-family:'Merriweather',serif;font-size:1.1rem;font-weight:700;color:var(--navy);margin-bottom:8px;}
+.success-msg{font-size:.85rem;color:var(--muted);line-height:1.6;}
+.section-label{font-size:.75rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;}
+.req{color:#dc2626;}
+.site-footer{padding:14px 24px;text-align:center;font-size:.72rem;color:rgba(255,255,255,.4);border-top:1px solid rgba(255,255,255,.06);}
+.spinner{
+  display:inline-block;width:16px;height:16px;
+  border:2.5px solid rgba(255,255,255,.3);border-top-color:#fff;
+  border-radius:50%;animation:spin .7s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+@media(max-width:480px){
+  .fg-grid{grid-template-columns:1fr;}
+  .opt-grid{grid-template-columns:1fr;}
+  .card-body{padding:20px;}
+  .card-hero{padding:22px 20px 16px;}
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="hdr-logo">
+    <img src="https://www.muamc.edu.bd/wp-content/uploads/2025/01/logo-muam-scaled.jpeg" alt="College Logo">
+  </div>
+  <div class="hdr-text">
+    <h1>Moinuddin Adarsha Mohila College</h1>
+    <p>Sylhet, Bangladesh &middot; Academic Management System</p>
+  </div>
+  <div class="hdr-badge">&#127891; Student Portal</div>
+</header>
+
+<main class="main">
+  <div class="portal-card" id="portal-card">
+    <div class="card-accent"></div>
+
+    <div class="card-hero">
+      <div class="card-hero-icon">&#127891;</div>
+      <h2>Student Self-Service Portal</h2>
+      <p>Upload your photo and select your optional subject.<br>
+         This can only be done <strong>once</strong> &mdash; enter carefully.</p>
+    </div>
+
+    <div class="steps" id="step-bar">
+      <div class="step-item active" id="si-1">
+        <div class="step-dot">1</div>
+        <div class="step-label">Identify</div>
+      </div>
+      <div class="step-line" id="sl-1"></div>
+      <div class="step-item" id="si-2">
+        <div class="step-dot">2</div>
+        <div class="step-label">Upload</div>
+      </div>
+      <div class="step-line" id="sl-2"></div>
+      <div class="step-item" id="si-3">
+        <div class="step-dot">3</div>
+        <div class="step-label">Done</div>
+      </div>
+    </div>
+
+    <div class="card-body">
+
+      <!-- STEP 1: IDENTITY -->
+      <div id="step1">
+        <div id="s1-alert" class="alert"></div>
+        <p style="font-size:.83rem;color:var(--muted);margin-bottom:20px;line-height:1.5;">
+          Enter your details exactly as registered with the college. All fields are required.
+        </p>
+        <div class="fg-grid">
+          <div class="fg">
+            <label for="s-cls">Class <span class="req">*</span></label>
+            <select id="s-cls">
+              <option value="">— Select —</option>
+              <option value="Class-XI">Class XI</option>
+              <option value="Class-XII">Class XII</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label for="s-group">Department <span class="req">*</span></label>
+            <select id="s-group">
+              <option value="">— Select —</option>
+              <option value="Science">Science</option>
+              <option value="Humanities">Humanities</option>
+              <option value="Business">Business Studies</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label for="s-session">Session <span class="req">*</span></label>
+            <select id="s-session">
+              <option value="">— Select —</option>
+              <option value="2023&#x2013;2024">2023&ndash;2024</option>
+              <option value="2024&#x2013;2025">2024&ndash;2025</option>
+              <option value="2025&#x2013;2026">2025&ndash;2026</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label for="s-roll">Roll Number <span class="req">*</span></label>
+            <input type="text" id="s-roll" placeholder="e.g. 1001">
+          </div>
+        </div>
+        <div style="margin-top:24px;">
+          <button class="btn btn-primary btn-full" id="lookup-btn" onclick="doLookup()">
+            &#128269; Find My Record
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 2: UPLOAD -->
+      <div id="step2" style="display:none;">
+        <div id="s2-alert" class="alert"></div>
+        <div class="student-badge" id="student-badge">
+          <div class="student-badge-avatar" id="sb-avatar">?</div>
+          <div class="student-badge-info">
+            <div class="sbi-name" id="sb-name">—</div>
+            <div class="sbi-meta" id="sb-meta">—</div>
+          </div>
+        </div>
+        <div class="alert alert-warn" style="display:block;">
+          &#9888; <strong>Important:</strong> Once you click "Submit", you will <strong>not</strong> be able to change your photo or optional subject. Make sure everything is correct.
+        </div>
+
+        <div class="section-label">&#128248; Profile Photo</div>
+        <div class="photo-zone" id="photo-zone" onclick="triggerPhotoInput()">
+          <img id="photo-preview" src="" alt="Preview" style="display:none;">
+          <div id="photo-hint">
+            <div style="font-size:2rem;margin-bottom:8px;">&#128247;</div>
+            <div class="ph-hint">
+              <strong>Click to Upload Photo</strong>
+              3x4 photo preferred &middot; JPG, PNG &middot; Max 2 MB
+            </div>
+          </div>
+          <input type="file" id="photo-input" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="handlePhotoSelect(this)">
+        </div>
+        <div class="photo-strip" id="photo-strip" style="display:none;">
+          <img id="photo-thumb" class="photo-preview-thumb" src="" alt="">
+          <div style="flex:1;">
+            <div style="font-size:.8rem;font-weight:600;color:var(--green);">&#10003; Photo selected</div>
+            <div style="font-size:.72rem;color:var(--muted);" id="photo-name"></div>
+          </div>
+          <button class="btn btn-outline" style="padding:6px 14px;font-size:.75rem;" onclick="clearPhoto()">Remove</button>
+        </div>
+
+        <div class="divider"><span>OPTIONAL SUBJECT SELECTION</span></div>
+        <div class="section-label">&#128218; Optional Subject <span class="req">*</span></div>
+        <div id="optional-info" class="alert alert-info" style="display:block;margin-bottom:14px;font-size:.82rem;">
+          Select <strong>one</strong> optional subject group from the list below.
+        </div>
+        <div class="opt-grid" id="opt-grid"></div>
+        <div id="no-optional" style="display:none;font-size:.82rem;color:var(--muted);padding:8px 0;">
+          No optional subject selection required for your group.
+        </div>
+
+        <div style="margin-top:28px;display:flex;gap:12px;">
+          <button class="btn btn-outline" style="flex:0 0 auto;" onclick="goBack()">&larr; Back</button>
+          <button class="btn btn-primary btn-full" id="submit-btn" onclick="doSubmit()">
+            &#10003; Submit Information
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 3a: LOCKED (already submitted) -->
+      <div id="step-locked" style="display:none;">
+        <div class="locked-wrap">
+          <div class="locked-icon">&#128274;</div>
+          <div class="locked-title">Already Submitted</div>
+          <div class="locked-msg">
+            You have already submitted your photo and optional subject selection.<br>
+            If you need to make changes, please contact your college administration.
+          </div>
+          <div class="locked-submitted-data" id="locked-data"></div>
+          <div class="alert alert-info" style="display:block;font-size:.82rem;">
+            &#128222; To request changes, contact: <strong>Academic Office, Moinuddin Adarsha Mohila College, Sylhet</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3b: SUCCESS (just submitted) -->
+      <div id="step-success" style="display:none;">
+        <div class="success-wrap">
+          <div class="success-icon">&#10003;</div>
+          <div class="success-title">Submitted Successfully!</div>
+          <div class="success-msg" style="margin-bottom:20px;">
+            Your photo and optional subject selection have been saved.<br>
+            This information is now visible to your teachers and administrators.
+          </div>
+          <div class="locked-submitted-data" id="success-data"></div>
+          <div class="alert alert-warn" style="display:block;font-size:.82rem;">
+            &#9888; You cannot make further changes. Contact the Academic Office if corrections are needed.
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /card-body -->
+  </div><!-- /portal-card -->
+</main>
+
+<footer class="site-footer">
+  &copy; Moinuddin Adarsha Mohila College, Sylhet &nbsp;&middot;&nbsp; Student Self-Service Portal
+</footer>
+
+<script>
+// ─── State ────────────────────────────────────────
+let foundStudent = null;
+let photoDataUrl  = '';
+let selectedOptional = '';
+
+// ─── Optional subject map ─────────────────────────
+const OPTIONAL_MAP = {
+  'Science': [
+    { id:'scienceBio',  label:'Biology',             icon:'&#129754;', codes:'178/179',  desc:'1st & 2nd Paper' },
+    { id:'scienceMath', label:'Higher Mathematics',  icon:'&#128208;', codes:'265/266',  desc:'1st & 2nd Paper' },
+  ],
+  'Humanities': [
+    { id:'humLogic',    label:'Logic',               icon:'&#129504;', codes:'121/122',  desc:'1st & 2nd Paper' },
+    { id:'humHome',     label:'Home Science',         icon:'&#127968;', codes:'273/274',  desc:'1st & 2nd Paper' },
+  ],
+  'Business': [
+    { id:'busEcon',     label:'Economics',           icon:'&#128200;', codes:'109/110',  desc:'1st & 2nd Paper' },
+    { id:'busHome',     label:'Home Science',         icon:'&#127968;', codes:'273/274',  desc:'1st & 2nd Paper' },
+  ],
+};
+
+// ─── Step indicator ───────────────────────────────
+function setStep(n, locked, success) {
+  document.getElementById('step1').style.display        = n===1 ? '' : 'none';
+  document.getElementById('step2').style.display        = n===2 ? '' : 'none';
+  document.getElementById('step-locked').style.display  = locked  ? '' : 'none';
+  document.getElementById('step-success').style.display = success ? '' : 'none';
+  ['si-1','si-2','si-3'].forEach(id => document.getElementById(id).className = 'step-item');
+  ['sl-1','sl-2'].forEach(id => document.getElementById(id).className = 'step-line');
+  if (n===1) { document.getElementById('si-1').classList.add('active'); }
+  else if (n===2) {
+    document.getElementById('si-1').classList.add('done');
+    document.getElementById('sl-1').classList.add('done');
+    document.getElementById('si-2').classList.add('active');
+  } else {
+    document.getElementById('si-1').classList.add('done');
+    document.getElementById('sl-1').classList.add('done');
+    document.getElementById('si-2').classList.add('done');
+    document.getElementById('sl-2').classList.add('done');
+    document.getElementById('si-3').classList.add('done');
+  }
+}
+
+function showAlert(id, type, msg) {
+  const el = document.getElementById(id);
+  el.className = 'alert alert-' + type;
+  el.innerHTML = msg;
+  el.style.display = 'block';
+  el.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function hideAlert(id) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = 'none';
+}
+
+// ─── STEP 1: Lookup ──────────────────────────────
+async function doLookup() {
+  const cls     = document.getElementById('s-cls').value;
+  const group   = document.getElementById('s-group').value;
+  const session = document.getElementById('s-session').value;
+  const roll    = document.getElementById('s-roll').value.trim();
+  if (!cls || !group || !session || !roll) {
+    showAlert('s1-alert','err','&#9888; Please fill in all four fields before searching.');
+    return;
+  }
+  const btn = document.getElementById('lookup-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Searching&hellip;';
+  hideAlert('s1-alert');
+  try {
+    const params = new URLSearchParams({cls, group, session, roll});
+    const res  = await fetch('/api/student-portal/lookup?' + params);
+    const data = await res.json();
+    if (!data.ok) {
+      showAlert('s1-alert','err','&#10060; ' + (data.message || 'Student not found.'));
+      return;
+    }
+    foundStudent = data;
+    if (data.submitted) {
+      renderLockedView(data);
+      setStep(3, true, false);
+    } else {
+      renderUploadForm(data);
+      setStep(2, false, false);
+    }
+  } catch (err) {
+    showAlert('s1-alert','err','&#10060; Server error. Please try again.');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '&#128269; Find My Record';
+  }
+}
+
+// ─── STEP 2: render ──────────────────────────────
+function renderUploadForm(stu) {
+  const initials = stu.name.trim().split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+  document.getElementById('sb-avatar').textContent = initials;
+  document.getElementById('sb-name').textContent   = stu.name;
+  document.getElementById('sb-meta').textContent   =
+    stu.cls + ' \xb7 ' + stu.group + ' \xb7 Session: ' + stu.session + ' \xb7 Roll: ' + stu.roll;
+  renderOptionalGrid(stu.group);
+}
+
+function renderOptionalGrid(group) {
+  const opts  = OPTIONAL_MAP[group] || [];
+  const grid  = document.getElementById('opt-grid');
+  const noOpt = document.getElementById('no-optional');
+  selectedOptional = '';
+  if (!opts.length) {
+    grid.style.display   = 'none';
+    noOpt.style.display  = 'block';
+    document.getElementById('optional-info').style.display = 'none';
+    return;
+  }
+  noOpt.style.display = 'none';
+  grid.style.display  = 'grid';
+  grid.innerHTML = opts.map(opt =>
+    '<div class="opt-card" id="oc-' + opt.id + '" onclick="selectOptional(\'' + opt.id + '\',\'' + opt.codes + '\')">' +
+      '<div class="opt-check" id="och-' + opt.id + '"></div>' +
+      '<div class="opt-card-icon">' + opt.icon + '</div>' +
+      '<div class="opt-card-name">' + opt.label + '</div>' +
+      '<div class="opt-card-codes">' + opt.desc + ' &mdash; Code: ' + opt.codes + '</div>' +
+    '</div>'
+  ).join('');
+}
+
+function selectOptional(id, codes) {
+  document.querySelectorAll('.opt-card').forEach(el => el.classList.remove('selected'));
+  document.querySelectorAll('.opt-check').forEach(el => { el.textContent = ''; });
+  const card  = document.getElementById('oc-' + id);
+  const check = document.getElementById('och-' + id);
+  if (card)  card.classList.add('selected');
+  if (check) check.textContent = '\u2713';
+  selectedOptional = codes;
+}
+
+// ─── Photo ───────────────────────────────────────
+function triggerPhotoInput() {
+  document.getElementById('photo-input').click();
+}
+function handlePhotoSelect(inp) {
+  const f = inp.files[0];
+  if (!f) return;
+  if (f.size > 2097152) { alert('Photo size must be 2 MB or less.'); inp.value=''; return; }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    photoDataUrl = e.target.result;
+    const preview = document.getElementById('photo-preview');
+    preview.src = photoDataUrl; preview.style.display = 'block';
+    document.getElementById('photo-hint').style.display = 'none';
+    document.getElementById('photo-thumb').src = photoDataUrl;
+    document.getElementById('photo-name').textContent = f.name + ' (' + (f.size/1024).toFixed(1) + ' KB)';
+    document.getElementById('photo-strip').style.display = 'flex';
+  };
+  reader.readAsDataURL(f);
+}
+function clearPhoto() {
+  photoDataUrl = '';
+  const preview = document.getElementById('photo-preview');
+  preview.src = ''; preview.style.display = 'none';
+  document.getElementById('photo-hint').style.display = '';
+  document.getElementById('photo-strip').style.display = 'none';
+  document.getElementById('photo-input').value = '';
+}
+function goBack() {
+  setStep(1, false, false);
+  clearPhoto();
+  selectedOptional = '';
+  foundStudent = null;
+}
+
+// ─── STEP 2: Submit ──────────────────────────────
+async function doSubmit() {
+  hideAlert('s2-alert');
+  const opts = OPTIONAL_MAP[foundStudent ? foundStudent.group : ''] || [];
+  if (!photoDataUrl && !selectedOptional) {
+    showAlert('s2-alert','err','&#9888; Please upload a photo and/or select an optional subject.');
+    return;
+  }
+  if (opts.length && !selectedOptional) {
+    showAlert('s2-alert','err','&#9888; Please select your optional subject before submitting.');
+    return;
+  }
+  const optLabel = selectedOptional ? getOptLabel(selectedOptional) : '(none)';
+  const confirmed = confirm(
+    'Are you sure you want to submit?\n\n' +
+    'Name: ' + foundStudent.name + '\n' +
+    'Optional Subject: ' + optLabel + '\n' +
+    'Photo: ' + (photoDataUrl ? 'Uploaded' : 'Not uploaded') + '\n\n' +
+    'WARNING: This CANNOT be changed after submission.'
+  );
+  if (!confirmed) return;
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Submitting&hellip;';
+  try {
+    const res = await fetch('/api/student-portal/submit/' + foundStudent.id, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        photo: photoDataUrl || null,
+        optional_subject: selectedOptional || null,
+      }),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      renderSuccessView(data);
+      setStep(3, false, true);
+    } else if (data.already_submitted) {
+      renderLockedView(foundStudent);
+      setStep(3, true, false);
+    } else {
+      showAlert('s2-alert','err','&#10060; ' + (data.message || 'Submission failed.'));
+    }
+  } catch (err) {
+    showAlert('s2-alert','err','&#10060; Server error. Please try again.');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '&#10003; Submit Information';
+  }
+}
+
+// ─── Helpers ─────────────────────────────────────
+function getOptLabel(codes) {
+  const allOpts = Object.values(OPTIONAL_MAP).flat();
+  const match = allOpts.find(function(o){ return o.codes === codes; });
+  return match ? match.label + ' (' + codes + ')' : codes;
+}
+
+function renderLockedView(stu) {
+  const photoUrl = stu.photo || null;
+  const optStr   = stu.optionalSubjects || stu.optional_subjects || '';
+  document.getElementById('locked-data').innerHTML =
+    '<div class="lsd-row">' +
+      '<div class="lsd-label">Student Name</div>' +
+      '<div class="lsd-value">' + stu.name + '</div>' +
+    '</div>' +
+    '<div class="lsd-row">' +
+      '<div class="lsd-label">Photo</div>' +
+      (photoUrl
+        ? '<img src="' + photoUrl + '" class="lsd-photo" alt="Student Photo">'
+        : '<div class="lsd-no-photo">No photo uploaded</div>') +
+    '</div>' +
+    '<div class="lsd-row">' +
+      '<div class="lsd-label">Optional Subject</div>' +
+      '<div class="lsd-value">' + (optStr ? getOptLabel(optStr) : '<span style="color:var(--muted)">Not selected</span>') + '</div>' +
+    '</div>';
+}
+
+function renderSuccessView(apiResp) {
+  const photoUrl = apiResp.photo || photoDataUrl || null;
+  const optStr   = apiResp.optionalSubjects || selectedOptional || '';
+  const name     = foundStudent ? foundStudent.name : '';
+  document.getElementById('success-data').innerHTML =
+    '<div class="lsd-row">' +
+      '<div class="lsd-label">Student Name</div>' +
+      '<div class="lsd-value">' + name + '</div>' +
+    '</div>' +
+    '<div class="lsd-row">' +
+      '<div class="lsd-label">Photo</div>' +
+      (photoUrl
+        ? '<img src="' + photoUrl + '" class="lsd-photo" alt="Student Photo">'
+        : '<div class="lsd-no-photo">No photo</div>') +
+    '</div>' +
+    '<div class="lsd-row">' +
+      '<div class="lsd-label">Optional Subject</div>' +
+      '<div class="lsd-value">' + (optStr ? getOptLabel(optStr) : '<span style="color:var(--muted)">Not selected</span>') + '</div>' +
+    '</div>';
+}
+
+// ─── Enter key ────────────────────────────────────
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && document.getElementById('step1').style.display !== 'none') {
+    doLookup();
+  }
+});
+
+setStep(1, false, false);
+</script>
+</body>
+</html>

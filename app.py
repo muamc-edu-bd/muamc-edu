@@ -90,6 +90,7 @@ _COLUMN_MIGRATIONS = [
     ("teachers", "joining",           "VARCHAR(50) DEFAULT ''"),
     ("teachers", "address",           "TEXT DEFAULT ''"),
     ("marks",    "selected_optional", "VARCHAR(50) DEFAULT ''"),
+    ("students", "student_submitted", "BOOLEAN DEFAULT FALSE"),
 ]
 
 with app.app_context():
@@ -289,16 +290,21 @@ def admit_card_page():
 def analytics_page():
     return _serve_html('analytics.html')
 
+@app.route('/student-portal')
+def student_portal_page():
+    """Public student self-service portal — no authentication required."""
+    return _serve_html('student-portal.html', inject_api=False)
+
 @app.route('/<path:page>')
 def html_pages(page):
     # Only serve .html files from BASE_DIR; prevent directory traversal
     if not page.endswith('.html') or '/' in page or '..' in page:
         abort(404)
-    # Auth-gate any .html page that is not the login page
-    if page != 'login.html' and not session.get('authenticated'):
+    # Auth-gate any .html page that is not the login or student-portal page
+    if page not in ('login.html', 'student-portal.html') and not session.get('authenticated'):
         return redirect('/login')
     # Use _serve_html to ensure the global font and API scripts are correctly injected
-    return _serve_html(page, inject_api=(page != 'login.html'))
+    return _serve_html(page, inject_api=(page not in ('login.html', 'student-portal.html')))
 
 
 # ─────────────────────────────────────────────
@@ -371,6 +377,103 @@ def auth_status():
     return jsonify({
         'authenticated': session.get('authenticated', False),
         'role': session.get('role', None)
+    })
+
+
+# ─────────────────────────────────────────────
+# STUDENT PORTAL  (public — no auth required)
+# ─────────────────────────────────────────────
+
+@app.route('/api/student-portal/lookup', methods=['GET'])
+def student_portal_lookup():
+    """
+    Public endpoint: find a student by class + group + session + roll.
+    Returns minimal info (name, submission status) — no sensitive data.
+    """
+    cls_val     = (request.args.get('cls') or '').strip()
+    group_val   = (request.args.get('group') or '').strip()
+    session_val = (request.args.get('session') or '').strip()
+    roll_val    = (request.args.get('roll') or '').strip()
+
+    if not cls_val or not group_val or not session_val or not roll_val:
+        return jsonify({'ok': False, 'message': 'All fields are required: cls, group, session, roll'}), 400
+
+    student = Student.query.filter_by(
+        cls=cls_val,
+        group=group_val,
+        roll=roll_val,
+    ).filter(
+        (Student.session == session_val) | (Student.year == session_val)
+    ).first()
+
+    if not student:
+        return jsonify({'ok': False, 'message': 'No student found with the provided information. Please check your details and try again.'}), 404
+
+    submitted = bool(student.student_submitted)
+    return jsonify({
+        'ok':        True,
+        'id':        student.id,
+        'name':      student.name,
+        'cls':       student.cls,
+        'group':     student.group,
+        'session':   student.session or student.year,
+        'roll':      student.roll,
+        'submitted': submitted,
+        # If already submitted, show current values so student can view them
+        'photo':              student.photo if submitted else None,
+        'optionalSubjects':   student.optional_subjects if submitted else None,
+    })
+
+
+@app.route('/api/student-portal/submit/<sid>', methods=['POST'])
+def student_portal_submit(sid):
+    """
+    Public endpoint: student uploads photo + selects optional subject.
+    One-time only — sets student_submitted = True after first save.
+    """
+    student = Student.query.filter_by(id=sid).first()
+    if not student:
+        return jsonify({'ok': False, 'message': 'Student not found'}), 404
+
+    if student.student_submitted:
+        return jsonify({
+            'ok':      False,
+            'message': 'You have already submitted your information. Please contact the college administration to make changes.',
+            'already_submitted': True,
+        }), 409
+
+    body             = request.get_json(force=True, silent=True) or {}
+    optional_subject = (body.get('optional_subject') or '').strip()
+    photo_data       = body.get('photo', '')
+
+    if not optional_subject and not photo_data:
+        return jsonify({'ok': False, 'message': 'Please upload a photo and/or select an optional subject.'}), 400
+
+    # Save photo if provided
+    if photo_data and photo_data.startswith('data:'):
+        _delete_photo_file(student.photo)
+        new_photo = _save_photo_file(student.id, photo_data)
+        if new_photo:
+            student.photo = new_photo
+
+    # Save optional subject if provided
+    if optional_subject:
+        student.optional_subjects = optional_subject
+
+    # Lock: prevent further student edits
+    student.student_submitted = True
+
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'ok': False, 'message': f'Database error: {str(e)}'}), 500
+
+    return jsonify({
+        'ok':      True,
+        'message': 'Your information has been saved successfully. You cannot make further changes.',
+        'photo':   student.photo,
+        'optionalSubjects': student.optional_subjects,
     })
 
 

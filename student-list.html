@@ -1706,9 +1706,11 @@
         });
 
         const renderStudentRows = (students) => students.map((s, i) => `<tr>
-      <td>${s.photo ? `<img src="${s.photo}" style="width:40px;height:50px;object-fit:cover;border-radius:4px;border:1px solid var(--border);">` : `<div style="width:40px;height:50px;background:var(--slate2);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:.6rem;color:var(--muted);">No Photo</div>`}</td>
+      <td style="position:relative;">${s.photo ? `<img src="${s.photo}" style="width:40px;height:50px;object-fit:cover;border-radius:4px;border:1px solid var(--border);">` : `<div style="width:40px;height:50px;background:var(--slate2);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:.6rem;color:var(--muted);">No Photo</div>`}
+        ${s.studentSubmitted ? `<span title="Student self-submitted via portal" style="position:absolute;top:0;right:0;background:#16a34a;color:#fff;font-size:.52rem;font-weight:700;padding:2px 4px;border-radius:3px;line-height:1;">&#10003;</span>` : ''}
+      </td>
       <td style="color:var(--muted);">${i + 1}</td>
-      <td><strong>${s.name}</strong></td>
+      <td><strong>${s.name}</strong>${s.studentSubmitted ? ` <span style="font-size:.65rem;color:#16a34a;font-weight:600;" title="Submitted via student portal">(self-submitted)</span>` : ''}</td>
       <td>${s.roll}</td><td>${s.reg || '—'}</td>
       <td><span class="pill ${pillCls(s.group)}">${s.group}</span></td>
       <td>${s.session || '—'}</td>
