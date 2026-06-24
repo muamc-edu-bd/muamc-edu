@@ -1101,7 +1101,10 @@ async function submitBulkMarks() {
     const examType = row['Exam Type'] || 'Annual';
     const session  = row.Session || '2024-2025';
     const optionalCode = String(row['Optional Subject Code']||row['Optional Code']||row.Optional||row.optional||'').trim();
-    const selectedOptional = getOptionalIdByCode(stu.group, optionalCode);
+    let selectedOptional = getOptionalIdByCode(stu.group, optionalCode);
+    if(!selectedOptional){
+      selectedOptional = getStudentSelectedOptional(stu);
+    }
     const marksObj = {};
     const subs = flatSubs(stu.group, stu.cls);
 

@@ -315,6 +315,28 @@ async function saveStudent() {
   } catch(e) { setMsg('add-alert', 'err', 'Server error.'); }
 }
 
+function getExcelValue(row, possibleNames, defaultVal = '') {
+  for (const k of Object.keys(row)) {
+    const normK = k.toLowerCase().replace(/[\s_-]/g, '');
+    for (const name of possibleNames) {
+      if (normK === name.toLowerCase().replace(/[\s_-]/g, '')) {
+        const val = row[k];
+        return (val !== undefined && val !== null) ? String(val).trim() : defaultVal;
+      }
+    }
+  }
+  // Substring match for optional subjects
+  if (possibleNames.includes('optional_subject') || possibleNames.includes('optional')) {
+    for (const k of Object.keys(row)) {
+      if (k.toLowerCase().includes('optional')) {
+        const val = row[k];
+        return (val !== undefined && val !== null) ? String(val).trim() : defaultVal;
+      }
+    }
+  }
+  return defaultVal;
+}
+
 function handleBulkImport(inp) {
   const f = inp.files[0]; if(!f) return;
   const reader = new FileReader();
@@ -328,22 +350,22 @@ function handleBulkImport(inp) {
     
     document.getElementById('bulk-status').style.display = 'block';
     
-    // Map Excel columns to API structure
+    // Map Excel columns to API structure using robust parsing helper
     const payload = rows.map(r => ({
       id: "ST-" + Math.random().toString(36).substr(2, 9),
-      name: r.Name || r.name,
-      roll: String(r.Roll || r.roll || ""),
-      reg: String(r.Registration || r.reg || ""),
-      cls: r.Class || r.class,
-      group: r.Group || r.group,
-      section: r.Section || r.section || "",
-      father: r.Father || r.father || "",
-      mother: r.Mother || r.mother || "",
-      dob: r.DOB || r.dob || "",
-      phone: r.Phone || r.phone || "",
-      religion: r.Religion || r.religion || "",
-      session: r.Session || r.session || "2024-2025",
-      optional_subject: String(r['Optional Subjects'] || r['optional subjects'] || r.OptionalSubjects || r.optional_subject || r.Optional || "")
+      name: getExcelValue(r, ['name', 'student_name', 'full_name']),
+      roll: getExcelValue(r, ['roll', 'roll_no', 'roll_number']),
+      reg: getExcelValue(r, ['registration', 'reg', 'reg_no', 'registration_no']),
+      cls: getExcelValue(r, ['class', 'cls']),
+      group: getExcelValue(r, ['group', 'grp']),
+      section: getExcelValue(r, ['section', 'sec']),
+      father: getExcelValue(r, ['father', 'fathers_name', 'father_name']),
+      mother: getExcelValue(r, ['mother', 'mothers_name', 'mother_name']),
+      dob: getExcelValue(r, ['dob', 'date_of_birth', 'birth_date']),
+      phone: getExcelValue(r, ['phone', 'contact', 'mobile', 'phone_number']),
+      religion: getExcelValue(r, ['religion']),
+      session: getExcelValue(r, ['session', 'year'], '2024-2025'),
+      optional_subject: getExcelValue(r, ['optional_subject', 'optional_subjects', 'optional', 'optional_subject_code', 'optional_subject_codes'])
     }));
 
     try {
@@ -363,6 +385,7 @@ function handleBulkImport(inp) {
   };
   reader.readAsArrayBuffer(f);
 }
+
 
 function downloadTemplate() {
   const headers = ['Name', 'Roll', 'Registration', 'Class', 'Group', 'Section', 'Father', 'Mother', 'DOB', 'Phone', 'Religion', 'Session', 'Optional Subjects'];

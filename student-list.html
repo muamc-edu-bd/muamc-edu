@@ -1090,7 +1090,6 @@
     <div class="main-container">
       <div class="pg-hd">
         <h2>Student Management</h2>
-        <p>Manage student registrations and view student lists</p>
       </div>
 
       <div class="res-subtab-bar no-print">
@@ -1102,10 +1101,7 @@
       <div id="stu-panel-registration">
         <!-- ═══════════ ADD STUDENT ═══════════ -->
         <div id="add-student-section">
-      <div class="pg-hd">
-        <h2>Student Registration</h2>
-        <p>Add new student information and photo</p>
-      </div>
+      
 
       <!-- Excel Import Card -->
       <div class="card">
@@ -1116,24 +1112,15 @@
           <div id="import-alert"></div>
           <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;">
             <div style="flex:1;min-width:280px;">
-              <p style="font-size:.85rem;color:var(--txt2);margin-bottom:12px;">
-                <strong>Excel Format:</strong> Your file must have columns: Name, Roll, Registration, Class, Group,
-                Section, Father, Mother, DOB, Phone, Religion, Session, Photo (optional)
-              </p>
-              <p style="font-size:.8rem;color:var(--muted);margin-bottom:12px;">
-                All fields are optional except Name and Roll (must be unique). Date format: YYYY-MM-DD
-              </p>
-              <p style="font-size:.8rem;color:var(--muted);margin-bottom:14px;">
-                <strong>For Photos:</strong> Place student photos in the 'photos' folder. Enter just the filename in the
-                Photo column (e.g., 2024001.jpg). Supported: JPG, PNG, GIF, WebP (max 2 MB).
-              </p>
+                          
+              
               <div class="btn-row" style="margin-top:0;">
                 <label class="btn btn-primary" style="cursor:pointer;">
-                  ⬆ Choose Excel File
+                  Choose Excel File
                   <input type="file" id="import-file" accept=".xls,.xlsx" style="display:none;"
                     onchange="handleImportFile(this)">
                 </label>
-                <a href="#" onclick="downloadTemplate(event)" class="btn btn-outline btn-sm">📥 Download Template</a>
+                <a href="#" onclick="downloadTemplate(event)" class="btn btn-outline btn-sm">Download Template</a>
               </div>
               <p style="font-size:.75rem;color:var(--muted);margin-top:8px;">Supported formats: .xlsx, .xls</p>
             </div>
@@ -1171,7 +1158,7 @@
                 <img id="photo-preview-img" src="" alt="" style="display:none;">
                 <div class="pw-hint" id="photo-hint">
                   <strong>Upload Photo</strong>
-                  Passport Size<br>JPG / PNG<br>Max 2 MB
+                  Passport Size<br>JPG / PNG<br>Max 1 MB
                 </div>
                 <input type="file" id="s-photo-input" accept="image/*" onchange="handlePhoto(this)">
               </div>
@@ -1404,6 +1391,29 @@
     const v = id => $$(id);
     function setAlert(id, type, msg) { const a = $(id); if (!a) return; if (!msg) { a.innerHTML = ''; a.style.display = 'none'; return; } a.className = 'alert alert-' + type; a.innerHTML = msg; a.style.display = 'block'; }
     function pillCls(group) { return group === 'Science' ? 'pill-sc' : group === 'Humanities' ? 'pill-hm' : 'pill-bs'; }
+
+    function getExcelValue(row, possibleNames, defaultVal = '') {
+      for (const k of Object.keys(row)) {
+        const normK = k.toLowerCase().replace(/[\s_-]/g, '');
+        for (const name of possibleNames) {
+          if (normK === name.toLowerCase().replace(/[\s_-]/g, '')) {
+            const val = row[k];
+            return (val !== undefined && val !== null) ? String(val).trim() : defaultVal;
+          }
+        }
+      }
+      // Substring match for optional subjects
+      if (possibleNames.includes('optional_subject') || possibleNames.includes('optional')) {
+        for (const k of Object.keys(row)) {
+          if (k.toLowerCase().includes('optional')) {
+            const val = row[k];
+            return (val !== undefined && val !== null) ? String(val).trim() : defaultVal;
+          }
+        }
+      }
+      return defaultVal;
+    }
+
 
     // ── Sub-tab switch ─────────────────────────────────────────────────────
     function switchStudentTab(tab) {
@@ -1924,23 +1934,28 @@
       let skippedClient = 0;
 
       for (const row of rows) {
-        if (!row.Name || !row.Roll) { skippedClient++; continue; }
+        const name = getExcelValue(row, ['name', 'student_name', 'full_name']);
+        const roll = getExcelValue(row, ['roll', 'roll_no', 'roll_number']);
+        if (!name || !roll) { skippedClient++; continue; }
+        
+        const optSub = getExcelValue(row, ['optional_subject', 'optional_subjects', 'optional', 'optional_subject_code', 'optional_subject_codes']);
+        
         students.push({
-          name: row.Name,
-          roll: String(row.Roll),
-          reg: row.Registration || '',
-          cls: row.Class || 'Class-XI',
-          group: row.Group || 'Science',
-          section: row.Section || '',
-          father: row.Father || '',
-          mother: row.Mother || '',
-          dob: row.DOB || '',
-          phone: row.Phone ? String(row.Phone) : '',
-          religion: row.Religion || '',
-          session: row.Session || '',
+          name: name,
+          roll: roll,
+          reg: getExcelValue(row, ['registration', 'reg', 'reg_no', 'registration_no']),
+          cls: getExcelValue(row, ['class', 'cls'], 'Class-XI'),
+          group: getExcelValue(row, ['group', 'grp'], 'Science'),
+          section: getExcelValue(row, ['section', 'sec']),
+          father: getExcelValue(row, ['father', 'fathers_name', 'father_name']),
+          mother: getExcelValue(row, ['mother', 'mothers_name', 'mother_name']),
+          dob: getExcelValue(row, ['dob', 'date_of_birth', 'birth_date']),
+          phone: getExcelValue(row, ['phone', 'contact', 'mobile', 'phone_number']),
+          religion: getExcelValue(row, ['religion']),
+          session: getExcelValue(row, ['session', 'year']),
           photo: '',
-          optional_subject: (row['Optional Subject'] || row['Optional Subjects'] || row['Optional'] || '').toString().trim(),
-          optionalSubjects: (row['Optional Subject'] || row['Optional Subjects'] || row['Optional'] || '').toString().trim()
+          optional_subject: optSub,
+          optionalSubjects: optSub
         });
       }
 

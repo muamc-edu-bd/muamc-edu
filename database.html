@@ -347,6 +347,10 @@ function showProfile() {
         <div class="detail-label">Registration</div>
         <div class="detail-value">${selectedStudent.reg || 'N/A'}</div>
       </div>
+      <div class="detail-item">
+        <div class="detail-label">Optional Subject</div>
+        <div class="detail-value">${selectedStudent.optionalSubjects || selectedStudent.optional_subject || 'N/A'}</div>
+      </div>
     </div>
   `;
 }

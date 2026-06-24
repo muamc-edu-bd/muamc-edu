@@ -353,7 +353,7 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--slate);color:var(--
   </style>
   <a href="index.html" class="back-link">← Back to Dashboard</a>
 
-  <div class="pg-hd"><h2>Admin Mark Entry</h2><p>Search students on the left and fill marks on the right.</p></div>
+  <div class="pg-hd"><h2>Admin Mark Entry</h2></div>
 
   <div class="layout-grid">
     <div class="left-panel">
@@ -441,24 +441,13 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--slate);color:var(--
       <div id="bulk-marks-alert"></div>
       <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;">
         <div style="flex:1;min-width:280px;">
-          <p style="font-size:.85rem;color:var(--txt2);margin-bottom:12px;">
-            <strong>Excel Format:</strong> Your file must have columns: Roll, Exam Type, Session, Optional Subject Code, and then subject codes as headers (e.g., 101 for Bangla 1st Paper, 102 for Bangla 2nd Paper, etc.).
-          </p>
-          <p style="font-size:.8rem;color:var(--muted);margin-bottom:12px;">
-            For optional subjects, put the subject code in the Optional Subject Code column so the import can auto-select the correct optional group for each student.
-          </p>
-          <p style="font-size:.8rem;color:var(--muted);margin-bottom:12px;">
-            For each subject, enter marks in format: CQ/MCQ/Practical (e.g., 65/25 for subjects without practical, 45/20/20 for subjects with practical). Leave blank if not applicable.
-          </p>
-          <p style="font-size:.8rem;color:var(--muted);margin-bottom:14px;">
-            <strong>Supported formats:</strong> .xlsx, .xls
-          </p>
+          
           <div class="btn-row" style="margin-top:0;">
             <label class="btn btn-primary" style="cursor:pointer;">
-              ⬆ Choose Excel File
+              Choose Excel File
               <input type="file" id="bulk-marks-file" accept=".xls,.xlsx" style="display:none;" onchange="handleBulkMarksFile(this)">
             </label>
-            <a href="#" onclick="downloadMarksTemplate(event)" class="btn btn-outline btn-sm">📥 Download Template</a>
+            <a href="#" onclick="downloadMarksTemplate(event)" class="btn btn-outline btn-sm"> Download Template</a>
           </div>
         </div>
         <div id="bulk-marks-preview" style="flex:1;min-width:280px;display:none;padding:12px;background:var(--slate);border-radius:8px;border:1px solid var(--border);font-size:.8rem;">
