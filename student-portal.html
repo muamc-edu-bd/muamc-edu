@@ -300,9 +300,9 @@ body{
             <label for="s-session">Session <span class="req">*</span></label>
             <select id="s-session">
               <option value="">— Select —</option>
-              <option value="2023&#x2013;2024">2023&ndash;2024</option>
-              <option value="2024&#x2013;2025">2024&ndash;2025</option>
-              <option value="2025&#x2013;2026">2025&ndash;2026</option>
+              <option value="2023-2024">2023-2024</option>
+              <option value="2024-2025">2024-2025</option>
+              <option value="2025-2026">2025-2026</option>
             </select>
           </div>
           <div class="fg">
@@ -512,6 +512,16 @@ function renderUploadForm(stu) {
   document.getElementById('sb-meta').textContent   =
     stu.cls + ' \xb7 ' + stu.group + ' \xb7 Session: ' + stu.session + ' \xb7 Roll: ' + stu.roll;
   renderOptionalGrid(stu.group);
+  
+  // Programmatically pre-select any pre-assigned optional subject
+  const optSubjects = stu.optionalSubjects || '';
+  if (optSubjects) {
+    const opts = OPTIONAL_MAP[stu.group] || [];
+    const match = opts.find(o => o.codes === optSubjects);
+    if (match) {
+      selectOptional(match.id, match.codes);
+    }
+  }
 }
 
 function renderOptionalGrid(group) {

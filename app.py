@@ -45,7 +45,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # Database Configuration
 # Priority: DATABASE_URL env var → local SQLite fallback
 # DATABASE_URL is loaded from .env if python-dotenv is installed.
-_db_url = os.environ.get('DATABASE_URL') or 'sqlite:///app.db'
+_db_url = os.environ.get('DATABASE_URL') or f"sqlite:///{os.path.join(BASE_DIR, 'hsc_academy.db')}"
 if _db_url.startswith('postgres://'):
     _db_url = _db_url.replace('postgres://', 'postgresql://', 1)
 app.config['SQLALCHEMY_DATABASE_URI'] = _db_url
@@ -105,6 +105,18 @@ with app.app_context():
     # Run safe column migrations
     if _db_url.startswith('postgresql'):
         with db.engine.connect() as _conn:
+            # Drop global unique roll constraint to allow non-globally unique roll numbers
+            try:
+                _conn.execute(_text("ALTER TABLE students DROP CONSTRAINT IF EXISTS students_roll_key;"))
+                _conn.commit()
+                print("[DB] Dropped global unique roll constraint successfully.")
+            except Exception as _ce:
+                print(f"[DB] Drop unique constraint skipped: {_ce}")
+                try:
+                    _conn.rollback()
+                except Exception:
+                    pass
+
             for _tbl, _col, _col_def in _COLUMN_MIGRATIONS:
                 try:
                     _conn.execute(_text(
@@ -320,6 +332,7 @@ def health_check():
             conn.execute(text('SELECT 1'))
         student_count = Student.query.count()
         teacher_count = Teacher.query.count()
+        marks_count = Mark.query.count()
         db_ok = True
         safe_url = _db_url.split('@')[-1] if '@' in _db_url else _db_url
         db_info = {
@@ -327,6 +340,7 @@ def health_check():
             'host': safe_url,
             'students': student_count,
             'teachers': teacher_count,
+            'marks_entries': marks_count,
         }
     except Exception as e:
         db_info = {'connected': False, 'error': str(e)}
@@ -336,6 +350,7 @@ def health_check():
         'status': 'healthy' if db_ok else 'unhealthy',
         'database': db_info,
         'version': '1.0.0',
+        'timestamp': datetime.utcnow().isoformat() + 'Z',
     }), 200 if db_ok else 503
 
 
@@ -392,7 +407,7 @@ def student_portal_lookup():
     """
     cls_val     = (request.args.get('cls') or '').strip()
     group_val   = (request.args.get('group') or '').strip()
-    session_val = (request.args.get('session') or '').strip()
+    session_val = (request.args.get('session') or '').strip().replace('–', '-').replace('\u2013', '-')
     roll_val    = (request.args.get('roll') or '').strip()
 
     if not cls_val or not group_val or not session_val or not roll_val:
@@ -421,7 +436,7 @@ def student_portal_lookup():
         'submitted': submitted,
         # If already submitted, show current values so student can view them
         'photo':              student.photo if submitted else None,
-        'optionalSubjects':   student.optional_subjects if submitted else None,
+        'optionalSubjects':   student.optional_subjects,
     })
 
 
@@ -542,8 +557,8 @@ def add_student():
         dob=body.get('dob', ''),
         phone=body.get('phone', ''),
         religion=body.get('religion', ''),
-        year=body.get('year', ''),
-        session=body.get('session', body.get('year', '')),
+        year=(body.get('year') or '').strip().replace('–', '-').replace('\u2013', '-'),
+        session=(body.get('session') or body.get('year') or '').strip().replace('–', '-').replace('\u2013', '-'),
         photo=photo_url,
         optional_subjects=body.get('optional_subject', ''),
     )
@@ -594,9 +609,14 @@ def _resolve_optional_subjects(group: str, optional_subject: str) -> list:
         if not sub.get('optional'):
             resolved.append(sub)
             continue
-        # This is an optional-slot entry: only keep if its code is in the student's opt_codes
-        if sub['code'] in opt_codes:
+        # Science group students take BOTH Biology and Higher Mathematics.
+        # One is compulsory elective and the other is optional.
+        if group == 'Science':
             resolved.append({**sub, 'name': OPT_NAMES.get(sub['code'], sub['name'])})
+        else:
+            # Humanities / Business students only take their chosen optional subject
+            if sub['code'] in opt_codes:
+                resolved.append({**sub, 'name': OPT_NAMES.get(sub['code'], sub['name'])})
     return resolved
 
 
@@ -776,8 +796,8 @@ def import_students():
             dob=student_data.get('dob', ''),
             phone=student_data.get('phone', ''),
             religion=student_data.get('religion', ''),
-            year=student_data.get('year', ''),
-            session=student_data.get('session', student_data.get('year', '')),
+            year=student_data.get('year', '').strip().replace('–', '-').replace('\u2013', '-'),
+            session=student_data.get('session', student_data.get('year', '')).strip().replace('–', '-').replace('\u2013', '-'),
             photo='',
             optional_subjects=student_data.get('optional_subject', ''),
         )
@@ -893,8 +913,13 @@ def _get_marks_dict(student_id=None):
     """
     result = {}
 
-    marks = (Mark.query.filter_by(student_id=student_id).all()
-             if student_id else Mark.query.all())
+    if student_id:
+        if isinstance(student_id, (list, tuple, set)):
+            marks = Mark.query.filter(Mark.student_id.in_(student_id)).all()
+        else:
+            marks = Mark.query.filter_by(student_id=student_id).all()
+    else:
+        marks = Mark.query.all()
 
     for mark in marks:
         sid  = mark.student_id
@@ -972,7 +997,8 @@ def public_result_search():
 
     # Compute merit position (rank within same cls + group)
     peers = Student.query.filter_by(cls=student.cls, group=student.group).all()
-    all_marks = _get_marks_dict()
+    peer_ids = [p.id for p in peers]
+    all_marks = _get_marks_dict(peer_ids)
     peer_scores = []
     for peer in peers:
         t, g, _ = _compute_student_result(peer.id, all_marks, peer.group, getattr(peer, "optional_subjects", "") or "")
@@ -1409,15 +1435,27 @@ def export_csv():
                 total_gpa = cnt = fail_cnt = total_mark = 0
                 row = [i, stu.name, stu.roll, stu.reg or '']
 
+                # Resolve optional codes
+                student_opt_codes = opt_codes
+                if not student_opt_codes and optional_selected:
+                    LEGACY_MAP = {
+                        'scienceBio': ['178', '179'],
+                        'scienceMath': ['265', '266'],
+                        'humLogic': ['121', '122'],
+                        'humHome': ['273', '274'],
+                        'busEcon': ['109', '110'],
+                        'busHome': ['273', '274'],
+                    }
+                    student_opt_codes = LEGACY_MAP.get(optional_selected, [])
+
                 for sub in subs:
+                    is_optional = sub.get('optional', False) and (sub['code'] in student_opt_codes)
+
                     is_unchosen_optional = False
-                    if sub.get('optional'):
-                        if opt_codes:
-                            if sub['code'] not in opt_codes:
-                                is_unchosen_optional = True
-                        elif optional_selected:
-                            if sub['code'] != optional_selected:
-                                is_unchosen_optional = True
+                    if sub.get('optional', False) and not is_optional:
+                        # For Science, they take both, so the unchosen one is compulsory rather than skipped.
+                        if g != 'Science':
+                            is_unchosen_optional = True
 
                     if is_unchosen_optional:
                         row += ['', '', '']
@@ -1431,25 +1469,24 @@ def export_csv():
                     tot    = theory + prac
                     lg, gp = _grade_letter(tot)
                     absent = not m or (m.get('cq', '') == '' and m.get('mcq', '') == '')
-                    is_optional = sub.get('optional', False)
 
                     if not absent:
                         if is_optional:
-                            total_gpa += gp
-                            cnt += 1
+                            if gp > 2.0:
+                                total_gpa += (gp - 2.0)
                         else:
                             total_gpa += gp
                             cnt       += 1
+                            if lg == 'F':
+                                fail_cnt += 1
                         total_mark += tot
-                        if lg == 'F' and not is_optional:
-                            fail_cnt += 1
 
                     row += ['' if absent else cq,
                             '' if absent else mcq,
                             ('' if absent else prac) if sub['hasPrac'] else '']
 
-                avg    = round(total_gpa / cnt, 2) if cnt else 0
-                passed = fail_cnt == 0
+                avg    = min(round(total_gpa / cnt, 2), 5.0) if cnt else 0.0
+                passed = fail_cnt == 0 and total_mark > 0
                 row   += [total_mark or '', avg if total_mark else '',
                           ('Pass' if passed else 'Fail') if total_mark else '']
                 writer.writerow(row)
@@ -1492,10 +1529,8 @@ def _compute_student_result(sid, marks_data, group, optional_subject='', cls=Non
         if not cls:
             cls = 'Class-XI'
 
-    # Resolve subjects: use student.optional_subject preferentially
+    # Resolve subjects
     subs = _resolve_optional_subjects(group, optional_subject)
-    if not subs:
-        subs = SUBJECT_LIST.get(group, [])
 
     # Filter subjects based on student's class (Class-XI -> 1st Paper; Class-XII -> 2nd Paper)
     if cls == 'Class-XI':
@@ -1517,6 +1552,19 @@ def _compute_student_result(sid, marks_data, group, optional_subject='', cls=Non
     # Backwards-compat: selectedOptional from marks entry (single code)
     selected_optional = stu_marks.get('selectedOptional', '')
 
+    # Resolve optional codes
+    opt_codes = [c.strip() for c in (optional_subject or '').split('/') if c.strip()]
+    if not opt_codes and selected_optional:
+        LEGACY_MAP = {
+            'scienceBio': ['178', '179'],
+            'scienceMath': ['265', '266'],
+            'humLogic': ['121', '122'],
+            'humHome': ['273', '274'],
+            'busEcon': ['109', '110'],
+            'busHome': ['273', '274'],
+        }
+        opt_codes = LEGACY_MAP.get(selected_optional, [])
+
     total_gpa = cnt = fail_cnt = total_mark = 0
 
     for sub in subs:
@@ -1530,22 +1578,23 @@ def _compute_student_result(sid, marks_data, group, optional_subject='', cls=Non
         tot    = theory + prac
         lg, gp = _grade_letter(tot)
 
-        # An optional subject that is NOT the chosen one is skipped (not graded)
-        is_unchosen_optional = (
-            sub.get('optional', False) and selected_optional
-            and sub['code'] != selected_optional
-            and not optional_subject  # only skip when using legacy selectedOptional mode
-        )
-        if is_unchosen_optional:
-            continue
+        # Check if this subject is the student's optional subject
+        is_optional = sub.get('optional', False) and (sub['code'] in opt_codes)
 
-        total_gpa  += gp
-        cnt        += 1
+        if is_optional:
+            # 4th subject rule: only GP above 2.0 contributes to GPA, and it's not in the divisor
+            if gp > 2.0:
+                total_gpa += (gp - 2.0)
+            # Optional subject failure does not fail the student
+        else:
+            total_gpa += gp
+            cnt       += 1
+            if lg == 'F':
+                fail_cnt += 1
+
         total_mark += tot
-        if lg == 'F':
-            fail_cnt += 1
 
-    avg = round(total_gpa / cnt, 2) if cnt else 0.0
+    avg = min(round(total_gpa / cnt, 2), 5.0) if cnt else 0.0
     return total_mark, avg, (fail_cnt == 0 and total_mark > 0)
 
 
@@ -1827,19 +1876,7 @@ def generate_certificate(sid):
     return jsonify({'ok': True, 'data': cert_data})
 
 
-# ─────────────────────────────────────────────
-# Health check
-# ─────────────────────────────────────────────
-@app.route('/api/health', methods=['GET'])
-def health():
-    return jsonify({
-        'ok':            True,
-        'status':        'running',
-        'students':      Student.query.count(),
-        'marks_entries': Mark.query.count(),
-        'teachers':      Teacher.query.count(),
-        'timestamp':     datetime.utcnow().isoformat() + 'Z',
-    })
+
 
 
 # ─────────────────────────────────────────────

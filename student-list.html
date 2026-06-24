@@ -1015,9 +1015,7 @@
     }
   </style>
 
-<style>
-*,:before,:after{border-radius:0 !important;}
-</style>
+
 
   <!-- PAGE TRANSITION LOADER -->
   <style>
@@ -1742,7 +1740,6 @@
       if (!confirm('All data for this student will be permanently deleted. Confirm?')) return;
       try {
         await fetch('/api/students/' + id, { method: 'DELETE' });
-        const m = LS.marks(); if (m[id]) await fetch('/api/marks/' + id, { method: 'DELETE' });
         const si = LS.students().findIndex(s => s.id === id);
         if (si > -1) LS.students().splice(si, 1);
         delete LS.marks()[id];
