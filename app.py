@@ -501,6 +501,8 @@ def get_students():
     cls_filter   = request.args.get('cls')
     group_filter = request.args.get('group')
     session_val  = request.args.get('session')
+    if session_val:
+        session_val = session_val.strip().replace('–', '-').replace('\u2013', '-')
     q            = (request.args.get('q') or '').lower()
 
     query = Student.query
@@ -671,7 +673,10 @@ def update_student(sid):
                 _delete_photo_file(student.photo)
                 student.photo = ''
         else:
-            setattr(student, key, body[key])
+            val = body[key]
+            if key in ('session', 'year') and isinstance(val, str):
+                val = val.strip().replace('–', '-').replace('\u2013', '-')
+            setattr(student, key, val)
 
     try:
         db.session.commit()
@@ -1048,7 +1053,7 @@ def save_marks(sid):
         mark = Mark(
             student_id=sid,
             exam_type=exam_type,
-            year=marks_data.get('year', body.get('year', '')),
+            year=str(marks_data.get('year') or body.get('year') or '').strip().replace('–', '-').replace('\u2013', '-'),
             subject_code=subject_code,
             cq=cq,
             mcq=mcq,
@@ -1087,7 +1092,7 @@ def import_marks():
 
         roll      = str(row.get('Roll') or row.get('roll') or '').strip()
         exam_type = str(row.get('Exam Type') or row.get('examType') or row.get('exam') or '').strip()
-        year      = str(row.get('Year') or row.get('year') or '').strip()
+        year      = str(row.get('Year') or row.get('year') or '').strip().replace('–', '-').replace('\u2013', '-')
 
         if not roll or not exam_type or not year:
             skipped += 1
@@ -1181,7 +1186,7 @@ def bulk_import_marks():
     for entry in entries:
         student_id = entry.get('studentId', '')
         exam_type  = entry.get('examType', '')
-        year       = entry.get('year', '')
+        year       = str(entry.get('year') or '').strip().replace('–', '-').replace('\u2013', '-')
         marks_data = entry.get('marks', {})
 
         if not student_id or not exam_type:
@@ -1213,7 +1218,7 @@ def bulk_import_marks():
             mark = Mark(
                 student_id=student_id,
                 exam_type=exam_type,
-                year=mark_obj.get('year', year),
+                year=str(mark_obj.get('year') or year).strip().replace('–', '-').replace('\u2013', '-'),
                 subject_code=subject_code,
                 cq=cq,
                 mcq=mcq,

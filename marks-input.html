@@ -384,10 +384,10 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--slate);color:var(--
               <div class="fg"><label>Session</label>
                 <select id="sf-session" onchange="searchStudents()">
                   <option value="">All Sessions</option>
-                  <option value="2022–2023">2022–2023</option>
-                  <option value="2023–2024">2023–2024</option>
-                  <option value="2024–2025" selected>2024–2025</option>
-                  <option value="2025–2026">2025–2026</option>
+                  <option value="2022-2023">2022-2023</option>
+                  <option value="2023-2024">2023-2024</option>
+                  <option value="2024-2025" selected>2024-2025</option>
+                  <option value="2025-2026">2025-2026</option>
                 </select>
               </div>
               <div class="fg"><label>Roll / Name</label>
@@ -421,10 +421,10 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--slate);color:var(--
               </div>
               <div class="fg"><label>Session</label>
                 <select id="m-session" onchange="loadMarksForm()">
-                  <option value="2022–2023">2022–2023</option>
-                  <option value="2023–2024">2023–2024</option>
-                  <option value="2024–2025" selected>2024–2025</option>
-                  <option value="2025–2026">2025–2026</option>
+                  <option value="2022-2023">2022-2023</option>
+                  <option value="2023-2024">2023-2024</option>
+                  <option value="2024-2025" selected>2024-2025</option>
+                  <option value="2025-2026">2025-2026</option>
                 </select>
               </div>
             </div>
@@ -1099,7 +1099,7 @@ async function submitBulkMarks() {
     if(!stu){ skippedClient++; continue; }
 
     const examType = row['Exam Type'] || 'Annual';
-    const session  = row.Session || '2024–2025';
+    const session  = row.Session || '2024-2025';
     const optionalCode = String(row['Optional Subject Code']||row['Optional Code']||row.Optional||row.optional||'').trim();
     const selectedOptional = getOptionalIdByCode(stu.group, optionalCode);
     const marksObj = {};
