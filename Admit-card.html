@@ -97,49 +97,92 @@
     .es-rule { width: 36px; height: 2px; background: var(--border2); margin: 0 auto 12px; }
     .empty-state p { font-size: .82rem; line-height: 1.6; }
 
-    /* ═══ ADMIT CARD (print layout) ═══ */
+    /* ═══ ADMIT CARD (print layout) — Classic Format ═══ */
     .ac-page {
       width: 210mm; background: #fff; margin: 0 auto 20px;
-      box-shadow: var(--shadow-lg); border: 2px solid #ccc;
-      font-family: 'Times New Roman', 'Merriweather', serif; font-size: 10pt;
-      position: relative; overflow: hidden;
+      box-shadow: var(--shadow-lg); border: 1px solid #888;
+      font-family: 'Times New Roman', Times, serif; font-size: 12pt;
+      position: relative; color: #000; min-height: 277mm;
+      display: flex; flex-direction: column;
     }
-    .ac-wm { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%) rotate(-35deg); font-size: 80pt; font-weight: 900; color: rgba(13,43,69,.04); white-space: nowrap; pointer-events: none; z-index: 0; letter-spacing: 5px; }
-    .ac-top-bar { height: 6px; background: linear-gradient(90deg, var(--navy) 0%, var(--gold2) 50%, var(--navy3) 100%); }
-    .ac-hdr { display: grid; grid-template-columns: 60px 1fr 70px; align-items: center; gap: 12px; padding: 12px 20px; border-bottom: 2px solid #000; }
-    .ac-hdr-logo { width: 60px; height: 60px; border: 1px solid #ccc; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #f5f5f5; }
+    /* Logo Watermark */
+    .ac-wm {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 280px; height: 280px;
+      pointer-events: none; z-index: 0;
+      opacity: 0.055;
+      background-size: contain; background-repeat: no-repeat; background-position: center;
+    }
+
+    /* Header */
+    .ac-hdr { display: grid; grid-template-columns: 80px 1fr 86px; align-items: center; gap: 10px; padding: 12px 18px 10px; border-bottom: 1.5px solid #000; }
+    .ac-hdr-logo { width: 76px; height: 76px; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+    .ac-hdr-logo img { width: 100%; height: 100%; object-fit: contain; }
     .ac-hdr-mid { text-align: center; }
-    .ac-hdr-mid h1 { font-size: 1.05rem; font-weight: 700; color: #000; line-height: 1.2; margin-bottom: 2px; }
-    .ac-hdr-mid h2 { font-size: .72rem; font-weight: 600; color: #333; margin-bottom: 2px; }
-    .ac-hdr-mid p { font-size: .65rem; color: #555; }
+    .ac-hdr-mid h1 { font-size: 15.5pt; font-weight: 900; color: #000; line-height: 1.2; margin-bottom: 3px; letter-spacing: .5px; }
+    .ac-hdr-mid .ac-hdr-addr { font-size: 11pt; color: #222; margin-bottom: 3px; }
+    .ac-hdr-mid .ac-hdr-eiin { font-size: 11.5pt; font-weight: 700; margin-bottom: 5px; }
+    .ac-hdr-mid .ac-hdr-exam-name { display: inline-block; border: 1.5px solid #888; background: #f0f0f0; font-size: 11pt; font-weight: 600; padding: 3px 18px; }
     .ac-hdr-qr { text-align: center; }
-    .ac-hdr-qr span { display: block; font-size: .55rem; color: #666; margin-top: 2px; }
-    .ac-admit-title { text-align: center; font-size: 1.1rem; font-weight: 700; letter-spacing: 6px; padding: 7px; background: #000; color: #fff; margin: 0; }
-    .ac-exam-bar { display: flex; flex-wrap: wrap; gap: 10px; padding: 8px 20px; background: #f0f4f8; border-bottom: 1px solid #ccc; }
-    .ac-ei { display: flex; gap: 5px; align-items: center; font-size: .78rem; }
-    .ac-el { font-weight: 700; color: #333; white-space: nowrap; }
-    .ac-ev { color: #000; font-weight: 600; }
-    .ac-body { display: grid; grid-template-columns: 1fr 130px; gap: 16px; padding: 14px 20px; position: relative; z-index: 1; }
-    .ac-det-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; margin-bottom: 12px; }
-    .ac-di { display: flex; gap: 5px; font-size: .78rem; padding: 2px 0; }
-    .ac-dl { font-weight: 700; min-width: 100px; color: #333; flex-shrink: 0; }
-    .ac-dv { color: #000; }
-    .ac-sub-lbl { font-weight: 700; font-size: .78rem; margin-bottom: 5px; border-bottom: 1px solid #ccc; padding-bottom: 3px; }
-    .ac-sub-tbl { width: 100%; border-collapse: collapse; font-size: .72rem; }
-    .ac-sub-tbl th { background: #333; color: #fff; padding: 3px 6px; text-align: center; border: 1px solid #555; }
-    .ac-sub-tbl td { padding: 2px 6px; border: 1px solid #ccc; text-align: center; }
-    .ac-photo-col { display: flex; flex-direction: column; align-items: center; gap: 5px; }
-    .ac-photo { width: 100px; height: 125px; object-fit: cover; border: 2px solid #555; display: block; }
-    .ac-photo-ph { width: 100px; height: 125px; border: 2px dashed #aaa; background: #f5f5f5; display: flex; align-items: center; justify-content: center; font-size: .65rem; color: #888; text-align: center; }
-    .ac-photo-lbl { font-size: .6rem; color: #555; text-align: center; }
-    .ac-notice { font-size: .7rem; color: #222; padding: 7px 20px; background: #fff8e8; border-top: 1px solid #e0c870; border-bottom: 1px solid #e0c870; line-height: 1.7; }
-    .ac-notice-ttl { font-weight: 700; display: block; margin-bottom: 3px; color: #7c5c00; }
-    .ac-signs { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; padding: 10px 20px 14px; border-top: 1px dashed #ccc; margin-top: 10px; }
-    .ac-sign-box { text-align: center; }
-    .ac-sign-line { height: 40px; border-bottom: 1px solid #555; margin-bottom: 4px; }
-    .ac-sign-nm { font-size: .65rem; color: #444; line-height: 1.6; }
-    .ac-foot { text-align: center; font-size: .62rem; color: #666; padding: 5px; border-top: 1px solid #ddd; }
-    .ac-btm-bar { height: 5px; background: linear-gradient(90deg, var(--navy) 0%, var(--gold2) 50%, var(--navy3) 100%); }
+    .ac-hdr-qr-box { width: 76px; height: 76px; border: 1px solid #aaa; display: flex; align-items: center; justify-content: center; font-size: 8pt; color: #555; background: #fafafa; }
+    .ac-hdr-qr span { display: block; font-size: 7.5pt; color: #666; margin-top: 2px; text-align: center; }
+
+    /* ADMIT CARD Title */
+    .ac-admit-title-wrap { padding: 10px 18px 0; }
+    .ac-admit-title { text-align: center; font-size: 15pt; font-weight: 700; letter-spacing: 4px; padding: 7px 0; border: 2.5px solid #000; color: #000; margin: 8px 0; }
+
+    /* Student Info + Photo Section */
+    .ac-info-photo { display: grid; grid-template-columns: 1fr 115px; gap: 12px; padding: 6px 18px 10px; position: relative; z-index: 1; }
+    .ac-info-left {}
+    .ac-info-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
+    .ac-info-field { display: flex; align-items: baseline; font-size: 11pt; padding: 7px 0; border-bottom: 1px solid #ccc; gap: 5px; }
+    .ac-info-field:last-child { border-bottom: none; }
+    .ac-info-label { font-weight: 600; white-space: nowrap; color: #000; min-width: 96px; flex-shrink: 0; }
+    .ac-info-colon { margin-right: 2px; }
+    .ac-info-value { flex: 1; border-bottom: 1px solid #555; min-width: 60px; padding-bottom: 1px; color: #000; font-size: 11pt; }
+    .ac-photo-wrap { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 4px; }
+    .ac-photo { width: 108px; height: 136px; object-fit: cover; border: 1.5px solid #555; display: block; }
+    .ac-photo-ph { width: 108px; height: 136px; border: 1.5px solid #aaa; background: #fafafa; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10pt; color: #777; text-align: center; line-height: 1.6; }
+    .ac-photo-lbl { font-size: 9pt; color: #444; text-align: center; }
+
+    /* Subject + Exam Info Section */
+    .ac-subj-exam { display: grid; grid-template-columns: 1fr 130px; gap: 0; padding: 0 18px 8px; position: relative; z-index: 1; }
+    .ac-sub-tbl-wrap { border: 1px solid #999; }
+    .ac-sub-tbl { width: 100%; border-collapse: collapse; font-size: 10.5pt; }
+    .ac-sub-tbl th { background: #e8e8e8; color: #000; padding: 5px 8px; text-align: center; border: 1px solid #999; font-weight: 700; font-size: 10.5pt; }
+    .ac-sub-tbl td { padding: 4px 8px; border: 1px solid #ccc; font-size: 10pt; }
+    .ac-sub-tbl td.ac-sname { text-align: left; padding-left: 10px; }
+    .ac-sub-tbl td.ac-scode { text-align: center; width: 48px; }
+    .ac-sub-tbl .ac-opt-row td { background: #f5f5f5; font-size: 10pt; text-align: center; }
+    .ac-exam-info { display: flex; flex-direction: column; justify-content: center; align-items: center; border: 1px solid #999; border-left: none; padding: 12px 8px; gap: 20px; }
+    .ac-exam-date-block { text-align: center; }
+    .ac-exam-date-label { font-size: 11pt; font-weight: 700; color: #000; border-bottom: 1px solid #999; padding-bottom: 5px; margin-bottom: 5px; }
+    .ac-exam-date-val { font-size: 11.5pt; font-weight: 600; color: #000; }
+    .ac-exam-time-block { text-align: center; }
+    .ac-exam-time-label { font-size: 11pt; font-weight: 700; color: #000; border-bottom: 1px solid #999; padding-bottom: 5px; margin-bottom: 5px; }
+    .ac-exam-time-val { font-size: 16pt; font-weight: 700; color: #000; }
+
+    /* Instructions */
+    .ac-instructions { margin: 6px 18px 8px; border: 1px solid #555; padding: 10px 14px; font-size: 10.5pt; line-height: 1.9; position: relative; z-index: 1; flex: 1; }
+    .ac-instructions strong { font-weight: 700; }
+    .ac-instructions .ac-inst-title { font-weight: 700; text-decoration: underline; display: inline; }
+
+    /* Footer / Signature */
+    .ac-footer { display: flex; justify-content: flex-end; padding: 14px 18px 5px; position: relative; z-index: 1; }
+    .ac-sign-block { text-align: center; }
+    .ac-sign-img { width: 150px; height: 48px; object-fit: contain; display: block; margin: 0 auto; }
+    .ac-sign-line { width: 150px; border-bottom: 1px solid #555; margin-bottom: 5px; height: 48px; }
+    .ac-sign-nm { font-size: 11pt; font-weight: 600; color: #000; }
+    .ac-issue { text-align: right; padding: 4px 18px 12px; border-top: 1px solid #ddd; position: relative; z-index: 1; }
+    .ac-issue-lbl { font-size: 9pt; color: #444; }
+    .ac-issue-val { font-size: 9pt; color: #444; }
+
+    /* Signature upload widget */
+    .sig-upload-wrap { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .sig-preview { width: 120px; height: 44px; border: 1px dashed #aaa; display: flex; align-items: center; justify-content: center; font-size: .7rem; color: #888; background: #fafafa; border-radius: 4px; overflow: hidden; }
+    .sig-preview img { max-width: 100%; max-height: 100%; object-fit: contain; }
+    .sig-clear-btn { font-size: .7rem; color: var(--red); cursor: pointer; background: none; border: none; font-family: inherit; }
 
     /* ═══ ADMIT MODAL ═══ */
     #admit-modal { display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,.6); align-items: center; justify-content: center; padding: 16px; }
@@ -288,6 +331,17 @@
           <div class="fg"><label>Examination Start Date</label><input id="ad-date" type="date"></div>
           <div class="fg"><label>Examination Centre</label><input id="ad-center" value="Moinuddin Adarsha Mohila College"></div>
           <div class="fg"><label>Examination Time</label><input id="ad-time" value="10:00 AM"></div>
+          <div class="fg" style="grid-column: 1 / -1;">
+            <label>Principal's Signature <span style="font-weight:400;color:var(--muted);">(একবার আপলোড করলে সব কার্ডে দেখাবে)</span></label>
+            <div class="sig-upload-wrap">
+              <div class="sig-preview" id="sig-preview-box"><span id="sig-preview-hint">No signature</span></div>
+              <label class="btn btn-outline btn-sm" style="cursor:pointer;">
+                📁 Upload Signature
+                <input type="file" id="sig-file-input" accept="image/*" style="display:none;" onchange="handleSigUpload(event)">
+              </label>
+              <button class="sig-clear-btn" onclick="clearSignature()">✕ Remove</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -421,6 +475,39 @@
     // ── Filtered student cache (for batch ops) ────────────────────────────
     let _filteredStudents = [];
 
+    // ── Principal Signature (persisted in localStorage) ───────────────────
+    let _principalSignature = localStorage.getItem('principalSignature') || '';
+
+    function handleSigUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        _principalSignature = e.target.result;
+        localStorage.setItem('principalSignature', _principalSignature);
+        _updateSigPreview();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function clearSignature() {
+      _principalSignature = '';
+      localStorage.removeItem('principalSignature');
+      $('sig-file-input').value = '';
+      _updateSigPreview();
+    }
+
+    function _updateSigPreview() {
+      const box = $('sig-preview-box');
+      const hint = $('sig-preview-hint');
+      if (!box) return;
+      if (_principalSignature) {
+        box.innerHTML = `<img src="${_principalSignature}" style="max-width:100%;max-height:100%;object-fit:contain;">`;
+      } else {
+        box.innerHTML = `<span id="sig-preview-hint">No signature</span>`;
+      }
+    }
+
     // ── Filter students by class + group ───────────────────────────────────
     function filterAdmitStudents() {
       const cls = $$('ad-class'), grp = $$('ad-group');
@@ -509,94 +596,199 @@
       });
     }
 
-    // ── Build admit card HTML ─────────────────────────────────────────────
+    // ── Build admit card HTML — Classic Format matching the provided image ─
     function buildAdmit(stu, et, ey, sd, ct, tm, qrId) {
       const subs = getFilteredAdmitSubjects(stu);
-      const photoH = stu.photo ? `<img src="${stu.photo}" class="ac-photo" alt="Photo">` : `<div class="ac-photo-ph"><div>Photo<br>Not<br>Attached</div></div>`;
-      const dobF = stu.dob ? new Date(stu.dob).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}) : (stu.dob || '—');
-      const sdF = sd ? new Date(sd).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}) : '—';
-      const grpLabel = stu.group === 'Business' ? 'Business Studies' : stu.group;
-      const subRows = subs.map((sub,i) => `<tr><td style="text-align:center;">${i+1}</td><td>${sub.name}</td><td style="text-align:center;">${sub.code}</td></tr>`).join('');
+      const photoH = stu.photo
+        ? `<img src="${stu.photo}" class="ac-photo" alt="Photo">`
+        : `<div class="ac-photo-ph">Candidate<br>Photo</div>`;
 
-      const optSub = subs.find(s => s.optionalGroup);
-      const optBadge = optSub
-        ? `<div style="margin-top:7px;padding:5px 10px;background:#fff8e8;border:1px solid #e0c870;border-radius:4px;font-size:.7rem;color:#7c5c00;">
-            <strong>Optional Subject:</strong>&nbsp;
-            <span style="display:inline-block;padding:1px 8px;background:#fef3c7;border-radius:3px;font-weight:700;">${optSub.code}</span>
-            &mdash; ${optSub.name}
-           </div>`
+      const dobF = stu.dob
+        ? new Date(stu.dob).toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric'})
         : '';
+      const sdF = sd
+        ? new Date(sd).toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric'})
+        : 'DD-MM-YYYY';
+      const grpLabel = stu.group === 'Business' ? 'Business Studies' : stu.group;
+
+      // Split subjects into two columns (left half & right half)
+      // Separate optional subjects from main subjects
+      const mainSubs = subs.filter(s => !s.optionalGroup);
+      const optSubs  = subs.filter(s =>  s.optionalGroup);
+      const half = Math.ceil(mainSubs.length / 2);
+      const leftSubs  = mainSubs.slice(0, half);
+      const rightSubs = mainSubs.slice(half);
+      const maxRows = Math.max(leftSubs.length, rightSubs.length);
+
+      let subRows = '';
+      for (let i = 0; i < maxRows; i++) {
+        const l = leftSubs[i]  || null;
+        const r = rightSubs[i] || null;
+        subRows += `<tr>
+          <td class="ac-sname">${l ? l.name : ''}</td>
+          <td class="ac-scode">${l ? l.code : ''}</td>
+          <td class="ac-sname">${r ? r.name : ''}</td>
+          <td class="ac-scode">${r ? r.code : ''}</td>
+        </tr>`;
+      }
+
+      // Optional subject row
+      const optRows = optSubs.length
+        ? optSubs.map(os => `<tr class="ac-opt-row">
+            <td colspan="2" style="text-align:center;">Optional Subject: ${os.name}</td>
+            <td class="ac-scode" colspan="2">${os.code}</td>
+          </tr>`).join('')
+        : `<tr class="ac-opt-row">
+            <td colspan="2" style="text-align:center;">Optional Subject</td>
+            <td class="ac-scode" colspan="2">Code</td>
+          </tr>`;
+
+      // Now build QR placeholder or actual QR element
+      const qrBox = `<div class="ac-hdr-qr-box" id="${qrId}">QR Code</div>`;
+
+      const issueNow = new Date();
+      const issueStr = issueNow.toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric'})
+        + ' at ' + issueNow.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+
+      // Signature HTML
+      const sigHtml = _principalSignature
+        ? `<img src="${_principalSignature}" class="ac-sign-img" alt="Principal Signature">`
+        : `<div class="ac-sign-line"></div>`;
+
+      // Logo watermark style
+      const wmStyle = `background-image:url('${getLogoSrc()}');`;
 
       return `<div class="ac-page" id="ac-${stu.id}">
-        <div class="ac-wm">ADMIT CARD</div>
-        <div class="ac-top-bar"></div>
+        <div class="ac-wm" style="${wmStyle}"></div>
+
+        <!-- HEADER -->
         <div class="ac-hdr">
-          <div class="ac-hdr-logo"><img src="${getLogoSrc()}" alt="Logo" style="width:100%;height:100%;object-fit:contain;"></div>
+          <div class="ac-hdr-logo">
+            <img src="${getLogoSrc()}" alt="Logo">
+          </div>
           <div class="ac-hdr-mid">
             <h1>MOINUDDIN ADARSHA MOHILA COLLEGE</h1>
-            <h2>Shamimabad, Bagbari, Sylhet — Bangladesh</h2>
-            <p>EIIN: 136544 &nbsp;|&nbsp; Affiliated to Bangladesh Board of Intermediate &amp; Secondary Education</p>
+            <div class="ac-hdr-addr">Shamimabad, Bagbari, Sylhet-3100, Sylhet.</div>
+            <div class="ac-hdr-eiin">EIIN : 136544</div>
+            <div class="ac-hdr-exam-name">${et} - ${ey}</div>
           </div>
-          <div class="ac-hdr-qr"><div id="${qrId}"></div><span>Scan QR Code</span></div>
+          <div class="ac-hdr-qr">
+            ${qrBox}
+            <span>QR Code</span>
+          </div>
         </div>
-        <div class="ac-admit-title">A D M I T &nbsp; C A R D</div>
-        <div class="ac-exam-bar">
-          <div class="ac-ei"><span class="ac-el">Examination:</span><span class="ac-ev">${et}</span></div>
-          <div class="ac-ei"><span class="ac-el">Session:</span><span class="ac-ev">${ey}</span></div>
-          <div class="ac-ei"><span class="ac-el">Exam Starts:</span><span class="ac-ev">${sdF}</span></div>
-          <div class="ac-ei"><span class="ac-el">Time:</span><span class="ac-ev">${tm}</span></div>
-          <div class="ac-ei"><span class="ac-el">Centre:</span><span class="ac-ev">${ct}</span></div>
+
+        <!-- ADMIT CARD TITLE -->
+        <div class="ac-admit-title-wrap">
+          <div class="ac-admit-title">ADMIT CARD</div>
         </div>
-        <div class="ac-body">
-          <div>
-            <div class="ac-det-grid">
-              <div class="ac-di"><span class="ac-dl">Student Name:</span><span class="ac-dv"><strong>${stu.name}</strong></span></div>
-              <div class="ac-di"><span class="ac-dl">Roll Number:</span><span class="ac-dv"><strong>${stu.roll}</strong></span></div>
-              <div class="ac-di"><span class="ac-dl">Registration:</span><span class="ac-dv">${stu.reg || '—'}</span></div>
-              <div class="ac-di"><span class="ac-dl">Class:</span><span class="ac-dv">${stu.cls}</span></div>
-              <div class="ac-di"><span class="ac-dl">Group:</span><span class="ac-dv">${grpLabel} Group</span></div>
-              <div class="ac-di"><span class="ac-dl">Section:</span><span class="ac-dv">${stu.section || '—'}</span></div>
-              <div class="ac-di"><span class="ac-dl">Father's Name:</span><span class="ac-dv">${stu.father || '—'}</span></div>
-              <div class="ac-di"><span class="ac-dl">Mother's Name:</span><span class="ac-dv">${stu.mother || '—'}</span></div>
-              <div class="ac-di"><span class="ac-dl">Date of Birth:</span><span class="ac-dv">${dobF}</span></div>
-              <div class="ac-di"><span class="ac-dl">Religion:</span><span class="ac-dv">${stu.religion || '—'}</span></div>
-            </div>
-            <div class="ac-sub-lbl">Subject List</div>
-            <table class="ac-sub-tbl">
-              <thead><tr><th>Serial</th><th>Subject Name</th><th>Code</th></tr></thead>
-              <tbody>${subRows}</tbody>
-            </table>
-            ${optBadge}
-            <div style="border:1px solid #0d2b45;padding:9px 12px;margin-top:10px;font-size:.7rem;line-height:1.85;color:#0f172a;">
-              <strong style="display:block;margin-bottom:4px;font-size:.72rem;color:#0d2b45;">Examination Instructions:</strong>
-              1. This Admit Card must be presented at the examination hall without fail.<br>
-              2. Candidates must arrive at the centre at least 30 minutes before the scheduled time.<br>
-              3. Mobile phones, calculators, and all electronic devices are strictly prohibited.<br>
-              4. Any form of unfair means will result in immediate expulsion and exam cancellation.<br>
-              5. Candidates must bring their own stationery (pen, pencil, ruler, eraser, etc.).<br>
-              6. This Admit Card must be kept safely until results are officially declared.<br>
-              7. In case of any discrepancy, report immediately to the Examination Controller.
+
+        <!-- STUDENT INFO + PHOTO -->
+        <div class="ac-info-photo">
+          <div class="ac-info-left">
+            <div class="ac-info-row">
+              <div class="ac-info-field">
+                <span class="ac-info-label">Student Name</span>
+                <span class="ac-info-colon">:</span>
+                <span class="ac-info-value">${stu.name || ''}</span>
+              </div>
+              <div class="ac-info-field">
+                <span class="ac-info-label">Class</span>
+                <span class="ac-info-colon">:</span>
+                <span class="ac-info-value">${stu.cls || ''}</span>
+              </div>
+              <div class="ac-info-field">
+                <span class="ac-info-label">Group</span>
+                <span class="ac-info-colon">:</span>
+                <span class="ac-info-value">${grpLabel}</span>
+              </div>
+              <div class="ac-info-field">
+                <span class="ac-info-label">Section</span>
+                <span class="ac-info-colon">:</span>
+                <span class="ac-info-value">${stu.section || ''}</span>
+              </div>
+              <div class="ac-info-field">
+                <span class="ac-info-label">Father's Name</span>
+                <span class="ac-info-colon">:</span>
+                <span class="ac-info-value">${stu.father || ''}</span>
+              </div>
+              <div class="ac-info-field">
+                <span class="ac-info-label">Date of Birth:</span>
+                <span class="ac-info-value" style="min-width:80px;">${dobF}</span>
+              </div>
+              <div class="ac-info-field">
+                <span class="ac-info-label">Mother's Name</span>
+                <span class="ac-info-colon">:</span>
+                <span class="ac-info-value">${stu.mother || ''}</span>
+              </div>
+              <div class="ac-info-field">
+                <span class="ac-info-label">Roll</span>
+                <span class="ac-info-colon">:</span>
+                <span class="ac-info-value">${stu.roll || ''}</span>
+              </div>
             </div>
           </div>
-          <div class="ac-photo-col">
+          <div class="ac-photo-wrap">
             ${photoH}
-            <div class="ac-photo-lbl">Candidate's Photo</div>
+            <div class="ac-photo-lbl">Candidate<br>Photo</div>
           </div>
         </div>
-        <div class="ac-notice">
-          <span class="ac-notice-ttl">Important Instructions</span>
-          <strong>1.</strong> This admit card must be brought to the examination hall. &nbsp;
-          <strong>2.</strong> Candidates must be present at the centre 30 minutes before the exam. &nbsp;
-          <strong>3.</strong> Mobile phones and electronic devices are strictly prohibited. &nbsp;
-          <strong>4.</strong> Use of unfair means will result in cancellation of the exam and is a punishable offence.
+
+        <!-- SUBJECT TABLE + EXAM DATE/TIME -->
+        <div class="ac-subj-exam">
+          <div class="ac-sub-tbl-wrap">
+            <table class="ac-sub-tbl">
+              <thead>
+                <tr>
+                  <th class="ac-sname">Subject Name</th>
+                  <th class="ac-scode">Code</th>
+                  <th class="ac-sname">Subject Name</th>
+                  <th class="ac-scode">Code</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${subRows}
+                ${optRows}
+              </tbody>
+            </table>
+          </div>
+          <div class="ac-exam-info">
+            <div class="ac-exam-date-block">
+              <div class="ac-exam-date-label">Exam Date:</div>
+              <div class="ac-exam-date-val">${sdF}</div>
+            </div>
+            <div class="ac-exam-time-block">
+              <div class="ac-exam-time-label">Exam Start at:</div>
+              <div class="ac-exam-time-val">${tm || '00:00'}</div>
+            </div>
+          </div>
         </div>
-        <div class="ac-signs">
-          <div class="ac-sign-box"><div class="ac-sign-line"></div><div class="ac-sign-nm">Controller of Examination</div></div>
-          <div class="ac-sign-box"><div class="ac-sign-line"></div><div class="ac-sign-nm">Principal's Signature &amp; Seal</div></div>
-          <div class="ac-sign-box"><div class="ac-sign-line"></div><div class="ac-sign-nm">Candidate's Signature</div></div>
+
+        <!-- EXAMINATION INSTRUCTIONS -->
+        <div class="ac-instructions">
+          <span class="ac-inst-title">Examination Instructions:</span><br>
+          1. This Admit Card must be presented at the examination hall without fail.<br>
+          2. Candidates must arrive at the center at least <strong>30</strong> minutes before the scheduled time.<br>
+          3. Mobile phones, calculators, and all electronic devices are strictly prohibited.<br>
+          4. Any form of unfair means will result in immediate expulsion and exam cancellation.<br>
+          5. Candidates must bring their own stationery (pen, pencil, ruler, eraser, etc).<br>
+          6. This Admit Card must be kept safely until results are officially declared.<br>
+          7. In case of any discrepancy, report immediately to the Examination Controller.
         </div>
-        <div class="ac-foot">Issue Date: ${new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}</div>
-        <div class="ac-btm-bar"></div>
+
+        <!-- PRINCIPAL SIGNATURE -->
+        <div class="ac-footer">
+          <div class="ac-sign-block">
+            ${sigHtml}
+            <div class="ac-sign-nm">Principal</div>
+          </div>
+        </div>
+
+        <!-- ISSUE DATE -->
+        <div class="ac-issue">
+          <div class="ac-issue-lbl">Issue Date &amp; Time</div>
+          <div class="ac-issue-val">${issueStr}</div>
+        </div>
       </div>`;
     }
 
@@ -616,7 +808,9 @@
       document.body.style.overflow = 'hidden';
 
       try {
-        new QRCode($(qrId), { text: `ADMIT CARD | ${stu.name} | Roll: ${stu.roll} | ${et} ${ey}`, width: 60, height: 60, colorDark: '#0d2b45', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
+        const qrEl = $(qrId);
+        if (qrEl) { qrEl.innerHTML = ''; }
+        new QRCode(qrEl, { text: `ADMIT CARD | ${stu.name} | Roll: ${stu.roll} | ${et} ${ey}`, width: 64, height: 64, colorDark: '#000000', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
       } catch (e) {}
     }
 
@@ -699,7 +893,7 @@
         try {
           _filteredStudents.forEach(s => {
             const el = win.document.getElementById('bp-qr-' + s.id);
-            if (el) new win.QRCode(el, { text: `ADMIT | ${s.name} | Roll: ${s.roll} | ${et} ${ey}`, width: 60, height: 60, colorDark: '#0d2b45', colorLight: '#ffffff', correctLevel: win.QRCode.CorrectLevel.M });
+            if (el) { el.innerHTML = ''; new win.QRCode(el, { text: `ADMIT | ${s.name} | Roll: ${s.roll} | ${et} ${ey}`, width: 64, height: 64, colorDark: '#000000', colorLight: '#ffffff', correctLevel: win.QRCode.CorrectLevel.M }); }
           });
         } catch(e) {}
         setTimeout(() => win.print(), 600);
@@ -731,7 +925,7 @@
       await new Promise(r => setTimeout(r, 100));
       _filteredStudents.forEach(s => {
         const el = document.getElementById('bdl-qr-' + s.id);
-        if (el) try { new QRCode(el, { text: `ADMIT | ${s.name} | Roll: ${s.roll} | ${et} ${ey}`, width: 60, height: 60, colorDark: '#0d2b45', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M }); } catch(e) {}
+        if (el) try { el.innerHTML = ''; new QRCode(el, { text: `ADMIT | ${s.name} | Roll: ${s.roll} | ${et} ${ey}`, width: 64, height: 64, colorDark: '#000000', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M }); } catch(e) {}
       });
 
       await new Promise(r => setTimeout(r, 300));
@@ -769,6 +963,9 @@
         $('ad-date').value = today;
 
         await loadData();
+
+        // Restore saved signature preview
+        _updateSigPreview();
 
         // Attach event listeners
         $('ad-class').addEventListener('change', filterAdmitStudents);

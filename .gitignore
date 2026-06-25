@@ -119,3 +119,4 @@ scratch/
 *.db
 *.sqlite
 *.sqlite3
+caveman/

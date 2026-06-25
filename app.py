@@ -1071,6 +1071,77 @@ def save_marks(sid):
     return jsonify({'ok': True, 'message': 'Marks saved successfully'})
 
 
+@app.route('/api/marks/batch', methods=['GET'])
+@require_auth
+def get_batch_marks():
+    ids_str = request.args.get('ids', '')
+    if not ids_str:
+        return jsonify({'ok': True, 'data': {}})
+    sids = [sid.strip() for sid in ids_str.split(',') if sid.strip()]
+    if not sids:
+        return jsonify({'ok': True, 'data': {}})
+    return jsonify({'ok': True, 'data': _get_marks_dict(sids)})
+
+
+@app.route('/api/marks/batch-subject', methods=['POST'])
+@require_auth
+def save_batch_subject_marks():
+    body = request.get_json(force=True, silent=True) or {}
+    subject_code = body.get('subjectCode')
+    exam_type = body.get('examType')
+    year = body.get('year')
+    entries = body.get('entries', [])
+
+    if not subject_code or not exam_type or not year:
+        return jsonify({'ok': False, 'message': 'subjectCode, examType, and year are required'}), 400
+
+    try:
+        for entry in entries:
+            sid = entry.get('studentId')
+            if not sid:
+                continue
+
+            cq_raw = entry.get('cq')
+            mcq_raw = entry.get('mcq')
+            prac_raw = entry.get('prac')
+
+            is_empty = (cq_raw == '' or cq_raw is None) and (mcq_raw == '' or mcq_raw is None) and (prac_raw == '' or prac_raw is None)
+
+            # Delete existing marks for this student, exam type, and subject code
+            Mark.query.filter_by(student_id=sid, exam_type=exam_type, subject_code=subject_code).delete()
+
+            if not is_empty:
+                try:
+                    cq = int(float(cq_raw or 0))
+                    mcq = int(float(mcq_raw or 0))
+                    prac = int(float(prac_raw or 0))
+                except (ValueError, TypeError):
+                    return jsonify({'ok': False, 'message': f'Invalid mark format for student {sid}. Marks must be numeric.'}), 400
+
+                selected_optional = entry.get('selectedOptional')
+                if selected_optional is None:
+                    existing = Mark.query.filter_by(student_id=sid, exam_type=exam_type).first()
+                    selected_optional = existing.selected_optional if existing else ''
+
+                mark = Mark(
+                    student_id=sid,
+                    exam_type=exam_type,
+                    year=str(year).strip().replace('–', '-').replace('\u2013', '-'),
+                    subject_code=subject_code,
+                    cq=cq,
+                    mcq=mcq,
+                    prac=prac,
+                    selected_optional=selected_optional or ''
+                )
+                db.session.add(mark)
+
+        db.session.commit()
+        return jsonify({'ok': True, 'message': 'Batch marks saved successfully'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'ok': False, 'message': f'Database error: {str(e)}'}), 500
+
+
 @app.route('/api/marks/import', methods=['POST'])
 @require_auth
 def import_marks():

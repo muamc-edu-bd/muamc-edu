@@ -259,6 +259,65 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--slate);color:var(--
 /* Footer */
 .page-footer{text-align:center;padding:20px;color:var(--muted);font-size:.75rem;border-top:1px solid var(--border);margin-top:40px;}
 
+/* ═══════════════ MODE TABS ═══════════════ */
+.mode-tabs{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:20px;}
+.mode-tab{padding:10px 22px;font-size:.84rem;font-weight:700;font-family:inherit;border:none;background:none;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .18s;letter-spacing:.1px;}
+.mode-tab.active{color:var(--navy);border-bottom-color:var(--navy);}
+.mode-tab:hover:not(.active){color:var(--navy2);background:var(--slate);}
+
+/* ═══════════════ BATCH FILTER BAR ═══════════════ */
+.batch-filter-bar{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;align-items:flex-end;background:#fff;border:1px solid var(--border);border-radius:var(--r-md);padding:18px 20px;margin-bottom:16px;box-shadow:var(--shadow-sm);}
+.batch-load-btn{align-self:flex-end;}
+
+/* ═══════════════ BATCH MARKS TABLE ═══════════════ */
+.batch-table-wrap{overflow-x:auto;border-radius:var(--r-md);border:1px solid var(--border);box-shadow:var(--shadow-sm);background:#fff;}
+.batch-sheet-table{width:100%;border-collapse:collapse;font-size:.82rem;}
+.batch-sheet-table thead tr{background:linear-gradient(180deg,#0d2b45 0%,#0a2138 100%);}
+.batch-sheet-table thead th{color:#fff;padding:11px 10px;font-weight:700;font-size:.74rem;letter-spacing:.25px;text-align:center;border-right:1px solid rgba(255,255,255,.12);white-space:nowrap;font-family:'Merriweather',serif;}
+.batch-sheet-table thead th:first-child{text-align:left;padding-left:14px;}
+.batch-sheet-table thead th:nth-child(2){text-align:left;}
+.batch-sheet-table tbody tr{border-bottom:1px solid var(--border);transition:background .12s;}
+.batch-sheet-table tbody tr:hover{background:#f5f8ff;}
+.batch-sheet-table tbody tr:nth-child(even){background:#fafcff;}
+.batch-sheet-table tbody tr:nth-child(even):hover{background:#eef4ff;}
+.batch-sheet-table td{padding:7px 8px;text-align:center;border-right:1px solid var(--border);vertical-align:middle;}
+.batch-sheet-table td:first-child{text-align:left;padding-left:14px;font-weight:700;color:var(--navy);font-size:.8rem;}
+.batch-sheet-table td:nth-child(2){text-align:left;font-weight:600;color:var(--txt);font-size:.8rem;max-width:180px;}
+.batch-inp{padding:5px 6px;border:1.5px solid var(--border2);border-radius:5px;font-size:.82rem;font-family:inherit;text-align:center;background:#fff;width:70px;transition:border .14s,box-shadow .14s;}
+.batch-inp:focus{outline:none;border-color:var(--navy3);box-shadow:0 0 0 2px rgba(31,84,144,.13);background:#f0f7ff;}
+.batch-inp[readonly]{background:#f1f5f9;color:var(--txt2);cursor:default;width:68px;}
+.batch-inp:disabled{background:#f3f6fa;color:#aaa;cursor:not-allowed;border-color:#e2e8f0;}
+.batch-row-idx{display:inline-block;width:20px;color:var(--muted);font-size:.7rem;font-weight:400;margin-right:2px;}
+.batch-status-bar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:12px 16px;background:#f8faff;border:1px solid var(--border);border-radius:var(--r-md);margin-top:14px;font-size:.82rem;}
+.batch-status-count{font-weight:700;color:var(--navy);}
+.batch-progress-wrap{flex:1;min-width:160px;}
+.batch-progress-track{height:8px;background:var(--border2);border-radius:999px;overflow:hidden;}
+.batch-progress-bar{height:100%;background:linear-gradient(90deg,var(--navy),var(--gold3));transition:width .25s ease;width:0%;}
+.batch-empty{text-align:center;padding:44px 20px;color:var(--muted);font-size:.85rem;}
+.batch-saved-chip{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;font-size:.68rem;font-weight:700;background:#dcfce7;color:#14532d;margin-left:4px;}
+.batch-err-chip{background:#fee2e2;color:#991b1b;}
+
+/* ═══════════════ PRINT STYLES ═══════════════ */
+@media print{
+  body{padding-top:0!important;background:#fff!important;}
+  .top-nav-bar,.page-footer,.mode-tabs,.batch-filter-bar,.batch-status-bar,.no-print{display:none!important;}
+  .main-container{padding:0!important;max-width:100%!important;}
+  .back-link{display:none!important;}
+  #student-mode-section{display:none!important;}
+  #batch-bulk-card{display:none!important;}
+  #batch-print-header{display:block!important;}
+  .batch-table-wrap{box-shadow:none!important;border:1px solid #ccc!important;}
+  .batch-sheet-table{font-size:.78rem!important;}
+  .batch-sheet-table thead tr{background:#1a1a1a!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .batch-inp{border:1px solid #999!important;width:52px!important;font-size:.75rem!important;padding:3px 4px!important;}
+  .batch-inp[readonly]{border:none!important;background:transparent!important;font-weight:700;}
+  .g-chip{font-size:.7rem!important;padding:2px 4px!important;}
+  .card{box-shadow:none!important;border:1px solid #ccc!important;}
+}
+#batch-print-header{display:none;text-align:center;margin-bottom:14px;}
+#batch-print-header h2{font-family:'Merriweather',serif;font-size:1.1rem;margin-bottom:4px;}
+#batch-print-header p{font-size:.8rem;color:#555;}
+
 /* MOBILE STYLES */
 @media(max-width:768px){
   .top-nav-bar { padding: 0 16px; }
@@ -281,6 +340,9 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--slate);color:var(--
   .m-inp-lbl{display:block;}
   .g-chip{font-size:.72rem;padding:6px 3px;}
   .sub-hdr{display:none;}
+  .batch-inp{width:56px;font-size:.78rem;}
+  .batch-sheet-table thead th,.batch-sheet-table td{padding:6px 5px;}
+  .batch-filter-bar{grid-template-columns:1fr 1fr;}
 }
 @media(max-width:480px){
   .top-nav-bar { flex-direction: column; height: auto; padding: 8px 12px; gap: 8px; }
@@ -352,10 +414,18 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--slate);color:var(--
     .back-link { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 999px; background: rgba(13, 43, 69, .08); color: var(--navy); text-decoration: none; font-size: .9rem; font-weight: 700; margin-bottom: 16px; border: 1px solid transparent; transition: all .2s ease; box-shadow: 0 10px 24px rgba(13, 43, 69, .08); }
     .back-link:hover { background: var(--navy); color: #fff; border-color: var(--navy); transform: translateY(-1px); }
   </style>
-  <a href="dashboard.html" class="back-link">← Back to Dashboard</a>
+  <a href="dashboard.html" class="back-link no-print">← Back to Dashboard</a>
 
-  <div class="pg-hd"><h2>Teacher Marks Input</h2><p>Search students on the left and input marks on the right.</p></div>
+  <div class="pg-hd"><h2>Teacher Marks Input</h2><p>Use <strong>Student Mode</strong> to edit one student, or <strong>Subject Batch Mode</strong> to enter marks for all students of a subject at once.</p></div>
 
+  <!-- MODE TAB BAR -->
+  <div class="mode-tabs no-print">
+    <button class="mode-tab active" id="tab-student" onclick="switchMode('student')">Student Mode</button>
+    <button class="mode-tab" id="tab-batch" onclick="switchMode('batch')">Subject Batch Mode</button>
+  </div>
+
+  <!-- ═════════════════ STUDENT MODE SECTION ═════════════════ -->
+  <div id="student-mode-section">
   <div class="layout-grid">
     <div class="left-panel">
       <div class="card">
@@ -434,9 +504,103 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--slate);color:var(--
       </div>
     </div>
   </div>
+  </div><!-- /#student-mode-section -->
+
+  <!-- ═════════════════ SUBJECT BATCH MODE SECTION ═════════════════ -->
+  <div id="batch-mode-section" style="display:none;">
+
+    <!-- Print header (hidden on screen, shown when printing) -->
+    <div id="batch-print-header">
+      <h2 id="batch-print-title">Marks Sheet</h2>
+      <p id="batch-print-sub"></p>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="batch-filter-bar no-print">
+      <div class="fg">
+        <label>Class</label>
+        <select id="b-class" onchange="onBatchFilterChange()">
+          <option value="">-- Select Class --</option>
+          <option value="Class-XI">Class XI</option>
+          <option value="Class-XII">Class XII</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Group</label>
+        <select id="b-group" onchange="onBatchFilterChange()">
+          <option value="">-- Select Group --</option>
+          <option value="Science">Science</option>
+          <option value="Humanities">Humanities</option>
+          <option value="Business">Business</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Subject</label>
+        <select id="b-subject">
+          <option value="">-- Select Subject --</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Exam Type</label>
+        <select id="b-exam">
+          <option>Half-Yearly</option>
+          <option>Annual</option>
+          <option>Selection Test</option>
+          <option>Test</option>
+          <option>HSC</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Session</label>
+        <select id="b-session">
+          <option value="2022-2023">2022-2023</option>
+          <option value="2023-2024">2023-2024</option>
+          <option value="2024-2025" selected>2024-2025</option>
+          <option value="2025-2026">2025-2026</option>
+        </select>
+      </div>
+      <div class="batch-load-btn">
+        <button class="btn btn-primary" onclick="loadBatchStudents()">Load Students</button>
+      </div>
+    </div>
+
+    <!-- Alert area -->
+    <div id="batch-alert"></div>
+
+    <!-- Table card -->
+    <div class="card" id="batch-table-card">
+      <div class="card-head">
+        <h3 id="batch-card-title">Marks Entry Sheet</h3>
+        <span class="meta" id="batch-card-meta">Select filters above and click Load Students</span>
+      </div>
+      <div class="card-body" style="padding:0;overflow:auto;">
+        <div id="batch-table-area">
+          <div class="batch-empty">Select Class, Group, and Subject above, then click <strong>Load Students</strong> to begin.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status / Save bar -->
+    <div id="batch-action-bar" style="display:none;" class="no-print">
+      <div class="batch-status-bar">
+        <span class="batch-status-count" id="batch-count-label">0 students</span>
+        <div class="batch-progress-wrap" id="batch-progress-wrap" style="display:none;">
+          <div style="display:flex;justify-content:space-between;font-size:.76rem;margin-bottom:4px;">
+            <span id="batch-progress-label">Saving...</span>
+            <span id="batch-progress-pct">0%</span>
+          </div>
+          <div class="batch-progress-track"><div class="batch-progress-bar" id="batch-progress-bar"></div></div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-success" id="batch-save-btn" onclick="saveBatchMarks()">Save All Marks</button>
+          <button class="btn btn-outline" id="batch-print-btn" onclick="printBatchSheet()" style="display:none;">Print Sheet</button>
+        </div>
+      </div>
+    </div>
+  </div><!-- /#batch-mode-section -->
 
   <!-- Marks Bulk Input Card -->
-  <div class="card">
+  <div class="card no-print" id="batch-bulk-card">
     <div class="card-head"><h3>Marks Bulk Input</h3><span class="meta">Upload Excel file to import marks for multiple students</span></div>
     <div class="card-body">
       <div id="bulk-marks-alert"></div>
@@ -1190,6 +1354,450 @@ function downloadMarksTemplate(event) {
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Marks');
   XLSX.writeFile(wb, 'Marks_Import_Template.xlsx');
+}
+
+/* ═══════════════ BATCH MODE — STATE ═══════════════ */
+let batchStudents   = [];   // [{id, name, roll, optional_subjects, …}]
+let batchSubjectDef = null; // {name, code, hasPrac, cqMax, mcqMax, optionalGroup}
+let batchExamType   = '';
+let batchSession    = '';
+let batchSavedOnce  = false;
+let batchMarksCache = {};
+
+/* ─── Tab Switcher ─── */
+function switchMode(mode){
+  const studentSec = $('student-mode-section');
+  const batchSec   = $('batch-mode-section');
+  const tabS       = $('tab-student');
+  const tabB       = $('tab-batch');
+  const bulkCard   = $('batch-bulk-card'); // may be null
+
+  if(mode === 'batch'){
+    if(studentSec) studentSec.style.display = 'none';
+    if(batchSec)   batchSec.style.display   = 'block';
+    if(tabS) tabS.classList.remove('active');
+    if(tabB) tabB.classList.add('active');
+  } else {
+    if(studentSec) studentSec.style.display = 'block';
+    if(batchSec)   batchSec.style.display   = 'none';
+    if(tabS) tabS.classList.add('active');
+    if(tabB) tabB.classList.remove('active');
+  }
+}
+
+/* ─── Populate Subject dropdown when Class/Group changes ─── */
+function onBatchFilterChange(){
+  const cls = ($('b-class') || {}).value || '';
+  const grp = ($('b-group') || {}).value || '';
+  const sel = $('b-subject');
+  if(!sel) return;
+
+  sel.innerHTML = '<option value="">-- Select Subject --</option>';
+  if(!grp) return;
+
+  // Build subject list from SUBS, filtered by class
+  const cats = SUBS[grp] || [];
+  cats.forEach(cat => {
+    let items = cat.items.filter(sub => {
+      if(cls === 'Class-XI')  return !sub.name.includes('2nd') && !sub.name.includes('2nd Paper') && !sub.name.endsWith(' 2nd');
+      if(cls === 'Class-XII') return !sub.name.includes('1st') && !sub.name.includes('1st Paper') && !sub.name.endsWith(' 1st');
+      return true;
+    }).map(sub => {
+      // rename single-paper subjects dynamically
+      if(sub.code === '116' || sub.code === '267'){
+        const suffix = cls === 'Class-XI' ? ' 1st Paper' : ' 2nd Paper';
+        return Object.assign({}, sub, {name: sub.name.replace(' 1st Paper','').replace(' 2nd Paper','') + suffix});
+      }
+      return sub;
+    });
+    if(!items.length) return;
+    const grpEl = document.createElement('optgroup');
+    grpEl.label = cat.cat;
+    items.forEach(sub => {
+      const opt = document.createElement('option');
+      opt.value = sub.code;
+      opt.textContent = `${sub.name} (${sub.code})`;
+      grpEl.appendChild(opt);
+    });
+    sel.appendChild(grpEl);
+  });
+}
+
+/* ─── Load students for batch table ─── */
+async function loadBatchStudents(){
+  const cls     = ($('b-class')    || {}).value || '';
+  const grp     = ($('b-group')   || {}).value || '';
+  const code    = ($('b-subject') || {}).value || '';
+  batchExamType = ($('b-exam')    || {}).value || 'Half-Yearly';
+  batchSession  = ($('b-session') || {}).value || '2024-2025';
+
+  setAlert('batch-alert','','');
+
+  if(!cls || !grp){
+    setAlert('batch-alert','err','Please select both Class and Group.');
+    return;
+  }
+  if(!code){
+    setAlert('batch-alert','err','Please select a Subject.');
+    return;
+  }
+
+  // Find the subject definition
+  const allCats = SUBS[grp] || [];
+  let foundSub = null;
+  for(const cat of allCats){
+    const match = cat.items.find(s => s.code === code);
+    if(match){ foundSub = Object.assign({}, match); break; }
+  }
+  if(!foundSub){ setAlert('batch-alert','err','Subject definition not found.'); return; }
+
+  // Rename single-paper subjects
+  if(foundSub.code === '116' || foundSub.code === '267'){
+    const suffix = cls === 'Class-XI' ? ' 1st Paper' : ' 2nd Paper';
+    foundSub.name = foundSub.name.replace(' 1st Paper','').replace(' 2nd Paper','') + suffix;
+  }
+  batchSubjectDef = foundSub;
+  batchSavedOnce  = false;
+
+  // Show loading state
+  const area = $('batch-table-area');
+  area.innerHTML = '<div class="batch-empty"><div class="loader-skeleton" style="max-width:600px;margin:0 auto;">' +
+    Array.from({length:5}).map(()=>'<div class="skeleton-row"><div class="skeleton-line" style="width:80%"></div></div>').join('') +
+    '</div></div>';
+
+  // Fetch matching students from API
+  try{
+    let url = `/api/students?cls=${encodeURIComponent(cls)}&group=${encodeURIComponent(grp)}`;
+    const res  = await fetch(url);
+    const data = await res.json();
+    let students = (data && data.data) ? data.data : [];
+
+    // Optional subject filter: if this subject belongs to an optional group,
+    // only include students whose optional_subjects field contains this code
+    if(foundSub.optionalGroup){
+      students = students.filter(s => {
+        const optStr = String(s.optionalSubjects || s.optional_subjects || '').trim();
+        return optStr.includes(code);
+      });
+    }
+
+    // Sort by roll number
+    students.sort((a,b) => {
+      const ra = parseInt(a.roll)||0, rb = parseInt(b.roll)||0;
+      return ra !== rb ? ra - rb : a.roll.localeCompare(b.roll);
+    });
+
+    batchStudents = students;
+
+    if(!students.length){
+      area.innerHTML = '<div class="batch-empty">No students found for the selected filters.' +
+        (foundSub.optionalGroup ? ' (Only students who have chosen this optional subject are shown.)' : '') + '</div>';
+      $('batch-action-bar').style.display = 'none';
+      $('batch-count-label').textContent = '0 students';
+      $('batch-card-meta').textContent   = 'No students match';
+      return;
+    }
+
+    // Fetch existing marks for all students (for pre-fill)
+    let marksMap = {};
+    try{
+      const sids = students.map(s => s.id).join(',');
+      const mr = await fetch(`/api/marks/batch?ids=${encodeURIComponent(sids)}`);
+      const md = await mr.json();
+      marksMap = (md && md.data) ? md.data : {};
+    }catch(e){
+      console.error('Error fetching batch marks:', e);
+    }
+    batchMarksCache = marksMap;
+
+    // Render the table
+    renderBatchTable(students, foundSub, marksMap, batchExamType);
+
+    // Update UI labels
+    const cqM = foundSub.cqMax || 70;
+    const mcqM= foundSub.mcqMax|| 30;
+    $('batch-card-title').textContent = `${foundSub.name} — Marks Sheet`;
+    $('batch-card-meta').textContent  = `${students.length} student${students.length===1?'':'s'} | ${grp}, ${cls} | ${batchExamType} ${batchSession}`;
+    $('batch-count-label').textContent= `${students.length} student${students.length===1?'':'s'} loaded`;
+    $('batch-action-bar').style.display = 'block';
+    $('batch-print-btn').style.display = 'none';
+    $('batch-progress-wrap').style.display = 'none';
+
+    // Update print header
+    $('batch-print-title').textContent = `${foundSub.name} — Marks Sheet`;
+    $('batch-print-sub').textContent   = `${grp} | ${cls} | Exam: ${batchExamType} | Session: ${batchSession} | CQ: ${cqM}, MCQ: ${mcqM}${foundSub.hasPrac?', Practical: 25':''}`;
+
+  } catch(e){
+    setAlert('batch-alert','err','Failed to load students: ' + e.message);
+    $('batch-action-bar').style.display = 'none';
+  }
+}
+
+/* ─── Render the batch table ─── */
+function renderBatchTable(students, sub, marksMap, examType){
+  const cqM  = sub.cqMax  || 70;
+  const mcqM = sub.mcqMax || 30;
+  const pracM= 25;
+
+  let html = `<table class="batch-sheet-table" id="batch-table">
+    <thead>
+      <tr>
+        <th style="width:60px;">Roll</th>
+        <th style="min-width:160px;">Student Name</th>
+        <th style="width:80px;">CQ<br><small style="font-weight:400;opacity:.75;">(Max ${cqM})</small></th>
+        <th style="width:80px;">MCQ<br><small style="font-weight:400;opacity:.75;">(Max ${mcqM})</small></th>`;
+  if(sub.hasPrac){
+    html += `<th style="width:80px;">Practical<br><small style="font-weight:400;opacity:.75;">(Max ${pracM})</small></th>`;
+  }
+  html += `
+        <th style="width:70px;">Total</th>
+        <th style="width:64px;">Grade</th>
+      </tr>
+    </thead>
+    <tbody>`;
+
+  students.forEach((s, idx) => {
+    const existing = (marksMap[s.id] && marksMap[s.id][examType] && marksMap[s.id][examType][sub.code])
+      ? marksMap[s.id][examType][sub.code] : {};
+    const cqVal   = existing.cq   !== undefined && existing.cq   !== '' ? existing.cq   : '';
+    const mcqVal  = existing.mcq  !== undefined && existing.mcq  !== '' ? existing.mcq  : '';
+    const pracVal = existing.prac !== undefined && existing.prac !== '' ? existing.prac : '';
+    const rowId   = `brow-${s.id}`;
+
+    html += `<tr id="${rowId}" data-sid="${s.id}" data-idx="${idx}">
+      <td>${s.roll}</td>
+      <td title="${s.name}">${s.name}</td>
+      <td>
+        <input class="batch-inp" type="number" id="bcq-${s.id}"
+          min="0" max="${cqM}" maxlength="2" value="${cqVal}"
+          placeholder="${cqM}"
+          oninput="enforceTwoDigit(this,${cqM});calcBatchRow('${s.id}')"
+          onkeydown="batchNavKey(event,'bcq-${s.id}')">
+      </td>
+      <td>
+        <input class="batch-inp" type="number" id="bmcq-${s.id}"
+          min="0" max="${mcqM}" maxlength="2" value="${mcqVal}"
+          placeholder="${mcqM}"
+          oninput="enforceTwoDigit(this,${mcqM});calcBatchRow('${s.id}')"
+          onkeydown="batchNavKey(event,'bmcq-${s.id}')">
+      </td>`;
+
+    if(sub.hasPrac){
+      html += `<td>
+        <input class="batch-inp" type="number" id="bprac-${s.id}"
+          min="0" max="${pracM}" maxlength="2" value="${pracVal}"
+          placeholder="${pracM}"
+          oninput="enforceTwoDigit(this,${pracM});calcBatchRow('${s.id}')"
+          onkeydown="batchNavKey(event,'bprac-${s.id}')">
+      </td>`;
+    } else {
+      html += `<td><input class="batch-inp" value="—" disabled tabindex="-1"></td>`;
+    }
+
+    html += `
+      <td><input class="batch-inp" id="btot-${s.id}" type="text" readonly placeholder="—" tabindex="-1"></td>
+      <td><div class="g-chip g-F" id="bgrade-${s.id}" style="font-size:.72rem;">—</div></td>
+    </tr>`;
+  });
+
+  html += '</tbody></table>';
+  $('batch-table-area').innerHTML = html;
+
+  // Initialise totals + grades for any pre-filled rows
+  students.forEach(s => calcBatchRow(s.id));
+}
+
+/* ─── Enforce 2-digit limit on numeric inputs ─── */
+function enforceTwoDigit(input, maxVal){
+  let v = input.value.replace(/[^0-9]/g,'');
+  if(v.length > 2) v = v.slice(0,2);
+  const num = parseInt(v, 10);
+  if(!isNaN(num) && num > maxVal) v = String(maxVal);
+  input.value = v;
+}
+
+/* ─── Calculate total + grade for a single batch row ─── */
+function calcBatchRow(sid){
+  const sub = batchSubjectDef;
+  if(!sub) return;
+  const cqM  = sub.cqMax  || 70;
+  const mcqM = sub.mcqMax || 30;
+
+  const cqEl   = $(`bcq-${sid}`);
+  const mcqEl  = $(`bmcq-${sid}`);
+  const pracEl = $(`bprac-${sid}`);
+  const totEl  = $(`btot-${sid}`);
+  const grEl   = $(`bgrade-${sid}`);
+  if(!cqEl || !mcqEl || !totEl || !grEl) return;
+
+  const cq   = Math.min(parseInt(cqEl.value   || 0, 10), cqM);
+  const mcq  = Math.min(parseInt(mcqEl.value  || 0, 10), mcqM);
+  const prac = (sub.hasPrac && pracEl) ? Math.min(parseInt(pracEl.value || 0, 10), 25) : 0;
+  const tot  = cq + mcq + prac;
+
+  if(cqEl.value === '' && mcqEl.value === '' && (!pracEl || pracEl.value === '')){
+    totEl.value = '';
+    grEl.textContent = '—';
+    grEl.className = 'g-chip g-F';
+    return;
+  }
+
+  totEl.value = tot || 0;
+  const g = grade(tot);
+  grEl.textContent = g.l;
+  grEl.className   = 'g-chip ' + gcls(g.l);
+}
+
+/* ─── Keyboard navigation: Tab moves to next row's same column ─── */
+function batchNavKey(event, currentId){
+  if(event.key !== 'Enter') return;
+  event.preventDefault();
+  const allInputs = Array.from(document.querySelectorAll('#batch-table .batch-inp:not([disabled]):not([readonly])'));
+  const idx = allInputs.findIndex(el => el.id === currentId);
+  if(idx >= 0 && idx < allInputs.length - 1){
+    allInputs[idx + 1].focus();
+    allInputs[idx + 1].select();
+  }
+}
+
+/* ─── Save all batch marks ─── */
+async function saveBatchMarks(){
+  if(!batchStudents.length || !batchSubjectDef){
+    setAlert('batch-alert','err','No students loaded. Use the filters above to load students first.');
+    return;
+  }
+
+  const sub      = batchSubjectDef;
+  const examType = batchExamType;
+  const session  = batchSession;
+  const saveBtn  = $('batch-save-btn');
+  const progWrap = $('batch-progress-wrap');
+  const progBar  = $('batch-progress-bar');
+  const progLbl  = $('batch-progress-label');
+  const progPct  = $('batch-progress-pct');
+
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Saving…';
+  progWrap.style.display = 'block';
+  setAlert('batch-alert','','');
+
+  let skipped = 0;
+  const total = batchStudents.length;
+  const entries = [];
+
+  for(let i = 0; i < total; i++){
+    const s = batchStudents[i];
+    const cqEl   = $(`bcq-${s.id}`);
+    const mcqEl  = $(`bmcq-${s.id}`);
+    const pracEl = $(`bprac-${s.id}`);
+
+    const cqVal   = cqEl   ? cqEl.value.trim()   : '';
+    const mcqVal  = mcqEl  ? mcqEl.value.trim()  : '';
+    const pracVal = (sub.hasPrac && pracEl) ? pracEl.value.trim() : '';
+
+    const hasExisting = (batchMarksCache[s.id] && batchMarksCache[s.id][examType] && batchMarksCache[s.id][examType][sub.code]);
+    if(cqVal === '' && mcqVal === '' && pracVal === ''){
+      if(!hasExisting){
+        skipped++;
+        continue;
+      }
+    }
+
+    const existingBlock = (batchMarksCache[s.id] && batchMarksCache[s.id][examType]) ? batchMarksCache[s.id][examType] : {};
+    const selOpt = existingBlock.selectedOptional || getStudentSelectedOptional(s) || null;
+
+    entries.push({
+      studentId: s.id,
+      cq: cqVal,
+      mcq: mcqVal,
+      prac: pracVal,
+      selectedOptional: selOpt
+    });
+  }
+
+  if (entries.length === 0) {
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Save All Marks';
+    progWrap.style.display = 'none';
+    setAlert('batch-alert', 'ok', 'No changes to save.');
+    return;
+  }
+
+  progBar.style.width = '50%';
+  progPct.textContent = '50%';
+  progLbl.textContent = 'Saving marks on server…';
+
+  try {
+    const r = await fetch('/api/marks/batch-subject', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        subjectCode: sub.code,
+        examType: examType,
+        year: session,
+        entries: entries
+      })
+    });
+    const res = await r.json();
+    if(res.ok){
+      entries.forEach(entry => {
+        if (!batchMarksCache[entry.studentId]) {
+          batchMarksCache[entry.studentId] = {};
+        }
+        if (!batchMarksCache[entry.studentId][examType]) {
+          batchMarksCache[entry.studentId][examType] = {};
+        }
+        if (entry.cq === '' && entry.mcq === '' && entry.prac === '') {
+          delete batchMarksCache[entry.studentId][examType][sub.code];
+        } else {
+          batchMarksCache[entry.studentId][examType][sub.code] = {
+            cq: entry.cq !== '' ? parseInt(entry.cq, 10) : 0,
+            mcq: entry.mcq !== '' ? parseInt(entry.mcq, 10) : 0,
+            prac: entry.prac !== '' ? parseInt(entry.prac, 10) : 0,
+            ey: session,
+            year: session
+          };
+        }
+        if (entry.selectedOptional) {
+          batchMarksCache[entry.studentId][examType].selectedOptional = entry.selectedOptional;
+        }
+      });
+
+      const savedCount = entries.filter(e => !(e.cq === '' && e.mcq === '' && e.prac === '')).length;
+      const clearedCount = entries.length - savedCount;
+
+      progBar.style.width = '100%';
+      progPct.textContent = '100%';
+      progLbl.textContent = 'All done!';
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Save All Marks';
+      batchSavedOnce = true;
+
+      setAlert('batch-alert', 'ok',
+        `Marks saved successfully for <strong>${savedCount}</strong> student${savedCount===1?'':'s'}.` +
+        (clearedCount ? ` ${clearedCount} student mark${clearedCount===1?'':'s'} cleared.` : '') +
+        (skipped ? ` ${skipped} empty student row${skipped===1?'':'s'} skipped.` : ''));
+      
+      $('batch-print-btn').style.display = 'inline-flex';
+    } else {
+      throw new Error(res.message || 'Server error');
+    }
+  } catch(e) {
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Save All Marks';
+    progWrap.style.display = 'none';
+    setAlert('batch-alert', 'err', 'Failed to save batch marks: ' + e.message);
+  }
+}
+
+/* ─── Print the batch sheet ─── */
+function printBatchSheet(){
+  if(!batchStudents.length){
+    alert('No marks sheet to print. Load students first.');
+    return;
+  }
+  // Make sure batch section is visible (it will be during print via CSS)
+  window.print();
 }
 
 async function doLogout() {
