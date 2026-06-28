@@ -91,6 +91,43 @@ tr.selected:hover { background: var(--gold3); }
   .filter-bar { padding: 12px; gap: 8px; }
   .fg { flex: 1 1 calc(50% - 8px); min-width: 140px; }
 }
+@media (max-width: 600px) {
+  .top-nav-bar {
+    height: 70px !important;
+    padding: 0 12px !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+  }
+  .top-nav-logo-text {
+    display: none !important;
+  }
+  .top-nav-logo {
+    gap: 6px !important;
+  }
+  .top-nav-logo-img {
+    width: 40px !important;
+    height: 40px !important;
+  }
+  .top-nav-admin-info {
+    display: none !important;
+  }
+  .top-nav-admin {
+    gap: 8px !important;
+  }
+  .top-nav-avatar {
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 0.85rem !important;
+  }
+  .logout-btn {
+    padding: 6px 12px !important;
+    font-size: 0.72rem !important;
+  }
+  .fg {
+    flex: 1 1 100% !important;
+  }
+}
 </style>
 
 
@@ -307,6 +344,12 @@ function selectStudent(id) {
   // Add selection to clicked row
   event.currentTarget.classList.add('selected');
   showProfile();
+  if (window.innerWidth <= 768) {
+    const profileCard = document.getElementById('profile-content');
+    if (profileCard) {
+      profileCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }
 }
 
 function showProfile() {

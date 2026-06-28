@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bulk Photo Upload — Moinuddin Adarsha Mohila College</title>
+  <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700;900&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #0d2b45; --navy2: #174070; --navy3: #1f5490;
+      --gold: #a97c28; --gold2: #c9973a; --gold3: #e8b84b;
+      --slate: #f1f4f8; --slate2: #e8ecf2; --white: #fff;
+      --txt: #0f172a; --txt2: #334155; --muted: #64748b;
+      --border: #dde3ed; --border2: #c8d2e0;
+      --red: #b91c1c; --green: #166534; --green2: #15803d;
+      --amber: #92400e; --amber-bg: #fffbeb;
+      --shadow-sm: 0 1px 4px rgba(13,43,69,.08);
+      --shadow-lg: 0 8px 32px rgba(13,43,69,.14);
+      --r: 6px; --r-md: 10px; --r-lg: 14px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Source Sans 3', sans-serif; background: var(--slate); color: var(--txt); display: flex; flex-direction: column; min-height: 100vh; }
+
+    /* ── TOP NAV ── */
+    .top-nav-bar {
+      position: fixed; top: 0; left: 0; right: 0; height: 70px; z-index: 201;
+      background: linear-gradient(180deg,#0d2b45 0%,#0a2138 100%);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px; border-bottom: 1px solid rgba(255,255,255,.08);
+      box-shadow: 0 4px 12px rgba(0,0,0,.15);
+    }
+    .top-nav-logo { display: flex; align-items: center; gap: 14px; }
+    .top-nav-logo-img { width: 48px; height: 48px; border-radius: 50%; background: #fff; border: 2.5px solid var(--gold2); overflow: hidden; display: flex; align-items: center; justify-content: center; }
+    .top-nav-logo-img img { width: 100%; height: 100%; object-fit: contain; }
+    .top-nav-logo-text h1 { font-family: 'Merriweather', serif; font-size: .85rem; font-weight: 700; color: #fff; }
+    .top-nav-logo-text p { font-size: .58rem; color: rgba(255,255,255,.5); margin-top: 2px; }
+    .top-nav-admin { display: flex; align-items: center; gap: 16px; }
+    .top-nav-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--gold2); display: flex; align-items: center; justify-content: center; font-size: .95rem; font-weight: 700; color: #fff; }
+    .top-nav-name { font-size: .78rem; font-weight: 700; color: #fff; }
+    .top-nav-role { font-size: .65rem; color: rgba(255,255,255,.7); }
+    .logout-btn { padding: 8px 16px; border-radius: var(--r); border: 1px solid rgba(255,255,255,.3); background: transparent; color: #fff; font-size: .78rem; font-family: inherit; cursor: pointer; font-weight: 600; transition: all .15s; }
+    .logout-btn:hover { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.6); }
+    .hdr-hamburger { display: none; background: none; border: none; color: #fff; font-size: 1.4rem; cursor: pointer; width: 32px; height: 32px; align-items: center; justify-content: center; }
+
+    /* ── SIDEBAR ── */
+    .site-header {
+      background: linear-gradient(180deg,#0d2b45 0%,#0a2138 100%);
+      position: fixed; left: 0; top: 70px; width: 220px; height: calc(100vh - 70px);
+      z-index: 200; border-right: 1px solid rgba(255,255,255,.06);
+      box-shadow: 4px 0 16px rgba(0,0,0,.3); display: flex; flex-direction: column; overflow-y: auto;
+    }
+    .nav-strip { display: flex; flex-direction: column; padding: 16px 0; background: rgba(0,0,0,.2); flex: 1; }
+    .nt { padding: 12px 16px; cursor: pointer; font-size: .79rem; font-weight: 500; border-left: 3px solid transparent; color: rgba(255,255,255,.55); transition: color .15s, border-color .15s, background .15s; display: flex; align-items: center; text-decoration: none; }
+    .nt:hover { color: rgba(255,255,255,.88); background: rgba(255,255,255,.05); }
+    .nt.active { color: var(--gold3); border-left-color: var(--gold2); background: rgba(255,255,255,.08); }
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 190; }
+
+    /* ── MAIN ── */
+    .main { margin-left: 220px; margin-top: 70px; padding: 28px 24px; flex: 1; }
+    .pg-hd { margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+    .pg-hd h2 { font-family: 'Merriweather', serif; font-size: 1.2rem; font-weight: 700; color: var(--navy); }
+    .pg-hd p { font-size: .78rem; color: var(--muted); margin-top: 3px; }
+
+    /* ── CARDS ── */
+    .card { background: var(--white); border-radius: var(--r-lg); border: 1px solid var(--border); box-shadow: var(--shadow-sm); margin-bottom: 20px; overflow: hidden; }
+    .card-head { padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .card-head h3 { font-family: 'Merriweather', serif; font-size: .92rem; font-weight: 700; color: var(--navy); }
+    .card-body { padding: 20px; }
+
+    /* ── FORM ── */
+    .fg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px; }
+    .fg { display: flex; flex-direction: column; gap: 5px; }
+    .fg label { font-size: .74rem; font-weight: 600; color: var(--navy); }
+    .fg select, .fg input[type="text"] { padding: 8px 11px; border: 1.5px solid var(--border2); border-radius: var(--r); font-size: .83rem; font-family: inherit; background: #fafcff; color: var(--txt); transition: border .15s; }
+    .fg select:focus, .fg input[type="text"]:focus { outline: none; border-color: var(--navy3); box-shadow: 0 0 0 3px rgba(31,84,144,.1); }
+
+    /* ── BUTTONS ── */
+    .btn { padding: 8px 18px; border-radius: var(--r); border: none; cursor: pointer; font-family: inherit; font-size: .8rem; font-weight: 600; transition: all .14s; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; white-space: nowrap; }
+    .btn-primary { background: var(--navy); color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: var(--navy2); }
+    .btn-gold { background: var(--gold); color: #fff; }
+    .btn-gold:hover:not(:disabled) { background: var(--gold2); }
+    .btn-success { background: var(--green); color: #fff; }
+    .btn-success:hover:not(:disabled) { background: var(--green2); }
+    .btn-danger { background: var(--red); color: #fff; }
+    .btn-danger:hover:not(:disabled) { filter: brightness(1.1); }
+    .btn-outline { background: transparent; border: 1.5px solid var(--navy); color: var(--navy); }
+    .btn-outline:hover:not(:disabled) { background: var(--navy); color: #fff; }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+    .btn-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+    /* ── DROP ZONE ── */
+    .drop-zone {
+      border: 3px dashed var(--border2); border-radius: var(--r-lg);
+      padding: 48px 24px; text-align: center; cursor: pointer;
+      transition: all .2s; background: #fafcff; position: relative;
+    }
+    .drop-zone:hover, .drop-zone.dragover { border-color: var(--navy3); background: #eff6ff; }
+    .drop-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+    .drop-zone-icon { font-size: 2.8rem; margin-bottom: 10px; }
+    .drop-zone h4 { font-family: 'Merriweather', serif; font-size: 1rem; color: var(--navy); margin-bottom: 6px; }
+    .drop-zone p { font-size: .78rem; color: var(--muted); line-height: 1.6; }
+    .drop-zone .hint { margin-top: 10px; font-size: .74rem; color: var(--navy3); background: #dbeafe; padding: 5px 12px; border-radius: 20px; display: inline-block; }
+
+    /* ── PROGRESS BAR ── */
+    .progress-wrap { background: var(--slate2); border-radius: 999px; height: 10px; overflow: hidden; margin: 8px 0; }
+    .progress-bar { height: 100%; background: linear-gradient(90deg, var(--navy2), var(--navy3)); border-radius: 999px; transition: width .35s ease; }
+    .progress-label { font-size: .76rem; color: var(--muted); font-weight: 600; }
+
+    /* ── STATS BADGES ── */
+    .stat-badges { display: flex; gap: 10px; flex-wrap: wrap; }
+    .stat-badge { display: flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 999px; font-size: .77rem; font-weight: 700; border: 1.5px solid; }
+    .stat-badge.total { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+    .stat-badge.ready { background: #f0fdf4; color: var(--green); border-color: #bbf7d0; }
+    .stat-badge.not-found { background: #fef2f2; color: var(--red); border-color: #fecaca; }
+    .stat-badge.warning { background: var(--amber-bg); color: var(--amber); border-color: #fde68a; }
+    .stat-badge.done { background: #f0fdf4; color: var(--green); border-color: #86efac; }
+
+    /* ── PHOTO TABLE ── */
+    .photo-tbl-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--r-md); }
+    .photo-tbl { width: 100%; border-collapse: collapse; font-size: .8rem; min-width: 700px; }
+    .photo-tbl thead th { background: var(--navy); color: #fff; padding: 10px 12px; text-align: left; font-size: .74rem; font-weight: 600; white-space: nowrap; }
+    .photo-tbl thead th:nth-child(1) { width: 48px; text-align: center; }
+    .photo-tbl thead th:nth-child(2) { width: 72px; text-align: center; }
+    .photo-tbl thead th:nth-child(3) { width: 80px; text-align: center; }
+    .photo-tbl tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
+    .photo-tbl tbody tr:last-child { border-bottom: none; }
+    .photo-tbl tbody tr:nth-child(even) { background: #f8fafc; }
+    .photo-tbl tbody tr:hover { background: #eff6ff; }
+    .photo-tbl td { padding: 8px 12px; vertical-align: middle; }
+    .photo-tbl td:nth-child(1) { text-align: center; color: var(--muted); font-size: .74rem; }
+    .photo-tbl td:nth-child(2) { text-align: center; }
+    .photo-tbl td:nth-child(3) { text-align: center; font-weight: 700; color: var(--navy); font-size: .88rem; }
+
+    /* Thumbnail */
+    .thumb-wrap { width: 56px; height: 72px; border-radius: 4px; overflow: hidden; border: 1.5px solid var(--border2); background: var(--slate); display: inline-flex; align-items: center; justify-content: center; }
+    .thumb-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .thumb-wrap .no-img { font-size: 1.2rem; }
+
+    /* Status pills */
+    .pill { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; font-size: .72rem; font-weight: 700; border: 1px solid; }
+    .pill-ready    { background: #f0fdf4; color: var(--green);   border-color: #bbf7d0; }
+    .pill-notfound { background: #fef2f2; color: var(--red);     border-color: #fecaca; }
+    .pill-warning  { background: var(--amber-bg); color: var(--amber); border-color: #fde68a; }
+    .pill-invalid  { background: #f1f5f9; color: var(--muted);   border-color: #cbd5e1; }
+    .pill-uploading{ background: #eff6ff; color: #1d4ed8;        border-color: #bfdbfe; }
+    .pill-saved    { background: #f0fdf4; color: var(--green);   border-color: #86efac; }
+    .pill-replaced { background: #fffbeb; color: var(--amber);   border-color: #fde68a; }
+    .pill-error    { background: #fef2f2; color: var(--red);     border-color: #fecaca; }
+
+    /* Compress indicator */
+    .size-txt { font-size: .73rem; }
+    .size-ok  { color: var(--green); }
+    .size-big { color: var(--amber); }
+
+    /* ── FILE INPUT (hidden) ── */
+    #file-input-hidden { display: none; }
+
+    /* ── UPLOAD ACTIVE ── */
+    .current-uploading { background: #eff6ff !important; }
+
+    /* ── ALERTS ── */
+    .alert { padding: 10px 14px; border-radius: var(--r); font-size: .79rem; margin-bottom: 14px; border: 1px solid; }
+    .alert-info { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+    .alert-warn { background: var(--amber-bg); color: var(--amber); border-color: #fde68a; }
+    .alert-err  { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
+    .alert-ok   { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
+
+    /* ── EMPTY STATE ── */
+    .empty-state { text-align: center; padding: 48px 20px; color: var(--muted); }
+    .empty-state .es-icon { font-size: 2.8rem; margin-bottom: 12px; }
+    .empty-state p { font-size: .82rem; line-height: 1.6; }
+
+    /* ── SPINNER ── */
+    .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin 1s linear infinite; display: inline-block; flex-shrink: 0; }
+    .spinner-dark { border-color: rgba(13,43,69,.2); border-top-color: var(--navy); }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .hdr-hamburger { display: flex; }
+      .site-header { transform: translateX(-100%); transition: transform .25s; }
+      .site-header.open { transform: translateX(0); }
+      .sidebar-overlay.active { display: block; }
+      .main { margin-left: 0; padding: 20px 16px; }
+    }
+
+    /* Custom Toggle Switch */
+    .switch-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .switch-control {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      user-select: none;
+      padding: 8px 0;
+    }
+    .switch-btn {
+      position: relative;
+      width: 44px;
+      height: 22px;
+      background-color: var(--border2);
+      border-radius: 11px;
+      transition: background-color .2s;
+      flex-shrink: 0;
+    }
+    .switch-btn::after {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background-color: var(--white);
+      top: 3px;
+      left: 3px;
+      transition: transform .2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    }
+    .switch-input {
+      display: none;
+    }
+    .switch-input:checked + .switch-btn {
+      background-color: var(--navy3);
+    }
+    .switch-input:checked + .switch-btn::after {
+      transform: translateX(22px);
+    }
+    .switch-label-text {
+      font-size: .83rem;
+      font-weight: 600;
+      color: var(--txt2);
+    }
+    select:disabled {
+      background-color: var(--slate2) !important;
+      color: var(--muted) !important;
+      border-color: var(--border) !important;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<div class="top-nav-bar">
+  <div class="top-nav-logo">
+    <div class="top-nav-logo-img">
+      <img src="https://www.muamc.edu.bd/wp-content/uploads/2025/01/logo-muam-scaled.jpeg" alt="Logo" onerror="this.style.display='none'">
+    </div>
+    <div class="top-nav-logo-text">
+      <h1>Moinuddin Adarsha Mohila College</h1>
+      <p>Shamimabad, Bagbari, Sylhet</p>
+    </div>
+  </div>
+  <div class="top-nav-admin">
+    <div class="top-nav-avatar" id="nav-avatar">A</div>
+    <div>
+      <div class="top-nav-name" id="nav-name">Admin</div>
+      <div class="top-nav-role" id="nav-role">System Admin</div>
+    </div>
+    <button class="logout-btn" onclick="doLogout()">Logout</button>
+    <button class="hdr-hamburger" id="hdr-hamburger" onclick="toggleSidebar()">☰</button>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<header class="site-header" id="site-header">
+  <nav class="nav-strip" id="nav-strip">
+    <a class="nt" href="/">Dashboard</a>
+    <a class="nt" href="/student-list.html">Student Management</a>
+    <a class="nt" href="/marks-entry.html">Mark Entry</a>
+    <a class="nt" href="/Teachers.html">Teachers</a>
+    <a class="nt" href="/Result-card.html">Result Card</a>
+    <a class="nt" href="/Admit-card.html">Admit Card</a>
+    <a class="nt active" href="/bulk-photo.html">Bulk Photo Upload</a>
+    <a class="nt" href="/analytics.html" style="border-top:1px solid rgba(255,255,255,.08);margin-top:8px;padding-top:16px;">Analytics</a>
+  </nav>
+</header>
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="pg-hd">
+    <h2>Bulk Photo Upload</h2>
+    
+  </div>
+
+  <!-- Filter Card -->
+  <div class="card">
+    <div class="card-head">
+      <h3>Step 1 — Filter &amp; Settings</h3>
+      <span style="font-size:.75rem;color:var(--muted);">Class and Group must be selected</span>
+    </div>
+    <div class="card-body">
+      <div class="alert alert-info" style="margin-bottom:16px;">
+        Filenames must contain the roll number. For example: <strong>1.jpg</strong>, <strong>25.jpeg</strong>, <strong>003.png</strong> — all these formats are supported.
+      </div>
+      <div class="fg-grid" style="margin-bottom:16px;">
+        <div class="fg">
+          <label>Class <span style="color:red;">*</span></label>
+          <select id="filter-cls">
+            <option value="">— Select Class —</option>
+            <option value="Class-XI">Class-XI</option>
+            <option value="Class-XII">Class-XII</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>Group <span style="color:red;">*</span></label>
+          <select id="filter-grp">
+            <option value="">— Select Group —</option>
+            <option value="Science">Science</option>
+            <option value="Humanities">Humanities</option>
+            <option value="Business">Business</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>Session (Optional)</label>
+          <select id="filter-session">
+            <option value="">— Select Session —</option>
+            <option value="2022-2023">2022-2023</option>
+            <option value="2023-2024">2023-2024</option>
+            <option value="2024-2025">2024-2025</option>
+            <option value="2025-2026">2025-2026</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>Max Size per Photo</label>
+          <select id="filter-maxkb" onchange="onMaxKBChanged()">
+            <option value="500" selected>500 KB (default)</option>
+            <option value="300">300 KB</option>
+            <option value="200">200 KB</option>
+          </select>
+        </div>
+        <div class="fg switch-wrapper">
+          <label>Original Quality</label>
+          <label class="switch-control">
+            <input type="checkbox" id="no-compression-check" class="switch-input" onchange="toggleCompressionSettings()">
+            <span class="switch-btn"></span>
+            <span class="switch-label-text">No Compression</span>
+          </label>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="openFilePicker()">Select Photos (Multiple)</button>
+        <input type="file" id="file-input-hidden" multiple accept="image/*" onchange="onFilesSelected(this.files)">
+        <span id="filter-warn" style="font-size:.76rem;color:var(--red);display:none;">Please select Class and Group</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Preview + Upload Card -->
+  <div class="card" id="preview-card" style="display:none;">
+    <div class="card-head">
+      <h3>Step 2 — Preview &amp; Upload</h3>
+      <div class="stat-badges" id="stat-badges">
+        <span class="stat-badge total">Total: <span id="stat-total">0</span></span>
+        <span class="stat-badge ready">Ready: <span id="stat-ready">0</span></span>
+        <span class="stat-badge not-found">Not Found: <span id="stat-notfound">0</span></span>
+        <span class="stat-badge warning">Invalid: <span id="stat-invalid">0</span></span>
+      </div>
+    </div>
+    <div class="card-body" style="padding:0;">
+
+      <!-- Upload control bar -->
+      <div style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:#fafcff;">
+        <button class="btn btn-success" id="btn-upload-all" onclick="startUploadAll()">
+          Upload All
+        </button>
+        <button class="btn btn-outline" onclick="resetAll()">Clear All</button>
+        <div id="upload-progress-wrap" style="display:none;flex:1;min-width:200px;">
+          <div class="progress-wrap"><div class="progress-bar" id="progress-bar" style="width:0%;"></div></div>
+          <div class="progress-label" id="progress-label">Preparing...</div>
+        </div>
+      </div>
+
+      <!-- Status summary (shown after upload) -->
+      <div id="upload-summary" style="display:none;padding:12px 20px;border-bottom:1px solid var(--border);">
+      </div>
+
+      <!-- Table -->
+      <div class="photo-tbl-wrap" style="border:none;border-radius:0;">
+        <table class="photo-tbl" id="photo-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Preview</th>
+              <th>Roll</th>
+              <th>Filename</th>
+              <th>Student Name</th>
+              <th>Original Size</th>
+              <th>Compressed</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="photo-tbody">
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Drop zone (shows when no files) -->
+  <div class="card" id="dropzone-card">
+    <div class="card-body">
+      <div class="drop-zone" id="drop-zone" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
+        <input type="file" multiple accept="image/*" onchange="onFilesSelected(this.files)">
+        <h4>Drag &amp; Drop Photos Here or Click to Browse</h4>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  // ── State ──────────────────────────────────────────────────────────────
+  let allFiles    = [];   // raw File objects
+  let fileItems   = [];   // { file, roll, thumbDataUrl, compressedDataUrl, origKB, compKB, studentName, status }
+  let isUploading = false;
+  let uploadStopped = false;
+
+  const API_BASE  = window.location.origin;
+
+  // ── Auth check ──────────────────────────────────────────────────────────
+  (async () => {
+    try {
+      const r = await fetch('/api/auth-status', { credentials: 'include' });
+      const d = await r.json();
+      if (!d.authenticated) { window.location.href = '/login'; return; }
+      const role = d.role || 'admin';
+      const $ = id => document.getElementById(id);
+      $('nav-name').textContent  = role === 'admin' ? 'Admin' : 'Teacher';
+      $('nav-role').textContent  = role === 'admin' ? 'System Admin' : 'Marks Entry';
+      $('nav-avatar').textContent= role === 'admin' ? 'A' : 'T';
+    } catch(e) { window.location.href = '/login'; }
+  })();
+
+  async function doLogout() {
+    await fetch('/api/logout', { method: 'POST', credentials: 'include' });
+    window.location.href = '/login';
+  }
+  function toggleSidebar() {
+    document.getElementById('site-header').classList.toggle('open');
+    document.getElementById('sidebar-overlay').classList.toggle('active');
+  }
+  function closeSidebar() {
+    document.getElementById('site-header').classList.remove('open');
+    document.getElementById('sidebar-overlay').classList.remove('active');
+  }
+
+  // ── File open ──────────────────────────────────────────────────────────
+  function openFilePicker() {
+    const cls = document.getElementById('filter-cls').value;
+    const grp = document.getElementById('filter-grp').value;
+    if (!cls || !grp) {
+      document.getElementById('filter-warn').style.display = '';
+      return;
+    }
+    document.getElementById('filter-warn').style.display = 'none';
+    document.getElementById('file-input-hidden').click();
+  }
+
+  // ── Drag & Drop ────────────────────────────────────────────────────────
+  function onDragOver(e) { e.preventDefault(); e.currentTarget.classList.add('dragover'); }
+  function onDragLeave(e) { e.currentTarget.classList.remove('dragover'); }
+  function onDrop(e) {
+    e.preventDefault(); e.currentTarget.classList.remove('dragover');
+    const cls = document.getElementById('filter-cls').value;
+    const grp = document.getElementById('filter-grp').value;
+    if (!cls || !grp) { document.getElementById('filter-warn').style.display = ''; return; }
+    document.getElementById('filter-warn').style.display = 'none';
+    if (e.dataTransfer.files.length) onFilesSelected(e.dataTransfer.files);
+  }
+
+  // ── Extract roll from filename ─────────────────────────────────────────
+  function extractRoll(filename) {
+    const base = filename.replace(/\.[^.]+$/, ''); // strip extension
+    const match = base.match(/(\d+)/);
+    if (!match) return null;
+    return String(parseInt(match[1], 10)); // strip leading zeros
+  }
+
+  // ── Compress image to ≤ maxKB using Canvas ─────────────────────────────
+  function compressImage(file, maxKB) {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const MAX_W = 800, MAX_H = 1000;
+          let w = img.width, h = img.height;
+          // Scale down if needed
+          if (w > MAX_W || h > MAX_H) {
+            const ratio = Math.min(MAX_W / w, MAX_H / h);
+            w = Math.floor(w * ratio);
+            h = Math.floor(h * ratio);
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+
+          // Try reducing quality until ≤ maxKB
+          let quality = 0.92;
+          const tryCompress = () => {
+            const dataUrl = canvas.toDataURL('image/jpeg', quality);
+            const bytes   = Math.round((dataUrl.length - 22) * 0.75); // approx base64 → bytes
+            const kb      = Math.round(bytes / 1024);
+            if (kb <= maxKB || quality <= 0.30) {
+              resolve({ dataUrl, kb });
+            } else {
+              quality = Math.max(0.30, quality - 0.08);
+              tryCompress();
+            }
+          };
+          tryCompress();
+        };
+        img.onerror = () => resolve({ dataUrl: null, kb: 0 });
+        img.src = e.target.result;
+      };
+      reader.onerror = () => resolve({ dataUrl: null, kb: 0 });
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // ── Load thumbnail (quick preview, no compression) ─────────────────────
+  function loadThumb(file) {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = e => resolve(e.target.result);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // ── Files selected ─────────────────────────────────────────────────────
+  async function onFilesSelected(files) {
+    if (!files || !files.length) return;
+    const cls     = document.getElementById('filter-cls').value;
+    const grp     = document.getElementById('filter-grp').value;
+    const maxKB   = parseInt(document.getElementById('filter-maxkb').value) || 500;
+    if (!cls || !grp) { document.getElementById('filter-warn').style.display = ''; return; }
+
+    // Show preview card, hide dropzone
+    document.getElementById('dropzone-card').style.display  = 'none';
+    document.getElementById('preview-card').style.display   = '';
+    document.getElementById('upload-summary').style.display = 'none';
+
+    allFiles  = Array.from(files);
+    fileItems = [];
+
+    const tbody = document.getElementById('photo-tbody');
+    tbody.innerHTML = '';
+
+    // Build initial rows immediately (no compression yet — async later)
+    allFiles.forEach((file, i) => {
+      const roll   = extractRoll(file.name);
+      const origKB = Math.round(file.size / 1024);
+      const item   = { file, roll, origKB, compKB: null, compDataUrl: null, thumbDataUrl: null, compressedDataUrl: null, studentName: null, status: roll ? 'pending' : 'invalid' };
+      fileItems.push(item);
+
+      const tr = document.createElement('tr');
+      tr.id    = `row-${i}`;
+      tr.innerHTML = `
+        <td>${i + 1}</td>
+        <td><div class="thumb-wrap" id="thumb-${i}"><span class="no-img">...</span></div></td>
+        <td id="roll-${i}">${roll ? `<strong>${roll}</strong>` : '<span style="color:var(--red);">—</span>'}</td>
+        <td style="font-size:.75rem;color:var(--muted);">${file.name}</td>
+        <td id="name-${i}" style="font-size:.8rem;">${roll ? '<span style="color:var(--muted);">Loading...</span>' : '<span style="color:var(--muted);">N/A</span>'}</td>
+        <td class="size-txt">${origKB} KB</td>
+        <td class="size-txt" id="comp-${i}"><span style="color:var(--muted);">Processing...</span></td>
+        <td id="status-${i}">${roll ? pill('pending','Pending') : pill('invalid','No Roll Number')}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    updateStats();
+
+    // Fetch student names + compress all async
+    const session = document.getElementById('filter-session').value.trim();
+    const noCompress = document.getElementById('no-compression-check').checked;
+    await Promise.all(allFiles.map(async (file, i) => {
+      const item = fileItems[i];
+      // Thumbnail
+      item.thumbDataUrl = await loadThumb(file);
+      const thumbEl = document.getElementById(`thumb-${i}`);
+      if (item.thumbDataUrl) thumbEl.innerHTML = `<img src="${item.thumbDataUrl}" alt="">`;
+
+      // Compress
+      const { dataUrl, kb } = await compressImage(file, maxKB);
+      item.compDataUrl = dataUrl;
+      item.compKB = kb;
+      
+      item.compressedDataUrl = noCompress ? item.thumbDataUrl : dataUrl;
+      
+      const compEl = document.getElementById(`comp-${i}`);
+      if (noCompress) {
+        compEl.innerHTML = `<span class="size-ok">Original</span>`;
+      } else if (dataUrl) {
+        compEl.innerHTML = `<span class="${kb <= maxKB ? 'size-ok' : 'size-big'}">${kb} KB</span>`;
+      } else {
+        compEl.textContent = 'Error';
+      }
+
+      // Lookup student name by roll
+      if (item.roll) {
+        try {
+          const qs = `cls=${encodeURIComponent(cls)}&group=${encodeURIComponent(grp)}${session ? '&session='+encodeURIComponent(session) : ''}&q=${encodeURIComponent(item.roll)}`;
+          const r  = await fetch(`/api/students?${qs}`, { credentials: 'include' });
+          const d  = await r.json();
+          // Exact roll match (normalized)
+          const found = (d.data || []).find(s => {
+            const r1 = String(s.roll || '').trim();
+            const r2 = String(item.roll || '').trim();
+            if (r1 === r2) return true;
+            const int1 = parseInt(r1, 10);
+            const int2 = parseInt(r2, 10);
+            if (!isNaN(int1) && !isNaN(int2) && int1 === int2) return true;
+            return r1.replace(/^0+/, '') === r2.replace(/^0+/, '');
+          });
+          if (found) {
+            item.studentName = found.name;
+            item.studentId   = found.id;
+            item.hasPhoto    = !!found.photo;
+            item.status      = 'ready';
+            document.getElementById(`name-${i}`).innerHTML = `<strong>${found.name}</strong>${found.photo ? ' <span style="font-size:.7rem;color:var(--amber);"> (Photo exists)</span>' : ''}`;
+            document.getElementById(`status-${i}`).innerHTML = found.photo
+              ? pill('warning','Will Replace')
+              : pill('ready','Ready');
+          } else {
+            item.status = 'notfound';
+            document.getElementById(`name-${i}`).innerHTML = `<span style="color:var(--red);font-size:.78rem;">Roll ${item.roll} not found</span>`;
+            document.getElementById(`status-${i}`).innerHTML = pill('notfound','Roll Not Found');
+          }
+        } catch(e) {
+          item.status = 'notfound';
+          document.getElementById(`name-${i}`).innerHTML = '<span style="color:var(--muted);">Error</span>';
+          document.getElementById(`status-${i}`).innerHTML = pill('notfound','Lookup Failed');
+        }
+      }
+      updateStats();
+    }));
+
+    updateStats();
+  }
+
+  function toggleCompressionSettings() {
+    const noCompress = document.getElementById('no-compression-check').checked;
+    const maxKBSelect = document.getElementById('filter-maxkb');
+    
+    if (noCompress) {
+      maxKBSelect.disabled = true;
+    } else {
+      maxKBSelect.disabled = false;
+    }
+    
+    if (fileItems.length === 0) return;
+    
+    const maxKB = parseInt(maxKBSelect.value) || 500;
+    
+    fileItems.forEach((item, i) => {
+      item.compressedDataUrl = noCompress ? item.thumbDataUrl : item.compDataUrl;
+      
+      const compEl = document.getElementById(`comp-${i}`);
+      if (compEl) {
+        if (noCompress) {
+          compEl.innerHTML = `<span class="size-ok">Original</span>`;
+        } else if (item.compDataUrl) {
+          compEl.innerHTML = `<span class="${item.compKB <= maxKB ? 'size-ok' : 'size-big'}">${item.compKB} KB</span>`;
+        } else {
+          compEl.textContent = 'Error';
+        }
+      }
+    });
+  }
+
+  function onMaxKBChanged() {
+    if (fileItems.length === 0) return;
+    const maxKB = parseInt(document.getElementById('filter-maxkb').value) || 500;
+    const noCompress = document.getElementById('no-compression-check').checked;
+    if (noCompress) return;
+    
+    fileItems.forEach((item, i) => {
+      const compEl = document.getElementById(`comp-${i}`);
+      if (compEl && item.compDataUrl) {
+        compEl.innerHTML = `<span class="${item.compKB <= maxKB ? 'size-ok' : 'size-big'}">${item.compKB} KB</span>`;
+      }
+    });
+  }
+
+  function pill(type, text) {
+    const cls = { pending:'pill-ready', ready:'pill-ready', notfound:'pill-notfound', invalid:'pill-invalid', warning:'pill-warning', uploading:'pill-uploading', saved:'pill-saved', replaced:'pill-replaced', error:'pill-error' }[type] || 'pill-invalid';
+    return `<span class="pill ${cls}">${text}</span>`;
+  }
+
+  function updateStats() {
+    const total    = fileItems.length;
+    const ready    = fileItems.filter(f => f.status === 'ready' || f.status === 'pending').length;
+    const nf       = fileItems.filter(f => f.status === 'notfound').length;
+    const inv      = fileItems.filter(f => f.status === 'invalid').length;
+    document.getElementById('stat-total').textContent    = total;
+    document.getElementById('stat-ready').textContent    = ready;
+    document.getElementById('stat-notfound').textContent = nf;
+    document.getElementById('stat-invalid').textContent  = inv;
+  }
+
+  // ── Upload all — one by one ─────────────────────────────────────────────
+  async function startUploadAll() {
+    if (isUploading) return;
+    const cls     = document.getElementById('filter-cls').value;
+    const grp     = document.getElementById('filter-grp').value;
+    const session = document.getElementById('filter-session').value.trim();
+    if (!cls || !grp) { document.getElementById('filter-warn').style.display = ''; return; }
+
+    const eligible = fileItems.filter(f => (f.status === 'ready' || f.status === 'warning' || (f.status === 'pending' && f.roll)) && f.compressedDataUrl);
+    if (!eligible.length) { alert('No uploadable photos found.'); return; }
+
+    isUploading = true; uploadStopped = false;
+    document.getElementById('btn-upload-all').disabled = true;
+    document.getElementById('btn-upload-all').innerHTML = '<span class="spinner"></span> Uploading...';
+    document.getElementById('upload-progress-wrap').style.display = '';
+    document.getElementById('upload-summary').style.display = 'none';
+
+    let done = 0, saved = 0, replaced = 0, failed = 0, notFound = 0;
+    const total = eligible.length;
+
+    for (const item of eligible) {
+      if (uploadStopped) break;
+      const idx = fileItems.indexOf(item);
+      const row = document.getElementById(`row-${idx}`);
+      if (row) row.classList.add('current-uploading');
+      document.getElementById(`status-${idx}`).innerHTML = pill('uploading','<span class="spinner spinner-dark"></span> Uploading...');
+
+      try {
+        const body = {
+          cls, group: grp, session: session || undefined,
+          entries: [{ roll: item.roll, photo: item.compressedDataUrl }]
+        };
+        const r = await fetch('/api/students/bulk-photo', {
+          method: 'POST', credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        const d = await r.json();
+        const res = (d.results || [])[0];
+        if (res) {
+          if (res.status === 'saved') {
+            saved++; item.status = 'saved';
+            document.getElementById(`status-${idx}`).innerHTML = pill('saved','Saved');
+          } else if (res.status === 'replaced') {
+            replaced++; item.status = 'replaced';
+            document.getElementById(`status-${idx}`).innerHTML = pill('replaced','Replaced');
+          } else if (res.status === 'not_found') {
+            notFound++; item.status = 'notfound';
+            document.getElementById(`status-${idx}`).innerHTML = pill('notfound','Not Found');
+          } else {
+            failed++; item.status = 'error';
+            document.getElementById(`status-${idx}`).innerHTML = pill('error','Error');
+          }
+        } else {
+          failed++; item.status = 'error';
+          document.getElementById(`status-${idx}`).innerHTML = pill('error','Error');
+        }
+      } catch(e) {
+        failed++; item.status = 'error';
+        document.getElementById(`status-${idx}`).innerHTML = pill('error','Network Error');
+      }
+
+      if (row) row.classList.remove('current-uploading');
+      done++;
+      const pct = Math.round((done / total) * 100);
+      document.getElementById('progress-bar').style.width  = pct + '%';
+      document.getElementById('progress-label').textContent = `${done} / ${total} Complete (${pct}%)`;
+    }
+
+    isUploading = false;
+    document.getElementById('btn-upload-all').disabled = false;
+    document.getElementById('btn-upload-all').innerHTML = 'Upload Complete';
+
+    // Summary
+    const sumEl = document.getElementById('upload-summary');
+    const cls2  = saved + replaced > 0 ? 'alert-ok' : 'alert-warn';
+    sumEl.innerHTML = `<div class="alert ${cls2}">
+      <strong>Upload Complete!</strong>
+      &nbsp; Saved: <strong>${saved}</strong>
+      &nbsp; Replaced: <strong>${replaced}</strong>
+      &nbsp; Not Found: <strong>${notFound}</strong>
+      ${failed ? `&nbsp; Error: <strong>${failed}</strong>` : ''}
+    </div>`;
+    sumEl.style.display = '';
+    updateStats();
+  }
+
+  function resetAll() {
+    if (isUploading) return;
+    allFiles  = []; fileItems = [];
+    document.getElementById('photo-tbody').innerHTML = '';
+    document.getElementById('preview-card').style.display  = 'none';
+    document.getElementById('dropzone-card').style.display = '';
+    document.getElementById('upload-progress-wrap').style.display = 'none';
+    document.getElementById('upload-summary').style.display = 'none';
+    document.getElementById('btn-upload-all').disabled = false;
+    document.getElementById('btn-upload-all').innerHTML = 'Upload All';
+    document.getElementById('file-input-hidden').value = '';
+    document.getElementById('progress-bar').style.width = '0%';
+    updateStats();
+  }
+</script>
+</body>
+</html>

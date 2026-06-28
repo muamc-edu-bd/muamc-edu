@@ -296,11 +296,21 @@ def admit_card_page():
         return redirect('/login')
     return _serve_html('Admit-card.html')
 
-# ─────────────────────────────────────────────────────────────────────────────
+@app.route('/bulk-photo.html')
+def bulk_photo_page():
+    """Bulk Photo Upload page."""
+    if not session.get('authenticated'):
+        return redirect('/login')
+    return _serve_html('bulk-photo.html')
 
 @app.route('/analytics')
 def analytics_page():
     return _serve_html('analytics.html')
+
+@app.route('/result_summery.html')
+def result_summery_page():
+    """Public result summary page — accessible via QR code scan, no auth required."""
+    return _serve_html('result_summery.html', inject_api=False)
 
 @app.route('/student-portal')
 def student_portal_page():
@@ -313,10 +323,10 @@ def html_pages(page):
     if not page.endswith('.html') or '/' in page or '..' in page:
         abort(404)
     # Auth-gate any .html page that is not the login or student-portal page
-    if page not in ('login.html', 'student-portal.html') and not session.get('authenticated'):
+    if page not in ('login.html', 'student-portal.html', 'result_summery.html') and not session.get('authenticated'):
         return redirect('/login')
     # Use _serve_html to ensure the global font and API scripts are correctly injected
-    return _serve_html(page, inject_api=(page not in ('login.html', 'student-portal.html')))
+    return _serve_html(page, inject_api=(page not in ('login.html', 'student-portal.html', 'result_summery.html')))
 
 
 # ─────────────────────────────────────────────
@@ -984,6 +994,285 @@ def get_marks(sid):
     return jsonify({'ok': True, 'data': result})
 
 
+@app.route('/api/students/bulk-photo', methods=['POST'])
+@require_auth
+def bulk_photo_upload():
+    """
+    Bulk photo upload endpoint.
+    Receives a list of { roll, photo } entries, matches each roll to a student
+    (filtered by cls + group + optional session), saves photo using _save_photo_file.
+
+    Request body:
+    {
+      "cls":     "Class-XI",
+      "group":   "Science",
+      "session": "2024-2025",   // optional
+      "entries": [
+        { "roll": "5",  "photo": "data:image/jpeg;base64,..." },
+        { "roll": "12", "photo": "data:image/jpeg;base64,..." }
+      ]
+    }
+    """
+    body    = request.get_json(force=True, silent=True) or {}
+    cls     = (body.get('cls')     or '').strip()
+    group   = (body.get('group')   or '').strip()
+    ses     = (body.get('session') or '').strip().replace('\u2013', '-').replace('\u2014', '-')
+    entries = body.get('entries', [])
+
+    if not cls or not group:
+        return jsonify({'ok': False, 'message': 'cls and group are required'}), 400
+    if not entries:
+        return jsonify({'ok': False, 'message': 'No entries provided'}), 400
+
+    results    = []
+    saved_cnt  = 0
+    notfnd_cnt = 0
+
+    for entry in entries:
+        roll      = str(entry.get('roll') or '').strip()
+        photo_b64 = entry.get('photo', '')
+
+        if not roll:
+            results.append({'roll': roll, 'name': None, 'status': 'invalid', 'message': 'No roll number'})
+            continue
+
+        # Find student: cls + group, optionally + session
+        query = Student.query.filter_by(cls=cls, group=group)
+        if ses:
+            query = query.filter(
+                (Student.session == ses) | (Student.year == ses)
+            )
+        students = query.all()
+        student = None
+        for s in students:
+            r1 = str(s.roll or '').strip().lstrip('0')
+            r2 = str(roll or '').strip().lstrip('0')
+            if r1 == r2:
+                student = s
+                break
+            if (s.roll or '').strip().isdigit() and roll.isdigit():
+                if int(s.roll) == int(roll):
+                    student = s
+                    break
+
+        if not student:
+            results.append({'roll': roll, 'name': None, 'status': 'not_found',
+                            'message': f'No student with roll {roll} in {cls} / {group}'})
+            notfnd_cnt += 1
+            continue
+
+        if not photo_b64 or not photo_b64.startswith('data:'):
+            results.append({'roll': roll, 'name': student.name, 'status': 'error',
+                            'message': 'Invalid photo data'})
+            continue
+
+        had_photo = bool(student.photo)
+        _delete_photo_file(student.photo)                          # delete old photo file
+        new_url = _save_photo_file(student.id, photo_b64)         # save new photo file
+        if not new_url:
+            results.append({'roll': roll, 'name': student.name, 'status': 'error',
+                            'message': 'Failed to save photo file'})
+            continue
+
+        student.photo = new_url
+        try:
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            results.append({'roll': roll, 'name': student.name, 'status': 'error',
+                            'message': f'DB error: {str(e)}'})
+            continue
+
+        status = 'replaced' if had_photo else 'saved'
+        saved_cnt += 1
+        results.append({
+            'roll':     roll,
+            'name':     student.name,
+            'status':   status,
+            'message':  'Photo replaced' if had_photo else 'Photo saved',
+            'photoUrl': new_url,
+        })
+
+    return jsonify({
+        'ok':        True,
+        'results':   results,
+        'saved':     saved_cnt,
+        'not_found': notfnd_cnt,
+        'total':     len(entries),
+    })
+
+
+@app.route('/api/public/result-summary', methods=['GET'])
+def public_result_summary():
+    """
+    Public endpoint — no auth required. Called by result_summery.html (QR code page).
+    Returns full result data for a student given sid + exam type.
+    """
+    sid       = (request.args.get('sid') or '').strip()
+    exam_type = (request.args.get('exam') or '').strip()
+
+    if not sid:
+        return jsonify({'ok': False, 'message': 'Missing sid parameter'}), 400
+
+    student = Student.query.filter_by(id=sid).first()
+    if not student:
+        return jsonify({'ok': False, 'message': 'Student not found'}), 404
+
+    # Get all marks for this student
+    marks_data = _get_marks_dict(student.id)
+    stu_marks_all = marks_data.get(student.id, {})
+
+    # Resolve exam type — use provided or latest
+    if exam_type and exam_type in stu_marks_all:
+        resolved_exam = exam_type
+    elif stu_marks_all:
+        resolved_exam = list(stu_marks_all.keys())[-1]
+    else:
+        return jsonify({'ok': False, 'message': 'No marks found for this student'}), 404
+
+    stu_marks = stu_marks_all[resolved_exam]
+
+    # Resolve subjects for this student's group+class
+    import copy
+    cls = student.cls or 'Class-XI'
+    group = student.group or 'Science'
+    optional_subject = getattr(student, 'optional_subjects', '') or ''
+    subs = _resolve_optional_subjects(group, optional_subject)
+    if cls == 'Class-XI':
+        subs = [s for s in subs if not ('2nd' in s['name'] or '2nd Paper' in s['name'] or s['name'].endswith(' 2nd'))]
+    elif cls == 'Class-XII':
+        subs = [s for s in subs if not ('1st' in s['name'] or '1st Paper' in s['name'] or s['name'].endswith(' 1st'))]
+    temp_subs = []
+    for sub in subs:
+        s = copy.deepcopy(sub)
+        if s['code'] in ['116', '267']:
+            suffix = ' 1st Paper' if cls == 'Class-XI' else ' 2nd Paper'
+            s['name'] = s['name'].replace(' 1st Paper', '').replace(' 2nd Paper', '') + suffix
+        temp_subs.append(s)
+    subs = temp_subs
+
+    # Resolve optional codes
+    selected_optional = stu_marks.get('selectedOptional', '')
+    opt_codes = [c.strip() for c in (optional_subject or '').split('/') if c.strip()]
+    if not opt_codes and selected_optional:
+        LEGACY_MAP = {
+            'scienceBio': ['178', '179'], 'scienceMath': ['265', '266'],
+            'humLogic': ['121', '122'],   'humHome': ['273', '274'],
+            'busEcon': ['109', '110'],    'busHome': ['273', '274'],
+        }
+        opt_codes = LEGACY_MAP.get(selected_optional, [])
+
+    # Compute per-subject marks and totals
+    subject_rows = []
+    total_gpa = cnt = fail_cnt = total_mark = 0
+
+    # Compute highest marks across all peers in same class+group
+    peers = Student.query.filter_by(cls=cls, group=group).all()
+    peer_ids = [p.id for p in peers]
+    all_peer_marks = _get_marks_dict(peer_ids)
+    highest_marks = {}
+    for sub in subs:
+        max_mark = 0
+        for p in peers:
+            pm = (all_peer_marks.get(p.id) or {}).get(resolved_exam, {})
+            mm = pm.get(sub['code'], {})
+            pcq  = min(int(mm.get('cq')  or 0), sub.get('cqMax', 70))
+            pmcq = min(int(mm.get('mcq') or 0), sub.get('mcqMax', 30))
+            pprac = min(int(mm.get('prac') or 0), 25) if sub.get('hasPrac') else 0
+            ptot = pcq + pmcq + pprac
+            if ptot > max_mark:
+                max_mark = ptot
+        highest_marks[sub['code']] = max_mark
+
+    for sub in subs:
+        m = stu_marks.get(sub['code'], {})
+        absent = not m or (str(m.get('cq', '')) == '' and str(m.get('mcq', '')) == '')
+        cq   = min(int(m.get('cq')  or 0), sub.get('cqMax', 70))  if not absent else 0
+        mcq  = min(int(m.get('mcq') or 0), sub.get('mcqMax', 30)) if not absent else 0
+        prac = min(int(m.get('prac') or 0), 25) if (sub.get('hasPrac') and not absent) else 0
+        tot  = cq + mcq + prac
+        lg, gp = _grade_letter(tot) if not absent else ('Ab', 0.0)
+
+        is_optional = sub.get('optional', False) and (sub['code'] in opt_codes)
+
+        if not absent:
+            if is_optional:
+                if gp > 2.0:
+                    total_gpa += (gp - 2.0)
+            else:
+                total_gpa += gp
+                cnt += 1
+                if lg == 'F':
+                    fail_cnt += 1
+            total_mark += tot
+
+        subject_rows.append({
+            'name':        sub['name'],
+            'code':        sub['code'],
+            'cq':          '' if absent else cq,
+            'mcq':         '' if absent else mcq,
+            'prac':        ('' if absent else prac) if sub.get('hasPrac') else None,
+            'total':       '' if absent else tot,
+            'highest':     highest_marks.get(sub['code'], 0),
+            'gpa':         round(gp, 2),
+            'lg':          lg,
+            'is_optional': is_optional,
+            'has_prac':    bool(sub.get('hasPrac')),
+            'absent':      absent,
+        })
+
+    # Task 2: GPA = 0 if any compulsory subject failed
+    avg = 0.0 if fail_cnt > 0 else (min(round(total_gpa / cnt, 2), 5.0) if cnt else 0.0)
+    passed = (fail_cnt == 0 and total_mark > 0)
+    mMax = sum((s.get('cqMax', 70) + s.get('mcqMax', 30) + (25 if s.get('hasPrac') else 0)) for s in subs)
+
+    # Merit position
+    peer_scores = []
+    for p in peers:
+        pt, pg, _ = _compute_student_result(p.id, all_peer_marks, p.group, getattr(p, 'optional_subjects', '') or '', p.cls)
+        peer_scores.append((p.id, pg, pt))
+    peer_scores.sort(key=lambda x: (-x[1], -x[2]))
+    merit_pos   = next((i + 1 for i, ps in enumerate(peer_scores) if ps[0] == student.id), None)
+    merit_total = len(peer_scores)
+
+    # Resolve optional subject label
+    OPTIONAL_SUBJECTS_LABELS = {
+        'Science':     [{'id':'scienceBio','label':'Biology (1st & 2nd Paper)'},{'id':'scienceMath','label':'Higher Mathematics (1st & 2nd Paper)'}],
+        'Humanities':  [{'id':'humLogic',  'label':'Logic (1st & 2nd Paper)'},  {'id':'humHome',   'label':'Home Science (1st & 2nd Paper)'}],
+        'Business':    [{'id':'busEcon',   'label':'Economics (1st & 2nd Paper)'},{'id':'busHome',  'label':'Home Science (1st & 2nd Paper)'}],
+    }
+    opt_label = 'N/A'
+    if selected_optional:
+        for o in OPTIONAL_SUBJECTS_LABELS.get(group, []):
+            if o['id'] == selected_optional:
+                opt_label = o['label']
+                break
+
+    ey = ''
+    for v in stu_marks.values():
+        if isinstance(v, dict) and v.get('ey'):
+            ey = v['ey']
+            break
+    if not ey:
+        ey = student.year or student.session or ''
+
+    return jsonify({
+        'ok': True,
+        'student': student.to_dict(),
+        'exam_type': resolved_exam,
+        'exam_year': ey,
+        'subject_rows': subject_rows,
+        'total_mark': total_mark,
+        'max_mark': mMax,
+        'gpa': avg,
+        'passed': passed,
+        'fail_count': fail_cnt,
+        'merit_position': merit_pos,
+        'merit_total': merit_total,
+        'optional_label': opt_label,
+    })
+
+
 @app.route('/api/public/result', methods=['GET'])
 def public_result_search():
     cls  = request.args.get('cls')
@@ -1561,7 +1850,7 @@ def export_csv():
                             '' if absent else mcq,
                             ('' if absent else prac) if sub['hasPrac'] else '']
 
-                avg    = min(round(total_gpa / cnt, 2), 5.0) if cnt else 0.0
+                avg    = 0.0 if fail_cnt > 0 else (min(round(total_gpa / cnt, 2), 5.0) if cnt else 0.0)
                 passed = fail_cnt == 0 and total_mark > 0
                 row   += [total_mark or '', avg if total_mark else '',
                           ('Pass' if passed else 'Fail') if total_mark else '']
@@ -1670,7 +1959,7 @@ def _compute_student_result(sid, marks_data, group, optional_subject='', cls=Non
 
         total_mark += tot
 
-    avg = min(round(total_gpa / cnt, 2), 5.0) if cnt else 0.0
+    avg = 0.0 if fail_cnt > 0 else (min(round(total_gpa / cnt, 2), 5.0) if cnt else 0.0)
     return total_mark, avg, (fail_cnt == 0 and total_mark > 0)
 
 

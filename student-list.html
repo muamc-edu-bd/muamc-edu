@@ -286,48 +286,38 @@
       }
     }
 
-    @media(max-width:480px) {
+    @media (max-width: 600px) {
       .top-nav-bar {
-        flex-direction: column;
-        height: auto;
-        padding: 8px 12px;
-        gap: 8px;
+        height: 70px !important;
+        padding: 0 12px !important;
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        gap: 8px !important;
       }
-
+      .top-nav-logo-text {
+        display: none !important;
+      }
       .top-nav-logo {
-        gap: 8px;
+        gap: 6px !important;
       }
-
       .top-nav-logo-img {
-        width: 40px;
-        height: 40px;
+        width: 40px !important;
+        height: 40px !important;
       }
-
-      .top-nav-logo-text h1 {
-        font-size: .68rem;
+      .top-nav-admin-info {
+        display: none !important;
       }
-
-      .top-nav-logo-text p {
-        font-size: .48rem;
-      }
-
       .top-nav-admin {
-        gap: 12px;
+        gap: 8px !important;
       }
-
       .top-nav-avatar {
-        width: 36px;
-        height: 36px;
-        font-size: .85rem;
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 0.85rem !important;
       }
-
-      .top-nav-name {
-        font-size: .65rem;
-      }
-
       .logout-btn {
-        padding: 6px 12px;
-        font-size: .7rem;
+        padding: 6px 12px !important;
+        font-size: 0.72rem !important;
       }
     }
 
@@ -956,7 +946,7 @@
 
       .search-row input,
       .search-row select {
-        width: 100%;
+        width: 100% !important;
       }
 
       .data-tbl th:nth-child(1),
@@ -1077,6 +1067,7 @@
       <div class="nt" onclick="localStorage.setItem('currentTab', 'teachers'); window.location.href='Teachers.html'; closeSidebar();">Teachers</div>
       <div class="nt" onclick="localStorage.setItem('currentTab', 'result'); window.location.href='Result-card.html'; closeSidebar();">Result Card</div>
       <div class="nt" onclick="localStorage.setItem('currentTab', 'admit'); window.location.href='Admit-card.html'; closeSidebar();">Admit Card</div>
+      <div class="nt" onclick="window.location.href='bulk-photo.html'; closeSidebar();">📷 Bulk Photo Upload</div>
       <div class="nt" onclick="window.location.href='analytics.html'; closeSidebar();"
         style="border-top:1px solid rgba(255,255,255,.08);margin-top:8px;padding-top:16px;">Analytics</div>
     </nav>

@@ -183,7 +183,7 @@
     .result-modal-header h3 { font-family: 'Merriweather', serif; font-size: .95rem; font-weight: 700; color: var(--navy); margin: 0; }
     .result-modal-close { background: none; border: none; font-size: 1.4rem; cursor: pointer; color: var(--muted); width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 4px; }
     .result-modal-close:hover { background: var(--slate2); }
-    .result-modal-body { padding: 20px; max-height: calc(90vh - 100px); overflow-y: auto; }
+    .result-modal-body { padding: 20px; max-height: calc(90vh - 100px); overflow-y: auto; overflow-x: auto; }
     .result-modal-footer { padding: 16px 20px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; background: var(--slate); }
 
     /* ═══ GRADE CHIPS ═══ */
@@ -222,6 +222,47 @@
       .rc-stu-block { grid-template-columns: 1fr; }
       .rc-bottom { grid-template-columns: 1fr; }
       .rc-sign-row { grid-template-columns: 1fr; }
+      .bulk-tbl-wrap::-webkit-scrollbar {
+        height: 6px;
+      }
+      .bulk-tbl-wrap::-webkit-scrollbar-thumb {
+        background: var(--border2);
+        border-radius: 3px;
+      }
+    }
+    @media (max-width: 600px) {
+      .top-nav-bar {
+        height: 70px !important;
+        padding: 0 12px !important;
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        gap: 8px !important;
+      }
+      .top-nav-logo-text {
+        display: none !important;
+      }
+      .top-nav-logo {
+        gap: 6px !important;
+      }
+      .top-nav-logo-img {
+        width: 40px !important;
+        height: 40px !important;
+      }
+      .top-nav-admin-info {
+        display: none !important;
+      }
+      .top-nav-admin {
+        gap: 8px !important;
+      }
+      .top-nav-avatar {
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 0.85rem !important;
+      }
+      .logout-btn {
+        padding: 6px 12px !important;
+        font-size: 0.72rem !important;
+      }
     }
     @media (min-width: 1280px) { .main { padding: 32px 40px; } }
   </style>
@@ -287,6 +328,7 @@
       <a class="nt" href="/Teachers.html">Teachers</a>
       <a class="nt active" href="/Result-card.html">Result Card</a>
       <a class="nt" href="/Admit-card.html">Admit Card</a>
+      <a class="nt" href="/bulk-photo.html">📷 Bulk Photo Upload</a>
       <a class="nt" href="/analytics.html" style="border-top:1px solid rgba(255,255,255,.08);margin-top:8px;padding-top:16px;">Analytics</a>
     </nav>
   </header>
@@ -816,7 +858,6 @@
       const db = _marks;
       const marks = db[id][examType];
       const cats = getFilteredCats(stu.group, stu.cls);
-      const subs = flatSubs(stu.group, stu.cls);
       const optionalSelected = marks.selectedOptional;
 
       // Merit position
@@ -848,6 +889,21 @@
       const clsLabel = stu.cls;
       const grpLabel = stu.group === 'Business' ? 'Business Studies' : stu.group;
 
+      // ── Compute highest mark per subject across all peers in same class+group+exam ──
+      const highestMarks = {};
+      flatSubs(stu.group, stu.cls).forEach(sub => {
+        let maxMark = 0;
+        peers.forEach(p => {
+          const pm = (db[p.id] && db[p.id][examType]) ? db[p.id][examType] : {};
+          const mm = pm[sub.code] || {};
+          const pcq = Math.min(+mm.cq||0, sub.cqMax), pmcq = Math.min(+mm.mcq||0, sub.mcqMax);
+          const pprac = sub.hasPrac ? (+mm.prac||0) : 0;
+          const ptot = pcq + pmcq + pprac;
+          if (ptot > maxMark) maxMark = ptot;
+        });
+        highestMarks[sub.code] = maxMark || '—';
+      });
+
       let tableRows = '';
       cats.forEach((cat, ci) => {
         if (ci > 0) tableRows += `<tr><td colspan="10" style="background:#e8e8e8;font-weight:700;text-align:center;padding:3px 6px;font-size:8pt;border:1px solid #bbb;">${cat.cat}</td></tr>`;
@@ -868,6 +924,7 @@
           mMax += (sub.cqMax||70)+(sub.mcqMax||30)+(sub.hasPrac?25:0);
           if (lg==='F' && !isSelOpt && !absent) { fail++; failSubs.push(sub.name); }
           const isOpt = sub.optionalGroup === optionalSelected;
+          const highMark = absent ? '—' : (highestMarks[sub.code] || '—');
           tableRows += `<tr style="${g.l==='F'?'background:#fff8f8;':''}">
             <td class="sn">${sub.name}${isOpt?' <span style="font-size:7pt;color:#0d2b45;background:#e8f4f8;padding:1px 4px;border-radius:2px;">(Optional)</span>':''} <span style="font-size:7pt;color:#888;">${sub.code}</span></td>
             <td>100</td>
@@ -875,7 +932,7 @@
             <td>${absent?'A':(mcq||'0')}</td>
             <td>${sub.hasPrac?(absent?'A':(prac||'0')):'—'}</td>
             <td style="font-weight:600;">${absent?'0':tot}</td>
-            <td>—</td>
+            <td style="color:#1e3a8a;font-weight:600;">${highMark}</td>
             <td>${absent?'0.00':gpa.toFixed(2)}</td>
             <td style="font-weight:700;${g.l==='F'&&!isOpt?'color:#b91c1c;':''}">${lg}</td>
             <td></td>
@@ -884,7 +941,8 @@
       });
 
       const passed = fail === 0;
-      const avg = clampGPA(cnt > 0 ? tGPA / cnt : 0).toFixed(2);
+      // Task 2: GPA = 0 if any compulsory subject failed
+      const avg = (fail > 0) ? '0.00' : clampGPA(cnt > 0 ? tGPA / cnt : 0).toFixed(2);
       const optionalSubjText = (() => {
         if (!optionalSelected) return 'N/A';
         const found = (OPTIONAL_SUBJECTS[stu.group] || []).find(o => o.id === optionalSelected);
@@ -892,7 +950,6 @@
       })();
       const failSubsText = failSubs.length ? failSubs.join(', ') : 'None';
       const photoBlock = stu.photo ? `<img src="${stu.photo}" class="rc-stu-photo" alt="Photo">` : `<div class="rc-stu-photo-ph">Photo<br>Not<br>Available</div>`;
-      const qrTxt = `MOINUDDIN ADARSHA MOHILA COLLEGE\nName: ${stu.name}\nRoll: ${stu.roll} | Class: ${clsLabel}\nGroup: ${grpLabel} | Exam: ${examType} ${ey}\nGPA: ${avg} | Result: ${passed?'Pass':'Fail'}`;
       const ord = n => n+(n===1?'st':n===2?'nd':n===3?'rd':'th');
       const ts = new Date().toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true});
 
@@ -925,7 +982,7 @@
         </div>
         <div class="rc-exam-hdr">${examType} Examination ${ey}</div>
         <table class="rc-marks-tbl">
-          <tr><th class="lft">Subject</th><th>Total</th><th>CQ</th><th>MCQ</th><th>Practical</th><th>Total</th><th>Avg.</th><th>GPA</th><th>LG</th><th></th></tr>
+          <tr><th class="lft">Subject</th><th>Total</th><th>CQ</th><th>MCQ</th><th>Practical</th><th>Total</th><th>Highest Mark</th><th>GPA</th><th>LG</th><th></th></tr>
           ${tableRows}
           <tfoot>
             <tr><td style="text-align:left;padding-left:6px;"><strong>Total GPA &amp; Result</strong></td><td></td><td></td><td></td><td></td>
@@ -936,21 +993,18 @@
         </table>
         <div class="rc-bottom">
           <div class="rc-summary-box"><table>
-            <tr><td>Total Marks Obtained</td><td style="font-weight:700;">${tMark}</td></tr>
-            <tr><td>Total Marks</td><td>${mMax}</td></tr>
+            <tr><td><strong>Total Marks Obtained</strong></td><td style="font-weight:700;">${tMark} out of ${mMax}</td></tr>
             <tr><td>GPA</td><td style="font-weight:700;">${avg}</td></tr>
             <tr><td>Result</td><td style="font-weight:700;${passed?'color:#166534;':'color:#b91c1c;'}">${passed?'PASS':'FAIL'}</td></tr>
-            <tr><td>Failed Subject(s)</td><td style="font-size:8pt;color:#b91c1c;">${failSubsText}</td></tr>
-            <tr><td>Working Days</td><td>...</td></tr>
-            <tr><td>Total Present</td><td>...</td></tr>
+            <tr><td>Optional Subject</td><td style="font-size:8pt;">${optionalSubjText}</td></tr>
+            <tr><td>Merit Position</td><td style="font-weight:600;color:#1e3a8a;">${ord(meritPos)} out of ${meritTotal}</td></tr>
           </table></div>
-          <div style="margin-top:4px;font-size:8pt;padding:4px 8px;border:1px solid #bbb;min-height:36px;"><strong>Remark:</strong></div>
+          <div class="rc-qr-center">
+            <div id="rc-qr-modal" style="border:1px solid #ccc;"></div>
+            <div style="font-size:7.5pt;color:#444;margin-top:4px;text-align:center;font-weight:600;">Scan QR Code</div>
+          </div>
         </div>
-        <div class="rc-qr-center"><div id="rc-qr-modal" style="border:1px solid #ccc;"></div><div style="font-size:7pt;color:#666;margin-top:2px;">QR Code</div></div>
-        <div style="margin-top:8px;padding:6px 8px;border:1px solid #e0e0e0;background:#f9f9f9;font-size:9pt;"><strong>Optional Subject:</strong> ${optionalSubjText}</div>
-        <div style="margin-top:5px;padding:6px 10px;border:1px solid #bfdbfe;background:#eff6ff;font-size:9pt;font-weight:600;color:#1e3a8a;">
-          Merit Position: ${ord(meritPos)} / ${meritTotal} &nbsp;—&nbsp; ${stu.cls} · ${stu.group} Group
-        </div>
+        <div style="margin-top:5px;padding:6px 10px;border:1.5px solid #bbb;font-size:9.5pt;min-height:32px;"><strong>Remark:</strong>&nbsp;</div>
         <div class="rc-sign-row">
           <div class="rc-sign-box"><div class="rc-sign-line"></div><div class="rc-sign-lbl">Class Teacher</div></div>
           <div class="rc-sign-box"><div class="rc-sign-line"></div><div class="rc-sign-lbl">Guardian</div></div>
