@@ -27,7 +27,7 @@ class Student(db.Model):
     religion = db.Column(db.String(50),  default='')
     year     = db.Column(db.String(10),  default='')
     session  = db.Column(db.String(50),  default='')
-    photo    = db.Column(db.String(500), default='')       # e.g. /photos/abc.jpg
+    photo    = db.Column(db.Text, default='')             # Stored as base64 data URL or filepath
     optional_subjects = db.Column(db.String(50), default='')  # e.g. '178/179'
     student_submitted = db.Column(db.Boolean, default=False)  # True once student self-submits via portal
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -156,7 +156,7 @@ class Archive(db.Model):
     religion    = db.Column(db.String(50),  default='')
     year        = db.Column(db.String(10),  default='')
     session     = db.Column(db.String(50),  default='')
-    photo       = db.Column(db.String(500), default='')
+    photo       = db.Column(db.Text, default='')
     total_marks = db.Column(db.Integer,     default=0)
     gpa         = db.Column(db.Float,       default=0.0)
     archived_at = db.Column(db.DateTime,    default=datetime.utcnow)

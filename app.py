@@ -78,7 +78,7 @@ _COLUMN_MIGRATIONS = [
     ("students", "optional_subjects", "VARCHAR(50) DEFAULT ''"),
     ("students", "session",           "VARCHAR(50) DEFAULT ''"),
     ("students", "year",              "VARCHAR(10) DEFAULT ''"),
-    ("students", "photo",             "VARCHAR(500) DEFAULT ''"),
+    ("students", "photo",             "TEXT DEFAULT ''"),
     ("students", "section",           "VARCHAR(50) DEFAULT ''"),
     ("students", "father",            "VARCHAR(255) DEFAULT ''"),
     ("students", "mother",            "VARCHAR(255) DEFAULT ''"),
@@ -131,6 +131,19 @@ with app.app_context():
                     except Exception:
                         pass
 
+            # Ensure photo column is TEXT type in both students and archive tables
+            for _tbl in ["students", "archive"]:
+                try:
+                    _conn.execute(_text(f"ALTER TABLE {_tbl} ALTER COLUMN photo TYPE TEXT;"))
+                    _conn.commit()
+                    print(f"[DB] Altered photo column to TEXT type OK: {_tbl}")
+                except Exception as _pe:
+                    print(f"[DB] Alter photo column to TEXT skipped ({_tbl}): {_pe}")
+                    try:
+                        _conn.rollback()
+                    except Exception:
+                        pass
+
 # ─────────────────────────────────────────────
 # Credentials — read from .env; never hard-coded
 # Create a .env file:  ADMIN_UID=admin  ADMIN_PW=yourPassword
@@ -168,18 +181,18 @@ PHOTOS_DIR = os.path.join(BASE_DIR, 'photos')
 os.makedirs(PHOTOS_DIR, exist_ok=True)
 
 
-# ─────────────────────────────────────────────
-# Photo helpers
-# Photos saved as files — NOT stored as base64 in the DB
+# Photos stored directly in the database as base64 data URLs to prevent loss
+# on ephemeral hosting environments (e.g. Render, Heroku).
 # ─────────────────────────────────────────────
 def _save_photo_file(student_id: str, data_url: str) -> str:
     """
-    Decode a base64 data-URL and save it as a file in PHOTOS_DIR.
-    Returns the URL path  /photos/<filename>  to store in the DB.
-    Returns '' if data_url is empty or invalid.
+    Save photo data URL directly to database (and optionally backup to file).
+    Returns the data_url to store directly in the DB column.
     """
-    if not data_url or not data_url.startswith('data:'):
+    if not data_url:
         return ''
+    if not data_url.startswith('data:'):
+        return data_url
     try:
         header, encoded = data_url.split(',', 1)
         mime = header.split(';')[0].split(':')[1]
@@ -190,9 +203,9 @@ def _save_photo_file(student_id: str, data_url: str) -> str:
         filepath = os.path.join(PHOTOS_DIR, filename)
         with open(filepath, 'wb') as f:
             f.write(base64.b64decode(encoded))
-        return f'/photos/{filename}'
     except Exception:
-        return ''
+        pass
+    return data_url
 
 
 def _delete_photo_file(photo_url: str):
