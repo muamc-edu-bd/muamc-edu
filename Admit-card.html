@@ -283,7 +283,7 @@
       <a class="nt" href="/Teachers.html">Teachers</a>
       <a class="nt" href="/Result-card.html">Result Card</a>
       <a class="nt active" href="/Admit-card.html">Admit Card</a>
-      <a class="nt" href="/bulk-photo.html">📷 Bulk Photo Upload</a>
+      <a class="nt" href="/bulk-photo.html">Bulk Photo Upload</a>
       <a class="nt" href="/analytics.html" style="border-top:1px solid rgba(255,255,255,.08);margin-top:8px;padding-top:16px;">Analytics</a>
     </nav>
   </header>
@@ -328,12 +328,21 @@
               <option>HSC Examination</option>
             </select>
           </div>
-          <div class="fg"><label>Session</label><input id="ad-session" value="2024-2025"></div>
+          <div class="fg">
+            <label>Session</label>
+            <select id="ad-session">
+              <option value="2024-2025">2024-2025</option>
+              <option value="2025-2026">2025-2026</option>
+              <option value="2026-2027">2026-2027</option>
+              <option value="2027-2028">2027-2028</option>
+              <option value="2028-2029">2028-2029</option>
+              <option value="2029-2030">2029-2030</option>
+            </select>
+          </div>
           <div class="fg"><label>Examination Start Date</label><input id="ad-date" type="date"></div>
-          <div class="fg"><label>Examination Centre</label><input id="ad-center" value="Moinuddin Adarsha Mohila College"></div>
           <div class="fg"><label>Examination Time</label><input id="ad-time" value="10:00 AM"></div>
           <div class="fg" style="grid-column: 1 / -1;">
-            <label>Principal's Signature <span style="font-weight:400;color:var(--muted);">(একবার আপলোড করলে সব কার্ডে দেখাবে)</span></label>
+            <label>Principal's Signature</label>
             <div class="sig-upload-wrap">
               <div class="sig-preview" id="sig-preview-box"><span id="sig-preview-hint">No signature</span></div>
               <label class="btn btn-outline btn-sm" style="cursor:pointer;">
@@ -511,16 +520,16 @@
 
     // ── Filter students by class + group ───────────────────────────────────
     function filterAdmitStudents() {
-      const cls = $$('ad-class'), grp = $$('ad-group');
+      const cls = $$('ad-class'), grp = $$('ad-group'), session = $$('ad-session');
       const grpSel = $('ad-group');
       grpSel.disabled = !cls;
       if (!cls) { grpSel.value = ''; }
 
       const listCard = $('admit-student-list');
       const listBody = $('admit-list-body');
-      if (!cls || !grp) { listCard.style.display = 'none'; return; }
+      if (!cls || !grp || !session) { listCard.style.display = 'none'; return; }
 
-      const ss = _students.filter(s => s.cls === cls && s.group === grp);
+      const ss = _students.filter(s => s.cls === cls && s.group === grp && (s.session || s.year || '').replace(/–/g, '-') === session.replace(/–/g, '-'));
       _filteredStudents = ss;
       $('admit-list-hd').textContent = `${cls} — ${grp} Group`;
       $('admit-list-count').textContent = `${ss.length} Students`;
@@ -598,7 +607,7 @@
     }
 
     // ── Build admit card HTML — Classic Format matching the provided image ─
-    function buildAdmit(stu, et, ey, sd, ct, tm, qrId) {
+    function buildAdmit(stu, et, ey, sd, tm, qrId) {
       const subs = getFilteredAdmitSubjects(stu);
       const photoH = stu.photo
         ? `<img src="${stu.photo}" class="ac-photo" alt="Photo">`
@@ -801,9 +810,9 @@
       if (!stu) return;
       _currentAdmitId = id;
 
-      const et = $$('ad-exam'), ey = $$('ad-session'), sd = $$('ad-date'), ct = $$('ad-center'), tm = $$('ad-time');
+      const et = $$('ad-exam'), ey = $$('ad-session'), sd = $$('ad-date'), tm = $$('ad-time');
       const qrId = 'ac-qr-modal-' + id;
-      $('admit-modal-body').innerHTML = buildAdmit(stu, et, ey, sd, ct, tm, qrId);
+      $('admit-modal-body').innerHTML = buildAdmit(stu, et, ey, sd, tm, qrId);
       $('admit-modal-title').textContent = `${stu.name} (${stu.roll})`;
       $('admit-modal').style.display = 'flex';
       document.body.style.overflow = 'hidden';
@@ -875,10 +884,10 @@
     // ── Batch Print (all filtered students, one window) ───────────────────
     function batchPrint() {
       if (!_filteredStudents.length) { alert('No students loaded. Select a class and group first.'); return; }
-      const et = $$('ad-exam'), ey = $$('ad-session'), sd = $$('ad-date'), ct = $$('ad-center'), tm = $$('ad-time');
+      const et = $$('ad-exam'), ey = $$('ad-session'), sd = $$('ad-date'), tm = $$('ad-time');
       const cards = _filteredStudents.map((s, idx) => {
         const qrId = 'bp-qr-' + s.id;
-        return buildAdmit(s, et, ey, sd, ct, tm, qrId);
+        return buildAdmit(s, et, ey, sd, tm, qrId);
       }).join('<div style="page-break-after:always;"></div>');
 
       const win = window.open('', '_blank', 'width=900,height=700,scrollbars=yes');
@@ -907,7 +916,7 @@
       const btn = $('batch-pdf-btn');
       btn.disabled = true; btn.textContent = '⏳ Generating...';
 
-      const et = $$('ad-exam'), ey = $$('ad-session'), sd = $$('ad-date'), ct = $$('ad-center'), tm = $$('ad-time');
+      const et = $$('ad-exam'), ey = $$('ad-session'), sd = $$('ad-date'), tm = $$('ad-time');
       const cls = $$('ad-class'), grp = $$('ad-group');
 
       // Build a hidden container with all admit cards
@@ -917,7 +926,7 @@
         const qrId = 'bdl-qr-' + s.id;
         const wrapper = document.createElement('div');
         wrapper.style.pageBreakAfter = 'always';
-        wrapper.innerHTML = buildAdmit(s, et, ey, sd, ct, tm, qrId);
+        wrapper.innerHTML = buildAdmit(s, et, ey, sd, tm, qrId);
         container.appendChild(wrapper);
       });
       document.body.appendChild(container);
@@ -971,6 +980,7 @@
         // Attach event listeners
         $('ad-class').addEventListener('change', filterAdmitStudents);
         $('ad-group').addEventListener('change', filterAdmitStudents);
+        $('ad-session').addEventListener('change', filterAdmitStudents);
       } catch (err) {
         console.error('Init error:', err);
         alert('Failed to load page: ' + err.message);

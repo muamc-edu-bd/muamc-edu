@@ -293,6 +293,12 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--slate);color:var(--
 .batch-progress-track{height:8px;background:var(--border2);border-radius:999px;overflow:hidden;}
 .batch-progress-bar{height:100%;background:linear-gradient(90deg,var(--navy),var(--gold3));transition:width .25s ease;width:0%;}
 .batch-empty{text-align:center;padding:44px 20px;color:var(--muted);font-size:.85rem;}
+/* Absent checkbox */
+.absent-chk-wrap{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;user-select:none;}
+.absent-chk-wrap input[type="checkbox"]{width:16px;height:16px;accent-color:var(--red);cursor:pointer;}
+.absent-chk-wrap .absent-lbl{font-size:.65rem;font-weight:700;color:var(--red);letter-spacing:.2px;}
+.g-absent{background:#f1f5f9;color:var(--muted);border:1.5px solid var(--border);}
+.batch-inp.absent-locked{background:#fef2f2;border-color:#fca5a5;color:#aaa;cursor:not-allowed;}
 
 /* ═══════════════ PRINT STYLES ═══════════════ */
 @media print{
@@ -300,7 +306,7 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--slate);color:var(--
   .top-nav-bar,.page-footer,.mode-tabs,.batch-filter-bar,.batch-status-bar,.no-print{display:none!important;}
   .main-container{padding:0!important;max-width:100%!important;}
   .back-link{display:none!important;}
-  #student-mode-section{display:none!important;}
+
   #batch-bulk-card{display:none!important;}
   #batch-print-header{display:block!important;}
   .batch-table-wrap{box-shadow:none!important;border:1px solid #ccc!important;}
@@ -461,98 +467,10 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--slate);color:var(--
   </style>
   <a href="index.html" class="back-link no-print">← Back to Dashboard</a>
 
-  <div class="pg-hd"><h2>Admin Mark Entry</h2><p>Use <strong>Student Mode</strong> to edit one student, or <strong>Subject Batch Mode</strong> to enter marks for all students of a subject at once.</p></div>
-
-  <!-- MODE TAB BAR -->
-  <div class="mode-tabs no-print">
-    <button class="mode-tab active" id="tab-student" onclick="switchMode('student')">Student Mode</button>
-    <button class="mode-tab" id="tab-batch" onclick="switchMode('batch')">Subject Batch Mode</button>
-  </div>
-
-  <!-- ═════════════════ STUDENT MODE SECTION ═════════════════ -->
-  <div id="student-mode-section">
-  <div class="layout-grid">
-    <div class="left-panel">
-      <div class="card">
-        <div class="card-head">
-          <h3>Students</h3>
-          <span class="meta" id="student-count">0 students found</span>
-        </div>
-        <div class="card-body">
-          <div class="search-container">
-            <div class="search-filters">
-              <div class="fg"><label>Class</label>
-                <select id="sf-class" onchange="searchStudents()">
-                  <option value="">All Classes</option>
-                  <option value="Class-XI">Class XI</option>
-                  <option value="Class-XII">Class XII</option>
-                </select>
-              </div>
-              <div class="fg"><label>Group</label>
-                <select id="sf-group" onchange="searchStudents()">
-                  <option value="">All Groups</option>
-                  <option value="Science">Science</option>
-                  <option value="Humanities">Humanities</option>
-                  <option value="Business">Business</option>
-                </select>
-              </div>
-              <div class="fg"><label>Session</label>
-                <select id="sf-session" onchange="searchStudents()">
-                  <option value="">All Sessions</option>
-                  <option value="2022-2023">2022-2023</option>
-                  <option value="2023-2024">2023-2024</option>
-                  <option value="2024-2025" selected>2024-2025</option>
-                  <option value="2025-2026">2025-2026</option>
-                </select>
-              </div>
-              <div class="fg"><label>Roll / Name</label>
-                <input id="sf-query" placeholder="Search roll or name" oninput="searchStudents()">
-              </div>
-            </div>
-          </div>
-          <div class="list-container">
-            <div id="student-list-container" class="student-list"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="right-panel">
-      <div class="card">
-        <div class="card-head"><h3>Student Marks Entry</h3><span class="meta">Select a student from the left list</span></div>
-        <div class="card-body">
-          <input type="hidden" id="m-student">
-          <div id="student-empty" class="empty-state">
-            <div class="es-rule"></div>
-            <p>Select a student from the left column to load their marks entry form.</p>
-          </div>
-          <div id="student-entry" style="display:none;">
-            <div class="fg-grid" style="margin-bottom:16px;">
-              <div class="fg"><label>Student</label><div id="selected-student-name" style="padding:10px 12px;border:1px solid var(--border2);border-radius:var(--r);background:#f8fafc;color:var(--navy);font-weight:700;"></div></div>
-              <div class="fg"><label>Exam Type</label>
-                <select id="m-exam" onchange="loadMarksForm()">
-                  <option>Half-Yearly</option><option>Annual</option><option>Selection Test</option><option>Test</option><option>HSC</option>
-                </select>
-              </div>
-              <div class="fg"><label>Session</label>
-                <select id="m-session" onchange="loadMarksForm()">
-                  <option value="2022-2023">2022-2023</option>
-                  <option value="2023-2024">2023-2024</option>
-                  <option value="2024-2025" selected>2024-2025</option>
-                  <option value="2025-2026">2025-2026</option>
-                </select>
-              </div>
-            </div>
-            <div id="marks-panels"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  </div><!-- /#student-mode-section -->
+  <div class="pg-hd"><h2>Admin Mark Entry</h2><p>Enter marks for all students of a subject at once using <strong>Subject Batch Mode</strong>.</p></div>
 
   <!-- ═════════════════ SUBJECT BATCH MODE SECTION ═════════════════ -->
-  <div id="batch-mode-section" style="display:none;">
+  <div id="batch-mode-section">
 
     <!-- Print header (hidden on screen, shown when printing) -->
     <div id="batch-print-header">
@@ -598,12 +516,15 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--slate);color:var(--
       <div class="fg">
         <label>Session</label>
         <select id="b-session">
-          <option value="2022-2023">2022-2023</option>
-          <option value="2023-2024">2023-2024</option>
           <option value="2024-2025" selected>2024-2025</option>
           <option value="2025-2026">2025-2026</option>
+          <option value="2026-2027">2026-2027</option>
+          <option value="2027-2028">2027-2028</option>
+          <option value="2028-2029">2028-2029</option>
+          <option value="2029-2030">2029-2030</option>
         </select>
       </div>
+
       <div class="batch-load-btn">
         <button class="btn btn-primary" onclick="loadBatchStudents()">Load Students</button>
       </div>
@@ -717,10 +638,10 @@ function setAlert(id,type,msg){const a=$(id);if(!a)return;if(!msg){a.innerHTML='
 const SUBS = {
   'Science': [
     {cat:'Common Subjects', items:[
-      {name:'Bangla 1st Paper',     code:'101', hasPrac:false, cqMax:70, mcqMax:30, isRequired:true},
-      {name:'Bangla 2nd Paper',     code:'102', hasPrac:false, cqMax:70, mcqMax:30, isRequired:true},
-      {name:'English 1st Paper',    code:'107', hasPrac:false, cqMax:70, mcqMax:30, isRequired:true},
-      {name:'English 2nd Paper',    code:'108', hasPrac:false, cqMax:70, mcqMax:30, isRequired:true},
+      {name:'Bangla 1st Paper',     code:'101', hasPrac:false, cqMax:70,  mcqMax:30, isRequired:true},
+      {name:'Bangla 2nd Paper',     code:'102', hasPrac:false, cqMax:70,  mcqMax:30, isRequired:true},
+      {name:'English 1st Paper',    code:'107', hasPrac:false, cqMax:100, mcqMax:0,  isRequired:true},
+      {name:'English 2nd Paper',    code:'108', hasPrac:false, cqMax:100, mcqMax:0,  isRequired:true},
       {name:'Information & Communication Technology (ICT)', code:'275', hasPrac:true, cqMax:50, mcqMax:25, isRequired:true},
     ]},
     {cat:'Science Group Subjects', items:[
@@ -736,10 +657,10 @@ const SUBS = {
   ],
   'Humanities': [
     {cat:'Common Subjects', items:[
-      {name:'Bangla 1st Paper',     code:'101', hasPrac:false, cqMax:70, mcqMax:30, isRequired:true},
-      {name:'Bangla 2nd Paper',     code:'102', hasPrac:false, cqMax:70, mcqMax:30, isRequired:true},
-      {name:'English 1st Paper',    code:'107', hasPrac:false, cqMax:70, mcqMax:30, isRequired:true},
-      {name:'English 2nd Paper',    code:'108', hasPrac:false, cqMax:70, mcqMax:30, isRequired:true},
+      {name:'Bangla 1st Paper',     code:'101', hasPrac:false, cqMax:70,  mcqMax:30, isRequired:true},
+      {name:'Bangla 2nd Paper',     code:'102', hasPrac:false, cqMax:70,  mcqMax:30, isRequired:true},
+      {name:'English 1st Paper',    code:'107', hasPrac:false, cqMax:100, mcqMax:0,  isRequired:true},
+      {name:'English 2nd Paper',    code:'108', hasPrac:false, cqMax:100, mcqMax:0,  isRequired:true},
       {name:'Information & Communication Technology (ICT)', code:'275', hasPrac:true, cqMax:50, mcqMax:25, isRequired:true},
     ]},
     {cat:'Humanities Group Subjects', items:[
@@ -759,10 +680,10 @@ const SUBS = {
   ],
   'Business': [
     {cat:'Common Subjects', items:[
-      {name:'Bangla 1st Paper',     code:'101', hasPrac:false, cqMax:70, mcqMax:30, isRequired:true},
-      {name:'Bangla 2nd Paper',     code:'102', hasPrac:false, cqMax:70, mcqMax:30, isRequired:true},
-      {name:'English 1st Paper',    code:'107', hasPrac:false, cqMax:70, mcqMax:30, isRequired:true},
-      {name:'English 2nd Paper',    code:'108', hasPrac:false, cqMax:70, mcqMax:30, isRequired:true},
+      {name:'Bangla 1st Paper',     code:'101', hasPrac:false, cqMax:70,  mcqMax:30, isRequired:true},
+      {name:'Bangla 2nd Paper',     code:'102', hasPrac:false, cqMax:70,  mcqMax:30, isRequired:true},
+      {name:'English 1st Paper',    code:'107', hasPrac:false, cqMax:100, mcqMax:0,  isRequired:true},
+      {name:'English 2nd Paper',    code:'108', hasPrac:false, cqMax:100, mcqMax:0,  isRequired:true},
       {name:'Information & Communication Technology (ICT)', code:'275', hasPrac:true, cqMax:50, mcqMax:25, isRequired:true},
     ]},
     {cat:'Business Studies Group Subjects', items:[
@@ -967,276 +888,9 @@ const LS = (() => {
   return { students, marks, saveM, init, fetchStudentMarks };
 })();
 
-let studentListLoading = false;
-let selectedStudentId = null;
 
-function normalizeSessionValue(value){
-  return (value||'').toString().trim().replace(/–/g,'-').replace(/—/g,'-');
-}
 
-function getStudentFilters(){
-  return {
-    cls: $('sf-class')?.value || '',
-    grp: $('sf-group')?.value || '',
-    session: normalizeSessionValue($('sf-session')?.value || ''),
-    query: ($('sf-query')?.value || '').trim().toLowerCase()
-  };
-}
 
-function searchStudents(){
-  const {cls, grp} = getStudentFilters();
-  if(!cls || !grp){
-    renderStudentList();
-    return;
-  }
-  studentListLoading = true;
-  renderStudentList();
-  setTimeout(()=>{
-    studentListLoading = false;
-    renderStudentList();
-  }, 260);
-}
-
-function renderStudentList(){
-  const out = $('student-list-container');
-  if(!out) return;
-  const {cls, grp, session, query} = getStudentFilters();
-  
-  if(!cls || !grp){
-    out.innerHTML = '<div class="empty-state"><p>Please select both <strong>Class</strong> and <strong>Group</strong> to view students.</p></div>';
-    const count = $('student-count');
-    if(count) count.textContent = '0 students found';
-    return;
-  }
-
-  const students = LS.students().filter(s => {
-    const studentSession = normalizeSessionValue(s.session || s.year || '');
-    const matchesClass = !cls || s.cls === cls;
-    const matchesGroup = !grp || s.group === grp;
-    const matchesSession = !session || studentSession === session;
-    const matchesQuery = !query || s.name.toLowerCase().includes(query) || s.roll.toLowerCase().includes(query);
-    return matchesClass && matchesGroup && matchesSession && matchesQuery;
-  });
-
-  const count = $('student-count');
-  if(count) count.textContent = `${students.length} student${students.length===1?'':'s'} found`;
-
-  if(studentListLoading){
-    out.innerHTML = Array.from({length:4}).map(() =>
-      `<div class="skeleton-row"><div class="skeleton-line" style="width:70%"></div><div class="skeleton-line" style="width:45%"></div></div>`
-    ).join('');
-    return;
-  }
-
-  if(!students.length){
-    out.innerHTML = '<div class="empty-state"><p>No students match this filter. Change class, group, or session.</p></div>';
-    return;
-  }
-
-  out.innerHTML = students.map(s => {
-    const active = selectedStudentId === s.id ? 'active' : '';
-    return `<div class="student-card ${active}" onclick="selectStudent('${s.id}')">
-      <div class="student-row-text">
-        <span class="student-row-name">${s.name}</span>
-        <span class="student-row-roll">Roll: ${s.roll}</span>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-async function selectStudent(id){
-  selectedStudentId = id;
-  const select = $('m-student');
-  if(select){
-    select.value = id;
-  }
-
-  const stu = LS.students().find(s => s.id === id);
-  if(stu){
-    const label = $('selected-student-name');
-    if(label) label.textContent = `${stu.name} (${stu.roll}) — ${stu.cls}, ${stu.group}`;
-    const empty = $('student-empty');
-    const entry = $('student-entry');
-    if(empty) empty.style.display = 'none';
-    if(entry) entry.style.display = 'block';
-    renderStudentList();
-    // Fetch this student's marks from PostgreSQL before rendering the form
-    const out = $('marks-panels');
-    if(out) out.innerHTML = '<div class="empty-state"><p>Loading marks from database...</p></div>';
-    await LS.fetchStudentMarks(id);
-    loadMarksForm();
-    if (window.innerWidth <= 768) {
-      if(entry) entry.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }
-}
-
-/* ═══════════════ MARK FUNCTIONS ═══════════════ */
-function fillSelects(){
-  const ss=LS.students();
-  const o='<option value="">— Select Student —</option>'+ss.map(s=>`<option value="${s.id}">${s.name} (${s.roll} — ${s.cls})</option>`).join('');
-  const elem=$('m-student');
-  if(elem) elem.innerHTML=o;
-}
-
-async function loadMarksForm(){
-  const id=$$('m-student');
-  const out=$('marks-panels');
-  const empty=$('student-empty');
-  const entry=$('student-entry');
-  if(!id){
-    if(out) out.innerHTML='';
-    if(empty) empty.style.display='block';
-    if(entry) entry.style.display='none';
-    return;
-  }
-  if(empty) empty.style.display='none';
-  if(entry) entry.style.display='block';
-  const stu=LS.students().find(s=>s.id===id);if(!stu)return;
-  const et=$$('m-exam');
-  const opts=OPTIONAL_SUBJECTS[stu.group]||[];
-  let currentSelected=getSelectedOptional(id, et);
-  if(!currentSelected){
-    const studentSelected = getStudentSelectedOptional(stu);
-    if(studentSelected){
-      setSelectedOptional(id, et, studentSelected);
-      currentSelected = studentSelected;
-    }
-  }
-  
-  if(opts.length>0 && !currentSelected){
-    out.innerHTML = `<div class="card" style="margin-bottom:20px;">
-      <div class="card-head"><h3>Optional Subject Required</h3><span class="meta">Update optional subject for this student</span></div>
-      <div class="card-body">
-        <div class="alert alert-err">This student belongs to a group that requires an optional subject. Please update the student's optional subject in student management or provide it via bulk input.</div>
-      </div>
-    </div>`;
-    return;
-  }
-  
-  const cats=SUBS[stu.group]||[];
-  const db=LS.marks(), ex=(db[id]&&db[id][et])?db[id][et]:{};
-  const hd={'Science':'mph-sci','Humanities':'mph-hum','Business':'mph-bus'};
-  const gl={'Science':'Science Group','Humanities':'Humanities Group','Business':'Business Studies Group'};
-
-  const groupNote = stu.group==='Science'
-    ? 'Common Subjects: CQ=70, MCQ=30 &nbsp;|&nbsp; Science Subjects: CQ=50, MCQ=25, Practical=25'
-    : 'All Subjects: CQ=70, MCQ=30 (No Practical)';
-  let html=``;
-  
-  if(currentSelected && opts.length>0){
-    const selOpt=opts.find(o=>o.id===currentSelected);
-    html+=`<div class="alert alert-ok" style="margin-bottom:14px;">Selected Optional: <strong>${selOpt.label}</strong></div>`;
-  }
-  html+=`<div class="alert alert-info" style="margin-bottom:14px;">Group: <strong>${stu.group}</strong> &nbsp;|&nbsp; Class: <strong>${stu.cls}</strong> &nbsp;|&nbsp; ${groupNote}</div>`;
-
-  cats.forEach(cat=>{
-    const filteredItems = cat.items.filter(sub => {
-      if (stu.cls === 'Class-XI') {
-        return !sub.name.includes('2nd') && !sub.name.includes('2nd Paper') && !sub.name.endsWith(' 2nd');
-      } else if (stu.cls === 'Class-XII') {
-        return !sub.name.includes('1st') && !sub.name.includes('1st Paper') && !sub.name.endsWith(' 1st');
-      }
-      return true;
-    }).map(sub => {
-      if (sub.code === '116' || sub.code === '267') {
-        const suffix = stu.cls === 'Class-XI' ? ' 1st Paper' : ' 2nd Paper';
-        return Object.assign({}, sub, { name: sub.name.replace(' 1st Paper', '').replace(' 2nd Paper', '') + suffix });
-      }
-      return sub;
-    });
-
-    if(filteredItems.length === 0) return;
-
-    html+=`<div class="marks-panel">
-      <div class="marks-panel-hd ${hd[stu.group]}">
-        <span>${gl[stu.group]}</span>
-        <span style="font-size:.74rem;opacity:.7;font-weight:500;">— ${cat.cat}</span>
-      </div>
-      <div class="marks-panel-body">
-        <div class="sub-hdr">
-          <span>Subject Name &amp; Code</span>
-          <span style="text-align:center;">CQ</span>
-          <span style="text-align:center;">MCQ</span>
-          <span style="text-align:center;">Practical</span>
-          <span style="text-align:center;">Total</span>
-          <span style="text-align:center;">Grade</span>
-        </div>`;
-    filteredItems.forEach(sub=>{
-      const sv=ex[sub.code]||{};
-      const cqM=sub.cqMax||70, mcqM=sub.mcqMax||30;
-      const isSelectedOptional=sub.optionalGroup===currentSelected;
-      const label=isSelectedOptional?' <span style="color:#0d2b45;font-size:.75em;font-weight:600;background:#e8f4f8;padding:2px 6px;border-radius:3px;">(Optional)</span>':'';
-      html+=`<div class="sub-entry" id="row-${sub.code}">
-        <div><div class="sub-nm">${sub.name}${label}</div><div class="sub-cd">Code: ${sub.code} | CQ=${cqM}, MCQ=${mcqM}${sub.hasPrac?', PR=25':''}</div></div>
-        <div class="m-inp-wrap"><span class="m-inp-lbl">CQ (${cqM})</span><input class="m-inp" type="number" id="cq-${sub.code}" min="0" max="${cqM}" placeholder="CQ ${cqM}" value="${sv.cq||''}" oninput="calcRow('${sub.code}',${sub.hasPrac},${cqM},${mcqM})"></div>
-        <div class="m-inp-wrap"><span class="m-inp-lbl">MCQ (${mcqM})</span><input class="m-inp" type="number" id="mcq-${sub.code}" min="0" max="${mcqM}" placeholder="MCQ ${mcqM}" value="${sv.mcq||''}" oninput="calcRow('${sub.code}',${sub.hasPrac},${cqM},${mcqM})"></div>
-        <div class="m-inp-wrap"><span class="m-inp-lbl">PR (25)</span><input class="m-inp" type="number" id="prac-${sub.code}" min="0" max="25" placeholder="${sub.hasPrac?'PR 25':'—'}" ${!sub.hasPrac?'readonly':''} value="${sv.prac||''}" oninput="calcRow('${sub.code}',${sub.hasPrac},${cqM},${mcqM})"></div>
-        <div class="m-inp-wrap"><span class="m-inp-lbl">Total</span><input class="m-inp" type="text" id="tot-${sub.code}" readonly placeholder="Total"></div>
-        <div class="g-chip g-F" id="gch-${sub.code}">—</div>
-      </div>`;
-    });
-    html+='</div></div>';
-  });
-
-  html+=`<div class="card">
-    <div class="card-body">
-      <div class="btn-row">
-        <button class="btn btn-primary" onclick="saveMarks('${id}')">Save Marks</button>
-      </div>
-      <div id="m-alert" style="margin-top:12px;"></div>
-    </div>
-  </div>`;
-  out.innerHTML=html;
-  flatSubs(stu.group, stu.cls).forEach(sub=>calcRow(sub.code,sub.hasPrac,sub.cqMax||70,sub.mcqMax||30));
-}
-
-function selectOptionalSubject(sid, examType, optionalId){
-  setSelectedOptional(sid, examType, optionalId);
-}
-
-function calcRow(code,hasPrac,cqMax,mcqMax){
-  cqMax=cqMax||70; mcqMax=mcqMax||30;
-  const cq=Math.min(+($$('cq-'+code)||0),cqMax);
-  const mcq=Math.min(+($$('mcq-'+code)||0),mcqMax);
-  const prac=hasPrac?Math.min(+($$('prac-'+code)||0),25):0;
-  const theory=cq+mcq,tot=theory+prac,g=grade(tot);
-  $('tot-'+code).value=tot||'';
-  const chip=$('gch-'+code);chip.textContent=g.l;chip.className='g-chip '+gcls(g.l);
-}
-
-async function saveMarks(sid){
-  const stu=LS.students().find(s=>s.id===sid);
-  const subs=flatSubs(stu.group, stu.cls), et=$$('m-exam'), ey=$$('m-session');
-  let optionalSelected=getSelectedOptional(sid, et);
-  if(!optionalSelected){
-    optionalSelected = getStudentSelectedOptional(stu);
-    if(optionalSelected){
-      setSelectedOptional(sid, et, optionalSelected);
-    }
-  }
-  
-  if(OPTIONAL_SUBJECTS[stu.group] && !optionalSelected){
-    setAlert('m-alert','err','This student requires an optional subject, but none is set in their profile. Update the student record or bulk import with Optional Subject Code.');
-    return;
-  }
-  
-  const marksObj={};
-  subs.forEach(sub=>{
-    marksObj[sub.code]={cq:$$('cq-'+sub.code)||'',mcq:$$('mcq-'+sub.code)||'',prac:$$('prac-'+sub.code)||'',ey,cqMax:sub.cqMax||70,mcqMax:sub.mcqMax||30};
-  });
-  marksObj.selectedOptional=optionalSelected;
-  
-  try{
-    const r=await fetch('/api/marks/'+sid,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({examType:et,marks:marksObj})});
-    const res=await r.json();
-    if(res.ok){
-      const db=LS.marks();if(!db[sid])db[sid]={};db[sid][et]=marksObj;
-      setAlert('m-alert','ok','Marks saved successfully.');
-    }else{setAlert('m-alert','err',res.message||'Failed to save marks.');}
-  }catch(e){setAlert('m-alert','err','Server error: '+e.message);}
-}
 
 /* ═══════════════ BULK MARKS IMPORT ═══════════════ */
 function handleBulkMarksFile(input) {
@@ -1412,24 +1066,7 @@ let batchSession    = '';
 let batchSavedOnce  = false;
 let batchMarksCache = {};
 
-/* ─── Tab Switcher ─── */
-function switchMode(mode){
-  const studentSec = $('student-mode-section');
-  const batchSec   = $('batch-mode-section');
-  const tabS       = $('tab-student');
-  const tabB       = $('tab-batch');
-  if(mode === 'batch'){
-    if(studentSec) studentSec.style.display = 'none';
-    if(batchSec)   batchSec.style.display   = 'block';
-    if(tabS) tabS.classList.remove('active');
-    if(tabB) tabB.classList.add('active');
-  } else {
-    if(studentSec) studentSec.style.display = 'block';
-    if(batchSec)   batchSec.style.display   = 'none';
-    if(tabS) tabS.classList.add('active');
-    if(tabB) tabB.classList.remove('active');
-  }
-}
+
 
 /* ─── Populate Subject dropdown when Class/Group changes ─── */
 function onBatchFilterChange(){
@@ -1555,39 +1192,49 @@ async function loadBatchStudents(){
 /* ─── Render the batch table ─── */
 function renderBatchTable(students, sub, marksMap, examType){
   const cqM  = sub.cqMax  || 70;
-  const mcqM = sub.mcqMax || 30;
+  const mcqM = sub.mcqMax || 0;
   const pracM= 25;
   let html = `<table class="batch-sheet-table" id="batch-table">
     <thead><tr>
       <th style="width:60px;">Roll</th>
       <th style="min-width:160px;">Student Name</th>
+      <th style="width:68px;">Absent<br><small style="font-weight:400;opacity:.7;">Tick if absent</small></th>
       <th style="width:80px;">CQ<br><small style="font-weight:400;opacity:.75;">(Max ${cqM})</small></th>
-      <th style="width:80px;">MCQ<br><small style="font-weight:400;opacity:.75;">(Max ${mcqM})</small></th>`;
+      ${mcqM > 0 ? `<th style="width:80px;">MCQ<br><small style="font-weight:400;opacity:.75;">(Max ${mcqM})</small></th>` : ''}`;
   if(sub.hasPrac) html += `<th style="width:80px;">Practical<br><small style="font-weight:400;opacity:.75;">(Max ${pracM})</small></th>`;
   html += `<th style="width:70px;">Total</th><th style="width:64px;">Grade</th></tr></thead><tbody>`;
 
   students.forEach((s, idx) => {
     const existing = (marksMap[s.id] && marksMap[s.id][examType] && marksMap[s.id][examType][sub.code])
       ? marksMap[s.id][examType][sub.code] : {};
-    const cqVal   = existing.cq   !== undefined && existing.cq   !== '' ? existing.cq   : '';
-    const mcqVal  = existing.mcq  !== undefined && existing.mcq  !== '' ? existing.mcq  : '';
-    const pracVal = existing.prac !== undefined && existing.prac !== '' ? existing.prac : '';
+    const isAbsent = existing.absent === true;
+    const cqVal   = isAbsent ? '' : (existing.cq   !== undefined && existing.cq   !== '' ? existing.cq   : '');
+    const mcqVal  = isAbsent ? '' : (existing.mcq  !== undefined && existing.mcq  !== '' ? existing.mcq  : '');
+    const pracVal = isAbsent ? '' : (existing.prac !== undefined && existing.prac !== '' ? existing.prac : '');
+    const disAttr = isAbsent ? 'disabled class="batch-inp absent-locked"' : '';
 
     html += `<tr data-sid="${s.id}">
       <td>${s.roll}</td>
       <td title="${s.name}">${s.name}</td>
-      <td><input class="batch-inp" type="number" id="bcq-${s.id}" min="0" max="${cqM}" maxlength="2" value="${cqVal}" placeholder="${cqM}"
-        oninput="enforceTwoDigit(this,${cqM});calcBatchRow('${s.id}')" onkeydown="batchNavKey(event,'bcq-${s.id}')"></td>
-      <td><input class="batch-inp" type="number" id="bmcq-${s.id}" min="0" max="${mcqM}" maxlength="2" value="${mcqVal}" placeholder="${mcqM}"
-        oninput="enforceTwoDigit(this,${mcqM});calcBatchRow('${s.id}')" onkeydown="batchNavKey(event,'bmcq-${s.id}')"></td>`;
+      <td style="text-align:center;">
+        <label class="absent-chk-wrap" title="Mark student as absent for this subject">
+          <input type="checkbox" id="babsent-${s.id}" ${isAbsent ? 'checked' : ''}
+            onchange="toggleBatchAbsent('${s.id}')">
+          <span class="absent-lbl">Ab</span>
+        </label>
+      </td>
+      <td><input class="batch-inp${isAbsent?' absent-locked':''}" type="number" id="bcq-${s.id}" min="0" max="${cqM}" maxlength="3" value="${cqVal}" placeholder="${cqM}"
+        ${isAbsent ? 'disabled' : `oninput="enforceTwoDigit(this,${cqM});calcBatchRow('${s.id}')" onkeydown="batchNavKey(event,'bcq-${s.id}')"`}></td>
+      ${mcqM > 0 ? `<td><input class="batch-inp${isAbsent?' absent-locked':''}" type="number" id="bmcq-${s.id}" min="0" max="${mcqM}" maxlength="2" value="${mcqVal}" placeholder="${mcqM}"
+        ${isAbsent ? 'disabled' : `oninput="enforceTwoDigit(this,${mcqM});calcBatchRow('${s.id}')" onkeydown="batchNavKey(event,'bmcq-${s.id}')"`}></td>` : ''}`;
     if(sub.hasPrac){
-      html += `<td><input class="batch-inp" type="number" id="bprac-${s.id}" min="0" max="${pracM}" maxlength="2" value="${pracVal}" placeholder="${pracM}"
-        oninput="enforceTwoDigit(this,${pracM});calcBatchRow('${s.id}')" onkeydown="batchNavKey(event,'bprac-${s.id}')"></td>`;
+      html += `<td><input class="batch-inp${isAbsent?' absent-locked':''}" type="number" id="bprac-${s.id}" min="0" max="${pracM}" maxlength="2" value="${pracVal}" placeholder="${pracM}"
+        ${isAbsent ? 'disabled' : `oninput="enforceTwoDigit(this,${pracM});calcBatchRow('${s.id}')" onkeydown="batchNavKey(event,'bprac-${s.id}')"`}></td>`;
     } else {
       html += `<td><input class="batch-inp" value="—" disabled tabindex="-1"></td>`;
     }
     html += `<td><input class="batch-inp" id="btot-${s.id}" type="text" readonly placeholder="—" tabindex="-1"></td>
-      <td><div class="g-chip g-F" id="bgrade-${s.id}" style="font-size:.72rem;">—</div></td>
+      <td><div class="g-chip ${isAbsent ? 'g-absent' : 'g-F'}" id="bgrade-${s.id}" style="font-size:.72rem;">${isAbsent ? 'Ab' : '—'}</div></td>
     </tr>`;
   });
 
@@ -1610,24 +1257,57 @@ function calcBatchRow(sid){
   const sub = batchSubjectDef;
   if(!sub) return;
   const cqM  = sub.cqMax  || 70;
-  const mcqM = sub.mcqMax || 30;
+  const mcqM = sub.mcqMax || 0;
+  // If absent checkbox is ticked, show Ab — do not calculate
+  const absentEl = $(`babsent-${sid}`);
+  if(absentEl && absentEl.checked){
+    const totEl = $(`btot-${sid}`); const grEl = $(`bgrade-${sid}`);
+    if(totEl) totEl.value = 'Ab';
+    if(grEl){ grEl.textContent = 'Ab'; grEl.className = 'g-chip g-absent'; }
+    return;
+  }
   const cqEl   = $(`bcq-${sid}`);
   const mcqEl  = $(`bmcq-${sid}`);
   const pracEl = $(`bprac-${sid}`);
   const totEl  = $(`btot-${sid}`);
   const grEl   = $(`bgrade-${sid}`);
-  if(!cqEl || !mcqEl || !totEl || !grEl) return;
+  if(!cqEl || !totEl || !grEl) return;
   const cq   = Math.min(parseInt(cqEl.value   || 0, 10), cqM);
-  const mcq  = Math.min(parseInt(mcqEl.value  || 0, 10), mcqM);
+  const mcq  = mcqM > 0 && mcqEl ? Math.min(parseInt(mcqEl.value  || 0, 10), mcqM) : 0;
   const prac = (sub.hasPrac && pracEl) ? Math.min(parseInt(pracEl.value || 0, 10), 25) : 0;
   const tot  = cq + mcq + prac;
-  if(cqEl.value === '' && mcqEl.value === '' && (!pracEl || pracEl.value === '')){
+  if(cqEl.value === '' && (!mcqEl || mcqEl.value === '') && (!pracEl || pracEl.value === '')){
     totEl.value = ''; grEl.textContent = '—'; grEl.className = 'g-chip g-F'; return;
   }
   totEl.value = tot || 0;
   const g = grade(tot);
   grEl.textContent = g.l;
   grEl.className   = 'g-chip ' + gcls(g.l);
+}
+
+/* ─── Toggle absent state for a batch row ─── */
+function toggleBatchAbsent(sid){
+  const isAbsent = document.getElementById('babsent-' + sid)?.checked || false;
+  const sub = batchSubjectDef;
+  if(!sub) return;
+  const mcqM = sub.mcqMax || 0;
+  // Enable/disable inputs
+  ['bcq-', 'bmcq-', 'bprac-'].forEach(prefix => {
+    const el = document.getElementById(prefix + sid);
+    if(!el) return;
+    // Don't toggle practical for non-prac subjects (already permanently disabled)
+    if(prefix === 'bprac-' && !sub.hasPrac) return;
+    // Don't toggle MCQ column for mcqMax===0 subjects
+    if(prefix === 'bmcq-' && mcqM === 0) return;
+    el.disabled = isAbsent;
+    if(isAbsent){
+      el.value = '';
+      el.classList.add('absent-locked');
+    } else {
+      el.classList.remove('absent-locked');
+    }
+  });
+  calcBatchRow(sid);
 }
 
 /* ─── Enter-key navigation through table inputs ─── */
@@ -1665,12 +1345,13 @@ async function saveBatchMarks(){
 
   for(let i = 0; i < total; i++){
     const s = batchStudents[i];
-    const cqVal   = $(`bcq-${s.id}`)   ? $(`bcq-${s.id}`).value.trim()   : '';
-    const mcqVal  = $(`bmcq-${s.id}`)  ? $(`bmcq-${s.id}`).value.trim()  : '';
-    const pracVal = (sub.hasPrac && $(`bprac-${s.id}`)) ? $(`bprac-${s.id}`).value.trim() : '';
+    const isAbsent = document.getElementById(`babsent-${s.id}`)?.checked || false;
+    const cqVal   = (!isAbsent && $(`bcq-${s.id}`))   ? $(`bcq-${s.id}`).value.trim()   : '';
+    const mcqVal  = (!isAbsent && $(`bmcq-${s.id}`))  ? $(`bmcq-${s.id}`).value.trim()  : '';
+    const pracVal = (!isAbsent && sub.hasPrac && $(`bprac-${s.id}`)) ? $(`bprac-${s.id}`).value.trim() : '';
 
     const hasExisting = (batchMarksCache[s.id] && batchMarksCache[s.id][examType] && batchMarksCache[s.id][examType][sub.code]);
-    if(cqVal === '' && mcqVal === '' && pracVal === ''){
+    if(!isAbsent && cqVal === '' && mcqVal === '' && pracVal === ''){
       if(!hasExisting){
         skipped++;
         continue;
@@ -1682,9 +1363,10 @@ async function saveBatchMarks(){
 
     entries.push({
       studentId: s.id,
-      cq: cqVal,
-      mcq: mcqVal,
-      prac: pracVal,
+      cq: isAbsent ? '' : cqVal,
+      mcq: isAbsent ? '' : mcqVal,
+      prac: isAbsent ? '' : pracVal,
+      absent: isAbsent,
       selectedOptional: selOpt
     });
   }
@@ -1796,14 +1478,7 @@ async function initPage(){
   document.getElementById('user-avatar').textContent = isAdmin ? 'A' : 'T';
 
   await LS.init();
-  fillSelects();
-  searchStudents();
-  
-  const urlParams = new URLSearchParams(window.location.search);
-  const studentId = urlParams.get('student');
-  if (studentId) {
-    selectStudent(studentId);
-  }
+
 }
 
 window.addEventListener('DOMContentLoaded',initPage);

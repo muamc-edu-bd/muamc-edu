@@ -328,7 +328,7 @@
       <a class="nt" href="/Teachers.html">Teachers</a>
       <a class="nt active" href="/Result-card.html">Result Card</a>
       <a class="nt" href="/Admit-card.html">Admit Card</a>
-      <a class="nt" href="/bulk-photo.html">📷 Bulk Photo Upload</a>
+      <a class="nt" href="/bulk-photo.html">Bulk Photo Upload</a>
       <a class="nt" href="/analytics.html" style="border-top:1px solid rgba(255,255,255,.08);margin-top:8px;padding-top:16px;">Analytics</a>
     </nav>
   </header>
@@ -381,6 +381,8 @@
                 <option value="2025-2026">2025-2026</option>
                 <option value="2026-2027">2026-2027</option>
                 <option value="2027-2028">2027-2028</option>
+                <option value="2028-2029">2028-2029</option>
+                <option value="2029-2030">2029-2030</option>
               </select>
             </div>
             <div class="fg">
@@ -439,6 +441,8 @@
                 <option value="2025-2026">2025-2026</option>
                 <option value="2026-2027">2026-2027</option>
                 <option value="2027-2028">2027-2028</option>
+                <option value="2028-2029">2028-2029</option>
+                <option value="2029-2030">2029-2030</option>
               </select>
             </div>
             <div class="fg">
@@ -529,10 +533,10 @@
     const SUBS = {
       'Science': [
         { cat: 'Common Subjects', items: [
-          { name: 'Bangla 1st Paper', code: '101', hasPrac: false, cqMax: 70, mcqMax: 30, isRequired: true },
-          { name: 'Bangla 2nd Paper', code: '102', hasPrac: false, cqMax: 70, mcqMax: 30, isRequired: true },
-          { name: 'English 1st Paper', code: '107', hasPrac: false, cqMax: 70, mcqMax: 30, isRequired: true },
-          { name: 'English 2nd Paper', code: '108', hasPrac: false, cqMax: 70, mcqMax: 30, isRequired: true },
+          { name: 'Bangla 1st Paper',  code: '101', hasPrac: false, cqMax: 70,  mcqMax: 30, isRequired: true },
+          { name: 'Bangla 2nd Paper',  code: '102', hasPrac: false, cqMax: 70,  mcqMax: 30, isRequired: true },
+          { name: 'English 1st Paper', code: '107', hasPrac: false, cqMax: 100, mcqMax: 0,  isRequired: true },
+          { name: 'English 2nd Paper', code: '108', hasPrac: false, cqMax: 100, mcqMax: 0,  isRequired: true },
           { name: 'ICT', code: '275', hasPrac: true, cqMax: 50, mcqMax: 25, isRequired: true }
         ]},
         { cat: 'Science Group Subjects', items: [
@@ -548,10 +552,10 @@
       ],
       'Humanities': [
         { cat: 'Common Subjects', items: [
-          { name: 'Bangla 1st Paper', code: '101', hasPrac: false, cqMax: 70, mcqMax: 30, isRequired: true },
-          { name: 'Bangla 2nd Paper', code: '102', hasPrac: false, cqMax: 70, mcqMax: 30, isRequired: true },
-          { name: 'English 1st Paper', code: '107', hasPrac: false, cqMax: 70, mcqMax: 30, isRequired: true },
-          { name: 'English 2nd Paper', code: '108', hasPrac: false, cqMax: 70, mcqMax: 30, isRequired: true },
+          { name: 'Bangla 1st Paper',  code: '101', hasPrac: false, cqMax: 70,  mcqMax: 30, isRequired: true },
+          { name: 'Bangla 2nd Paper',  code: '102', hasPrac: false, cqMax: 70,  mcqMax: 30, isRequired: true },
+          { name: 'English 1st Paper', code: '107', hasPrac: false, cqMax: 100, mcqMax: 0,  isRequired: true },
+          { name: 'English 2nd Paper', code: '108', hasPrac: false, cqMax: 100, mcqMax: 0,  isRequired: true },
           { name: 'ICT', code: '275', hasPrac: true, cqMax: 50, mcqMax: 25, isRequired: true }
         ]},
         { cat: 'Humanities Group Subjects', items: [
@@ -571,10 +575,10 @@
       ],
       'Business': [
         { cat: 'Common Subjects', items: [
-          { name: 'Bangla 1st Paper', code: '101', hasPrac: false, cqMax: 70, mcqMax: 30, isRequired: true },
-          { name: 'Bangla 2nd Paper', code: '102', hasPrac: false, cqMax: 70, mcqMax: 30, isRequired: true },
-          { name: 'English 1st Paper', code: '107', hasPrac: false, cqMax: 70, mcqMax: 30, isRequired: true },
-          { name: 'English 2nd Paper', code: '108', hasPrac: false, cqMax: 70, mcqMax: 30, isRequired: true },
+          { name: 'Bangla 1st Paper',  code: '101', hasPrac: false, cqMax: 70,  mcqMax: 30, isRequired: true },
+          { name: 'Bangla 2nd Paper',  code: '102', hasPrac: false, cqMax: 70,  mcqMax: 30, isRequired: true },
+          { name: 'English 1st Paper', code: '107', hasPrac: false, cqMax: 100, mcqMax: 0,  isRequired: true },
+          { name: 'English 2nd Paper', code: '108', hasPrac: false, cqMax: 100, mcqMax: 0,  isRequired: true },
           { name: 'ICT', code: '275', hasPrac: true, cqMax: 50, mcqMax: 25, isRequired: true }
         ]},
         { cat: 'Business Studies Group Subjects', items: [
@@ -676,15 +680,12 @@
       const cls = $$('rs-class'), grp = $$('rs-group'), sn = $$('rs-session'), roll = v('rs-roll');
       $('result-output').innerHTML = '';
       const ml = $('rs-match-list');
-      if (!cls && !grp && !sn && !roll) { ml.innerHTML = ''; return; }
-
-      let ss = _students;
-      if (cls) ss = ss.filter(s => s.cls === cls);
-      if (grp) ss = ss.filter(s => s.group === grp);
-      if (sn) {
-        const normSn = sn.replace(/–/g, '-');
-        ss = ss.filter(s => (s.session || s.year || '').replace(/–/g, '-') === normSn);
+      if (!cls || !grp || !sn) {
+        ml.innerHTML = '<div class="alert alert-info">Please select Class, Group and Session to view students.</div>';
+        return;
       }
+
+      let ss = _students.filter(s => s.cls === cls && s.group === grp && (s.session || s.year || '').replace(/–/g, '-') === sn.replace(/–/g, '-'));
       if (roll) ss = ss.filter(s => s.roll.includes(roll) || s.name.toLowerCase().includes(roll.toLowerCase()));
 
       if (!ss.length) { ml.innerHTML = '<div class="alert alert-info">No students found.</div>'; return; }
@@ -721,19 +722,15 @@
       const cls = $$('br-class'), grp = $$('br-group'), sn = $$('br-session'), et = $$('br-exam');
       const out = $('bulk-result-output');
 
-      if (!cls || !grp) {
-        out.innerHTML = `<div class="card"><div class="card-body"><div class="empty-state"><div class="es-rule"></div><p>Please select both Class and Group to view results.</p></div></div></div>`;
+      if (!cls || !grp || !sn || !et) {
+        out.innerHTML = `<div class="card"><div class="card-body"><div class="empty-state"><div class="es-rule"></div><p>Please select Class, Group, Session and Exam Name together to view results.</p></div></div></div>`;
         return;
       }
 
       out.innerHTML = `<div class="loading-container"><div class="loading-spinner"></div><div class="loading-text">Loading results...</div></div>`;
 
       setTimeout(() => {
-        let ss = _students.filter(s => s.cls === cls && s.group === grp);
-        if (sn) {
-          const normSn = sn.replace(/–/g, '-');
-          ss = ss.filter(s => (s.session || s.year || '').replace(/–/g, '-') === normSn);
-        }
+        let ss = _students.filter(s => s.cls === cls && s.group === grp && (s.session || s.year || '').replace(/–/g, '-') === sn.replace(/–/g, '-'));
         if (!ss.length) {
           out.innerHTML = `<div class="card"><div class="card-body"><div class="empty-state"><div class="es-rule"></div><p>No students found.</p></div></div></div>`;
           return;
@@ -759,22 +756,39 @@
           const tgt = et || examKeys[examKeys.length - 1];
           const marks = (tgt && _marks[stu.id] && _marks[stu.id][tgt]) ? _marks[stu.id][tgt] : {};
           let tGPA = 0, cnt = 0, fail = 0, tMark = 0;
+          let hasAbsent = false;
+          let hasFail = false;
 
           const subCells = subs.map(sub => {
             const m = marks[sub.code] || {};
-            const cq = Math.min(+m.cq || 0, sub.cqMax), mcq = Math.min(+m.mcq || 0, sub.mcqMax);
+            const cq = Math.min(+m.cq || 0, sub.cqMax);
+            const mcq = sub.mcqMax > 0 ? Math.min(+m.mcq || 0, sub.mcqMax) : 0;
             const prac = sub.hasPrac ? (+m.prac || 0) : 0;
             const theory = cq + mcq, tot = theory + prac, g = grade(tot);
-            const absent = (m.cq === undefined || m.cq === '') && (m.mcq === undefined || m.mcq === '');
-            tGPA += absent ? 0 : g.g; cnt++;
-            if (!absent && g.l === 'F') fail++;
-            tMark += absent ? 0 : tot;
-            const fc = g.l === 'F' && !absent ? 'color:#b91c1c;font-weight:700;' : '';
-            return `<td style="${fc}">${absent ? '—' : (cq||0)}</td><td style="${fc}">${absent ? '—' : (mcq||0)}</td><td>${sub.hasPrac ? (absent ? '—' : (prac||0)) : '—'}</td>`;
+            // Absent = explicit absent flag OR both cq/mcq not entered
+            const absent = m.absent === true ||
+                           ((m.cq === undefined || m.cq === '') &&
+                            (m.mcq === undefined || m.mcq === ''));
+            if (absent) {
+              hasAbsent = true;
+            } else {
+              tGPA += g.g;
+              cnt++;
+              tMark += tot;
+              if (g.l === 'F' || tot < 33) {
+                fail++;
+                hasFail = true;
+              }
+            }
+            const fc = (g.l === 'F' || tot < 33) && !absent ? 'color:#b91c1c;font-weight:700;' : '';
+            // MCQ cell: — for no-MCQ subjects or absent
+            const mcqCell = sub.mcqMax === 0 ? '<td>—</td>' :
+                            `<td style="${fc}">${absent ? '—' : (mcq||0)}</td>`;
+            return `<td style="${fc}">${absent ? '—' : (cq||0)}</td>${mcqCell}<td>${sub.hasPrac ? (absent ? '—' : (prac||0)) : '—'}</td>`;
           }).join('');
 
-          const avg = clampGPA(cnt > 0 ? tGPA / cnt : 0).toFixed(2);
-          const passed = fail === 0;
+          const avg = (hasAbsent || hasFail || fail > 0) ? '0.00' : clampGPA(cnt > 0 ? tGPA / cnt : 0).toFixed(2);
+          const passed = !hasAbsent && !hasFail && fail === 0;
           html += `<tr>
             <td>${i + 1}</td>
             <td style="text-align:left;font-weight:600;">${stu.name}</td>
@@ -793,9 +807,9 @@
 
     // ── Excel download ─────────────────────────────────────────────────────
     function downloadExcel() {
-      const cls = $$('br-class'), grp = $$('br-group'), et = $$('br-exam');
-      if (!cls || !grp) { alert('Please select both Class and Group.'); return; }
-      let ss = _students.filter(s => s.cls === cls && s.group === grp);
+      const cls = $$('br-class'), grp = $$('br-group'), sn = $$('br-session'), et = $$('br-exam');
+      if (!cls || !grp || !sn || !et) { alert('Please select Class, Group, Session and Exam.'); return; }
+      let ss = _students.filter(s => s.cls === cls && s.group === grp && (s.session || s.year || '').replace(/–/g, '-') === sn.replace(/–/g, '-'));
       if (!ss.length) { alert('No students found.'); return; }
       const subs = flatSubs(grp);
       const header = ['#','Name','Roll Number','Registration'];
@@ -807,18 +821,32 @@
         const tgt = et || examKeys[examKeys.length - 1];
         const marks = (tgt && _marks[stu.id] && _marks[stu.id][tgt]) ? _marks[stu.id][tgt] : {};
         let tGPA = 0, cnt = 0, fail = 0, tMark = 0;
+        let hasAbsent = false;
+        let hasFail = false;
         const row = [i+1, stu.name, stu.roll, stu.reg || ''];
         subs.forEach(sub => {
           const m = marks[sub.code] || {};
+          const absent = m.absent === true ||
+                         ((m.cq === undefined || m.cq === '') &&
+                          (m.mcq === undefined || m.mcq === ''));
           const cq = Math.min(+m.cq||0,sub.cqMax), mcq = Math.min(+m.mcq||0,sub.mcqMax), prac = sub.hasPrac?(+m.prac||0):0;
-          const g_ = grade(cq+mcq);
-          const absent = (m.cq===undefined||m.cq==='')&&(m.mcq===undefined||m.mcq==='');
-          tGPA += absent?0:g_.g; cnt++; tMark += absent?0:(cq+mcq+prac);
-          if (!absent && g_.l==='F') fail++;
+          const tot = cq + mcq + prac;
+          const g_ = grade(tot);
+          if (absent) {
+            hasAbsent = true;
+          } else {
+            tGPA += g_.g;
+            cnt++;
+            tMark += tot;
+            if (g_.l === 'F' || tot < 33) {
+              fail++;
+              hasFail = true;
+            }
+          }
           row.push(absent?'':(cq||0), absent?'':(mcq||0), sub.hasPrac?(absent?'':(prac||0)):'');
         });
-        const avg = clampGPA(cnt>0?tGPA/cnt:0).toFixed(2);
-        row.push(tMark||'', tMark?avg:'', tMark?(fail===0?'Pass':'Fail'):'');
+        const avg = (hasAbsent || hasFail || fail > 0) ? '0.00' : clampGPA(cnt>0?tGPA/cnt:0).toFixed(2);
+        row.push(tMark||'', tMark?avg:'', tMark?(!hasAbsent && !hasFail && fail===0?'Pass':'Fail'):'');
         rows.push(row);
       });
       const csv = [header,...rows].map(r=>r.map(c=>{const s=String(c).replace(/"/g,'""');return s.includes(',')||s.includes('"')||s.includes('\n')?`"${s}"`:s;}).join(',')).join('\n');
@@ -868,34 +896,51 @@
         if (!pKey || !pMarks[pKey]) return { id: p.id, gpa: 0, total: 0 };
         const pm = pMarks[pKey]; const pOpt = pm.selectedOptional;
         let pGPA = 0, pCnt = 0, pTotal = 0;
-        flatSubs(p.group, p.cls).forEach(sub => {
+        let pHasAbsent = false;
+        let pHasFail = false;
+        const pSubs = flatSubs(p.group, p.cls);
+        pSubs.forEach(sub => {
           const m = pm[sub.code] || {};
-          if (!m || (m.cq === '' && m.mcq === '')) return;
+          const absent = !m || m.absent === true ||
+                         ((m.cq === undefined || m.cq === '') &&
+                          (m.mcq === undefined || m.mcq === ''));
+          if (absent) {
+            pHasAbsent = true;
+            return;
+          }
           const cq = Math.min(+m.cq||0,sub.cqMax), mcq = Math.min(+m.mcq||0,sub.mcqMax);
           const prac = sub.hasPrac?(+m.prac||0):0;
-          const { g } = grade(cq+mcq);
+          const tot = cq + mcq + prac;
+          const { g, l } = grade(tot);
+          if (l === 'F' || tot < 33) {
+            pHasFail = true;
+          }
           if (isOptionalForFailCount(sub, pOpt)) { if (g > 2.0) pGPA += (g-2.0); }
           else { pGPA += g; pCnt++; }
-          pTotal += cq+mcq+prac;
+          pTotal += tot;
         });
-        return { id: p.id, gpa: pCnt > 0 ? pGPA/pCnt : 0, total: pTotal };
+        const finalGPA = (pHasAbsent || pHasFail) ? 0 : (pCnt > 0 ? pGPA/pCnt : 0);
+        return { id: p.id, gpa: finalGPA, total: pTotal };
       });
       peerScores.sort((a,b) => b.gpa - a.gpa || b.total - a.total);
       const meritPos = peerScores.findIndex(p => p.id === id) + 1;
       const meritTotal = peerScores.length;
 
       let tGPA = 0, cnt = 0, fail = 0, tMark = 0, mMax = 0, failSubs = [];
-      const ey = Object.values(marks)[0]?.ey || stu.year || '2024-2025';
+      let hasAbsent = false;
+      let hasFail = false;
+      const ey = marks.ey || stu.year || '2024-2025';
       const clsLabel = stu.cls;
       const grpLabel = stu.group === 'Business' ? 'Business Studies' : stu.group;
 
-      // ── Compute highest mark per subject across all peers in same class+group+exam ──
       const highestMarks = {};
       flatSubs(stu.group, stu.cls).forEach(sub => {
         let maxMark = 0;
         peers.forEach(p => {
           const pm = (db[p.id] && db[p.id][examType]) ? db[p.id][examType] : {};
           const mm = pm[sub.code] || {};
+          const absent = mm.absent === true || ((mm.cq === '' || mm.cq === undefined) && (mm.mcq === '' || mm.mcq === undefined));
+          if(absent) return;
           const pcq = Math.min(+mm.cq||0, sub.cqMax), pmcq = Math.min(+mm.mcq||0, sub.mcqMax);
           const pprac = sub.hasPrac ? (+mm.prac||0) : 0;
           const ptot = pcq + pmcq + pprac;
@@ -909,23 +954,29 @@
         if (ci > 0) tableRows += `<tr><td colspan="10" style="background:#e8e8e8;font-weight:700;text-align:center;padding:3px 6px;font-size:8pt;border:1px solid #bbb;">${cat.cat}</td></tr>`;
         cat.items.forEach(sub => {
           const m = marks[sub.code] || {};
+          const absent = m.absent === true || ((m.cq === '' || m.cq === undefined) && (m.mcq === '' || m.mcq === undefined));
           const cq = Math.min(+m.cq||0, sub.cqMax), mcq = Math.min(+m.mcq||0, sub.mcqMax);
           const prac = sub.hasPrac ? (+m.prac||0) : 0;
           const theory = cq+mcq, tot = theory+prac, g = grade(tot);
-          const absent = (m.cq===''||m.cq===undefined)&&(m.mcq===''||m.mcq===undefined);
           const lg = absent ? 'Ab' : g.l;
           const gpa = absent ? 0 : g.g;
           const isSelOpt = isOptionalForFailCount(sub, optionalSelected);
-          if (!absent) {
+          if (absent) {
+            hasAbsent = true;
+          } else {
             if (isSelOpt) { if (gpa > 2.0) tGPA += (gpa-2.0); }
             else { tGPA += gpa; cnt++; }
             tMark += tot;
+            if (g.l === 'F' || tot < 33) {
+              hasFail = true;
+            }
           }
           mMax += (sub.cqMax||70)+(sub.mcqMax||30)+(sub.hasPrac?25:0);
           if (lg==='F' && !isSelOpt && !absent) { fail++; failSubs.push(sub.name); }
           const isOpt = sub.optionalGroup === optionalSelected;
-          const highMark = absent ? '—' : (highestMarks[sub.code] || '—');
-          tableRows += `<tr style="${g.l==='F'?'background:#fff8f8;':''}">
+          const highMark = highestMarks[sub.code] || '—';
+          const mcqDisplay = sub.mcqMax === 0 ? '—' : (absent ? 'A' : (m.mcq||'0'));
+          tableRows += `<tr style="${g.l==='F'&&!absent?'background:#fff8f8;':''}">
             <td class="sn">${sub.name}${isOpt?' <span style="font-size:7pt;color:#0d2b45;background:#e8f4f8;padding:1px 4px;border-radius:2px;">(Optional)</span>':''} <span style="font-size:7pt;color:#888;">${sub.code}</span></td>
             <td>100</td>
             <td>${absent?'A':(cq||'0')}</td>
@@ -940,9 +991,11 @@
         });
       });
 
-      const passed = fail === 0;
-      // Task 2: GPA = 0 if any compulsory subject failed
-      const avg = (fail > 0) ? '0.00' : clampGPA(cnt > 0 ? tGPA / cnt : 0).toFixed(2);
+      const passed = !hasAbsent && !hasFail && fail === 0;
+      // GPA = 0 if any subject failed or absent
+      const avg = (hasAbsent || hasFail || fail > 0) ? '0.00' : clampGPA(cnt > 0 ? tGPA / cnt : 0).toFixed(2);
+      // mMax fallback: if student appeared in nothing, use all subjects total for display
+      if (mMax === 0) mMax = cats.flatMap(c => c.items).reduce((a,s) => (a+(s.cqMax||70)+(s.mcqMax||0)+(s.hasPrac?25:0)), 0);
       const optionalSubjText = (() => {
         if (!optionalSelected) return 'N/A';
         const found = (OPTIONAL_SUBJECTS[stu.group] || []).find(o => o.id === optionalSelected);
@@ -1015,9 +1068,10 @@
       </div>`;
 
       // QR code
+      const qrTxt = `Student: ${stu.name}\nRoll: ${stu.roll}\nReg: ${stu.reg||'N/A'}\nClass: ${clsLabel} | Group: ${grpLabel}\nExam: ${examType} ${ey}\nTotal: ${tMark}/${mMax} | GPA: ${avg}\nResult: ${passed?'PASS':'FAIL'}`;
       try {
         new QRCode($('rc-qr-modal'), { text: qrTxt, width: 60, height: 60, colorDark: '#0d2b45', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
-      } catch (e) {}
+      } catch (e) { console.error('QR generation failed:', e); }
     }
 
     function printResultModal() {

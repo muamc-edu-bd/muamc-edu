@@ -503,10 +503,12 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--slate);color:var(--
               <div class="fg"><label>Session</label>
                 <select id="sf-session" onchange="searchStudents()">
                   <option value="">All Sessions</option>
-                  <option value="2022-2023">2022-2023</option>
-                  <option value="2023-2024">2023-2024</option>
                   <option value="2024-2025" selected>2024-2025</option>
                   <option value="2025-2026">2025-2026</option>
+                  <option value="2026-2027">2026-2027</option>
+                  <option value="2027-2028">2027-2028</option>
+                  <option value="2028-2029">2028-2029</option>
+                  <option value="2029-2030">2029-2030</option>
                 </select>
               </div>
               <div class="fg"><label>Roll / Name</label>
@@ -540,10 +542,12 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--slate);color:var(--
               </div>
               <div class="fg"><label>Session</label>
                 <select id="m-session" onchange="loadMarksForm()">
-                  <option value="2022-2023">2022-2023</option>
-                  <option value="2023-2024">2023-2024</option>
                   <option value="2024-2025" selected>2024-2025</option>
                   <option value="2025-2026">2025-2026</option>
+                  <option value="2026-2027">2026-2027</option>
+                  <option value="2027-2028">2027-2028</option>
+                  <option value="2028-2029">2028-2029</option>
+                  <option value="2029-2030">2029-2030</option>
                 </select>
               </div>
             </div>
@@ -602,10 +606,12 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--slate);color:var(--
       <div class="fg">
         <label>Session</label>
         <select id="b-session">
-          <option value="2022-2023">2022-2023</option>
-          <option value="2023-2024">2023-2024</option>
           <option value="2024-2025" selected>2024-2025</option>
           <option value="2025-2026">2025-2026</option>
+          <option value="2026-2027">2026-2027</option>
+          <option value="2027-2028">2027-2028</option>
+          <option value="2028-2029">2028-2029</option>
+          <option value="2029-2030">2029-2030</option>
         </select>
       </div>
       <div class="batch-load-btn">
@@ -732,10 +738,10 @@ function setAlert(id,type,msg){const a=$(id);if(!a)return;if(!msg){a.innerHTML='
 const SUBS = {
   'Science': [
     {cat:'Common Subjects', items:[
-      {name:'Bangla 1st Paper',     code:'101', hasPrac:false, cqMax:70, mcqMax:30, isRequired:true},
-      {name:'Bangla 2nd Paper',     code:'102', hasPrac:false, cqMax:70, mcqMax:30, isRequired:true},
-      {name:'English 1st Paper',    code:'107', hasPrac:false, cqMax:70, mcqMax:30, isRequired:true},
-      {name:'English 2nd Paper',    code:'108', hasPrac:false, cqMax:70, mcqMax:30, isRequired:true},
+      {name:'Bangla 1st Paper',     code:'101', hasPrac:false, cqMax:70,  mcqMax:30, isRequired:true},
+      {name:'Bangla 2nd Paper',     code:'102', hasPrac:false, cqMax:70,  mcqMax:30, isRequired:true},
+      {name:'English 1st Paper',    code:'107', hasPrac:false, cqMax:100, mcqMax:0,  isRequired:true},
+      {name:'English 2nd Paper',    code:'108', hasPrac:false, cqMax:100, mcqMax:0,  isRequired:true},
       {name:'Information & Communication Technology (ICT)', code:'275', hasPrac:true, cqMax:50, mcqMax:25, isRequired:true},
     ]},
     {cat:'Science Group Subjects', items:[
@@ -751,10 +757,10 @@ const SUBS = {
   ],
   'Humanities': [
     {cat:'Common Subjects', items:[
-      {name:'Bangla 1st Paper',     code:'101', hasPrac:false, cqMax:70, mcqMax:30, isRequired:true},
-      {name:'Bangla 2nd Paper',     code:'102', hasPrac:false, cqMax:70, mcqMax:30, isRequired:true},
-      {name:'English 1st Paper',    code:'107', hasPrac:false, cqMax:70, mcqMax:30, isRequired:true},
-      {name:'English 2nd Paper',    code:'108', hasPrac:false, cqMax:70, mcqMax:30, isRequired:true},
+      {name:'Bangla 1st Paper',     code:'101', hasPrac:false, cqMax:70,  mcqMax:30, isRequired:true},
+      {name:'Bangla 2nd Paper',     code:'102', hasPrac:false, cqMax:70,  mcqMax:30, isRequired:true},
+      {name:'English 1st Paper',    code:'107', hasPrac:false, cqMax:100, mcqMax:0,  isRequired:true},
+      {name:'English 2nd Paper',    code:'108', hasPrac:false, cqMax:100, mcqMax:0,  isRequired:true},
       {name:'Information & Communication Technology (ICT)', code:'275', hasPrac:true, cqMax:50, mcqMax:25, isRequired:true},
     ]},
     {cat:'Humanities Group Subjects', items:[
@@ -774,10 +780,10 @@ const SUBS = {
   ],
   'Business': [
     {cat:'Common Subjects', items:[
-      {name:'Bangla 1st Paper',     code:'101', hasPrac:false, cqMax:70, mcqMax:30, isRequired:true},
-      {name:'Bangla 2nd Paper',     code:'102', hasPrac:false, cqMax:70, mcqMax:30, isRequired:true},
-      {name:'English 1st Paper',    code:'107', hasPrac:false, cqMax:70, mcqMax:30, isRequired:true},
-      {name:'English 2nd Paper',    code:'108', hasPrac:false, cqMax:70, mcqMax:30, isRequired:true},
+      {name:'Bangla 1st Paper',     code:'101', hasPrac:false, cqMax:70,  mcqMax:30, isRequired:true},
+      {name:'Bangla 2nd Paper',     code:'102', hasPrac:false, cqMax:70,  mcqMax:30, isRequired:true},
+      {name:'English 1st Paper',    code:'107', hasPrac:false, cqMax:100, mcqMax:0,  isRequired:true},
+      {name:'English 2nd Paper',    code:'108', hasPrac:false, cqMax:100, mcqMax:0,  isRequired:true},
       {name:'Information & Communication Technology (ICT)', code:'275', hasPrac:true, cqMax:50, mcqMax:25, isRequired:true},
     ]},
     {cat:'Business Studies Group Subjects', items:[

@@ -5,6 +5,7 @@ Uses PostgreSQL with SQLAlchemy ORM
 
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+from sqlalchemy.orm import deferred
 
 db = SQLAlchemy()
 
@@ -28,6 +29,7 @@ class Student(db.Model):
     year     = db.Column(db.String(10),  default='')
     session  = db.Column(db.String(50),  default='')
     photo    = db.Column(db.Text, default='')             # Stored as base64 data URL or filepath
+    photo_base64 = deferred(db.Column(db.Text, default=''))
     optional_subjects = db.Column(db.String(50), default='')  # e.g. '178/179'
     student_submitted = db.Column(db.Boolean, default=False)  # True once student self-submits via portal
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -76,6 +78,7 @@ class Mark(db.Model):
     cq                = db.Column(db.Integer,     default=0)
     mcq               = db.Column(db.Integer,     default=0)
     prac              = db.Column(db.Integer,     default=0)
+    absent            = db.Column(db.Boolean,     default=False)  # True when teacher marks student as absent
     selected_optional = db.Column(db.String(50),  default='')
     created_at        = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at        = db.Column(db.DateTime, default=datetime.utcnow,
@@ -86,6 +89,7 @@ class Mark(db.Model):
             'cq':       self.cq,
             'mcq':      self.mcq,
             'prac':     self.prac,
+            'absent':   self.absent or False,
             'ey':       self.year,
             'examType': self.exam_type,
             'year':     self.year,
@@ -157,6 +161,7 @@ class Archive(db.Model):
     year        = db.Column(db.String(10),  default='')
     session     = db.Column(db.String(50),  default='')
     photo       = db.Column(db.Text, default='')
+    photo_base64 = deferred(db.Column(db.Text, default=''))
     total_marks = db.Column(db.Integer,     default=0)
     gpa         = db.Column(db.Float,       default=0.0)
     archived_at = db.Column(db.DateTime,    default=datetime.utcnow)

@@ -1067,7 +1067,7 @@
       <div class="nt" onclick="localStorage.setItem('currentTab', 'teachers'); window.location.href='Teachers.html'; closeSidebar();">Teachers</div>
       <div class="nt" onclick="localStorage.setItem('currentTab', 'result'); window.location.href='Result-card.html'; closeSidebar();">Result Card</div>
       <div class="nt" onclick="localStorage.setItem('currentTab', 'admit'); window.location.href='Admit-card.html'; closeSidebar();">Admit Card</div>
-      <div class="nt" onclick="window.location.href='bulk-photo.html'; closeSidebar();">📷 Bulk Photo Upload</div>
+      <div class="nt" onclick="window.location.href='bulk-photo.html'; closeSidebar();">Bulk Photo Upload</div>
       <div class="nt" onclick="window.location.href='analytics.html'; closeSidebar();"
         style="border-top:1px solid rgba(255,255,255,.08);margin-top:8px;padding-top:16px;">Analytics</div>
     </nav>
@@ -1188,10 +1188,12 @@
                 <div class="fg"><label>Session *</label>
                   <select id="s-session">
                     <option value="">— Select Session —</option>
-                    <option value="2022-2023">2022-2023</option>
-                    <option value="2023-2024">2023-2024</option>
                     <option value="2024-2025">2024-2025</option>
                     <option value="2025-2026">2025-2026</option>
+                    <option value="2026-2027">2026-2027</option>
+                    <option value="2027-2028">2027-2028</option>
+                    <option value="2028-2029">2028-2029</option>
+                    <option value="2029-2030">2029-2030</option>
                   </select>
                 </div>
                 <div class="fg" style="grid-column: 1 / -1;">
@@ -1236,10 +1238,12 @@
             </select>
             <select id="fl-year" onchange="renderList()" style="width:120px;">
               <option value="">Select Session</option>
-              <option value="2022-2023">2022-2023</option>
-              <option value="2023-2024">2023-2024</option>
               <option value="2024-2025">2024-2025</option>
               <option value="2025-2026">2025-2026</option>
+              <option value="2026-2027">2026-2027</option>
+              <option value="2027-2028">2027-2028</option>
+              <option value="2028-2029">2028-2029</option>
+              <option value="2029-2030">2029-2030</option>
             </select>
           </div>
           <div class="btn-row" style="margin-top:0;">
@@ -1287,10 +1291,12 @@
           <div class="fg"><label>Religion</label><input id="ef-religion"></div>
           <div class="fg"><label>Session *</label><select id="ef-session">
               <option value="">— Select —</option>
-              <option value="2022-2023">2022-2023</option>
-              <option value="2023-2024">2023-2024</option>
               <option value="2024-2025">2024-2025</option>
               <option value="2025-2026">2025-2026</option>
+              <option value="2026-2027">2026-2027</option>
+              <option value="2027-2028">2027-2028</option>
+              <option value="2028-2029">2028-2029</option>
+              <option value="2029-2030">2029-2030</option>
             </select></div>
           <div class="fg" style="grid-column: 1 / -1;">
             <label>Optional Subject Codes</label>
@@ -1675,8 +1681,8 @@
       const fg = $$('fl-group');
       const fy = $$('fl-year');
 
-      if (!fc || !fg) {
-        $('student-list').innerHTML = '<div class="card-body"><div class="empty-state"><div class="es-rule"></div><p>Please select both Class and Group to view students.</p></div></div>';
+      if (!fc || !fg || !fy) {
+        $('student-list').innerHTML = '<div class="card-body"><div class="empty-state"><div class="es-rule"></div><p>Please select Class, Group and Session together to view students.</p></div></div>';
         return;
       }
 

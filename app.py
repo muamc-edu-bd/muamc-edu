@@ -1243,6 +1243,8 @@ def public_result_summary():
     # Compute per-subject marks and totals
     subject_rows = []
     total_gpa = cnt = fail_cnt = total_mark = 0
+    has_absent = False
+    has_fail = False
 
     # Compute highest marks across all peers in same class+group
     peers = Student.query.filter_by(cls=cls, group=group).all()
@@ -1267,11 +1269,18 @@ def public_result_summary():
         # Absent = no mark row, explicit absent flag, or both cq/mcq empty
         absent = (not m) or m.get('absent', False) or \
                  (str(m.get('cq', '')) == '' and str(m.get('mcq', '')) == '')
-        cq   = min(int(m.get('cq')  or 0), sub.get('cqMax', 70))  if not absent else 0
-        mcq  = min(int(m.get('mcq') or 0), sub.get('mcqMax', 30)) if not absent else 0
-        prac = min(int(m.get('prac') or 0), 25) if (sub.get('hasPrac') and not absent) else 0
-        tot  = cq + mcq + prac
-        lg, gp = _grade_letter(tot) if not absent else ('Ab', 0.0)
+        if absent:
+            has_absent = True
+            cq = mcq = prac = tot = 0
+            lg, gp = 'Ab', 0.0
+        else:
+            cq   = min(int(m.get('cq')  or 0), sub.get('cqMax', 70))
+            mcq  = min(int(m.get('mcq') or 0), sub.get('mcqMax', 30))
+            prac = min(int(m.get('prac') or 0), 25) if sub.get('hasPrac') else 0
+            tot  = cq + mcq + prac
+            lg, gp = _grade_letter(tot)
+            if lg == 'F' or tot < 33:
+                has_fail = True
 
         is_optional = sub.get('optional', False) and (sub['code'] in opt_codes)
 
@@ -1302,9 +1311,9 @@ def public_result_summary():
         })
 
     # GPA = 0 if any compulsory subject failed; absent subjects excluded from GPA
-    avg = 0.0 if fail_cnt > 0 else (min(round(total_gpa / cnt, 2), 5.0) if cnt else 0.0)
+    avg = 0.0 if (fail_cnt > 0 or has_absent or has_fail) else (min(round(total_gpa / cnt, 2), 5.0) if cnt else 0.0)
     # passed: no F-grade failures AND appeared in at least 1 subject
-    passed = (fail_cnt == 0 and cnt > 0)
+    passed = (fail_cnt == 0 and cnt > 0 and not has_absent and not has_fail)
     # mMax counts only non-absent subjects
     mMax = sum(
         (s.get('cqMax', 70) + s.get('mcqMax', 30) + (25 if s.get('hasPrac') else 0))
@@ -1900,6 +1909,8 @@ def export_csv():
                 opt_codes = [code.strip() for code in opt_subject_str.split('/') if code.strip()]
 
                 total_gpa = cnt = fail_cnt = total_mark = 0
+                has_absent = False
+                has_fail = False
                 row = [i, stu.name, stu.roll, stu.reg or '']
 
                 # Resolve optional codes
@@ -1932,12 +1943,19 @@ def export_csv():
                     # Absent = no mark row, explicit absent flag, or both cq/mcq empty
                     absent = (not m) or m.get('absent', False) or \
                              (m.get('cq', '') == '' and m.get('mcq', '') == '')
-                    cq     = min(int(m.get('cq')  or 0), sub['cqMax'])  if not absent else 0
-                    mcq    = min(int(m.get('mcq') or 0), sub['mcqMax']) if not absent else 0
-                    prac   = min(int(m.get('prac') or 0), 25) if (sub['hasPrac'] and not absent) else 0
-                    theory = cq + mcq
-                    tot    = theory + prac
-                    lg, gp = _grade_letter(tot) if not absent else ('Ab', 0.0)
+                    if absent:
+                        has_absent = True
+                        cq = mcq = prac = tot = 0
+                        lg, gp = 'Ab', 0.0
+                    else:
+                        cq     = min(int(m.get('cq')  or 0), sub['cqMax'])
+                        mcq    = min(int(m.get('mcq') or 0), sub['mcqMax'])
+                        prac   = min(int(m.get('prac') or 0), 25) if sub['hasPrac'] else 0
+                        theory = cq + mcq
+                        tot    = theory + prac
+                        lg, gp = _grade_letter(tot)
+                        if lg == 'F' or tot < 33:
+                            has_fail = True
 
                     if not absent:
                         if is_optional:
@@ -1954,8 +1972,8 @@ def export_csv():
                             'Ab' if absent else mcq,
                             ('Ab' if absent else prac) if sub['hasPrac'] else '']
 
-                avg    = 0.0 if fail_cnt > 0 else (min(round(total_gpa / cnt, 2), 5.0) if cnt else 0.0)
-                passed = fail_cnt == 0 and cnt > 0
+                avg    = 0.0 if (fail_cnt > 0 or has_absent or has_fail) else (min(round(total_gpa / cnt, 2), 5.0) if cnt else 0.0)
+                passed = fail_cnt == 0 and cnt > 0 and not has_absent and not has_fail
                 row   += [total_mark or '', avg if cnt else '',
                           ('Pass' if passed else 'Fail') if cnt else 'Ab']
                 writer.writerow(row)
@@ -2035,6 +2053,8 @@ def _compute_student_result(sid, marks_data, group, optional_subject='', cls=Non
         opt_codes = LEGACY_MAP.get(selected_optional, [])
 
     total_gpa = cnt = fail_cnt = total_mark = 0
+    has_absent = False
+    has_fail = False
 
     for sub in subs:
         m = stu_marks.get(sub['code'], {})
@@ -2043,7 +2063,7 @@ def _compute_student_result(sid, marks_data, group, optional_subject='', cls=Non
                  (str(m.get('cq', '')) == '' and str(m.get('mcq', '')) == '')
 
         if absent:
-            # Absent subjects excluded entirely — not a fail, not in GPA
+            has_absent = True
             continue
 
         cq     = min(int(m.get('cq')  or 0), sub.get('cqMax', 70))
@@ -2052,6 +2072,8 @@ def _compute_student_result(sid, marks_data, group, optional_subject='', cls=Non
         theory = cq + mcq
         tot    = theory + prac
         lg, gp = _grade_letter(tot)
+        if lg == 'F' or tot < 33:
+            has_fail = True
 
         # Check if this subject is the student's optional subject
         is_optional = sub.get('optional', False) and (sub['code'] in opt_codes)
@@ -2069,9 +2091,9 @@ def _compute_student_result(sid, marks_data, group, optional_subject='', cls=Non
 
         total_mark += tot
 
-    avg = 0.0 if fail_cnt > 0 else (min(round(total_gpa / cnt, 2), 5.0) if cnt else 0.0)
+    avg = 0.0 if (fail_cnt > 0 or has_absent or has_fail) else (min(round(total_gpa / cnt, 2), 5.0) if cnt else 0.0)
     # passed: no failures AND appeared in at least 1 subject
-    return total_mark, avg, (fail_cnt == 0 and cnt > 0)
+    return total_mark, avg, (fail_cnt == 0 and cnt > 0 and not has_absent and not has_fail)
 
 
 @app.route('/api/analyze-promotion', methods=['GET'])
