@@ -91,6 +91,9 @@ _COLUMN_MIGRATIONS = [
     ("teachers", "address",           "TEXT DEFAULT ''"),
     ("marks",    "selected_optional", "VARCHAR(50) DEFAULT ''"),
     ("students", "student_submitted", "BOOLEAN DEFAULT FALSE"),
+    ("students", "photo_base64",      "TEXT DEFAULT ''"),
+    ("archive",  "photo_base64",      "TEXT DEFAULT ''"),
+    ("marks",    "absent",            "BOOLEAN DEFAULT FALSE"),
 ]
 
 with app.app_context():
@@ -104,45 +107,66 @@ with app.app_context():
 
     # Run safe column migrations
     if _db_url.startswith('postgresql'):
-        with db.engine.connect() as _conn:
-            # Drop global unique roll constraint to allow non-globally unique roll numbers
-            try:
-                _conn.execute(_text("ALTER TABLE students DROP CONSTRAINT IF EXISTS students_roll_key;"))
-                _conn.commit()
-                print("[DB] Dropped global unique roll constraint successfully.")
-            except Exception as _ce:
-                print(f"[DB] Drop unique constraint skipped: {_ce}")
-                try:
-                    _conn.rollback()
-                except Exception:
-                    pass
+        # Check if migrations are already complete to avoid exclusive table locks at startup
+        # Check whether ALL migration columns already exist.
+        # If any column is missing, run the full migration block.
+        _migration_needed = False
+        try:
+            with db.engine.connect() as _conn:
+                for _tbl, _col, _ in _COLUMN_MIGRATIONS:
+                    _res = _conn.execute(_text(
+                        f"SELECT EXISTS (SELECT 1 FROM information_schema.columns "
+                        f"WHERE table_name='{_tbl}' AND column_name='{_col}');"
+                    )).scalar()
+                    if not _res:
+                        _migration_needed = True
+                        print(f"[DB] Missing column detected: {_tbl}.{_col} — migrations will run.")
+                        break
+        except Exception:
+            _migration_needed = True
 
-            for _tbl, _col, _col_def in _COLUMN_MIGRATIONS:
+        if _migration_needed:
+            with db.engine.connect() as _conn:
+                # Drop global unique roll constraint to allow non-globally unique roll numbers
                 try:
-                    _conn.execute(_text(
-                        f"ALTER TABLE {_tbl} ADD COLUMN IF NOT EXISTS {_col} {_col_def};"
-                    ))
+                    _conn.execute(_text("ALTER TABLE students DROP CONSTRAINT IF EXISTS students_roll_key;"))
                     _conn.commit()
-                    print(f"[DB] Column migration OK: {_tbl}.{_col}")
-                except Exception as _me:
-                    print(f"[DB] Column migration skipped ({_tbl}.{_col}): {_me}")
+                    print("[DB] Dropped global unique roll constraint successfully.")
+                except Exception as _ce:
+                    print(f"[DB] Drop unique constraint skipped: {_ce}")
                     try:
                         _conn.rollback()
                     except Exception:
                         pass
 
-            # Ensure photo column is TEXT type in both students and archive tables
-            for _tbl in ["students", "archive"]:
-                try:
-                    _conn.execute(_text(f"ALTER TABLE {_tbl} ALTER COLUMN photo TYPE TEXT;"))
-                    _conn.commit()
-                    print(f"[DB] Altered photo column to TEXT type OK: {_tbl}")
-                except Exception as _pe:
-                    print(f"[DB] Alter photo column to TEXT skipped ({_tbl}): {_pe}")
+                for _tbl, _col, _col_def in _COLUMN_MIGRATIONS:
                     try:
-                        _conn.rollback()
-                    except Exception:
-                        pass
+                        _conn.execute(_text(
+                            f"ALTER TABLE {_tbl} ADD COLUMN IF NOT EXISTS {_col} {_col_def};"
+                        ))
+                        _conn.commit()
+                        print(f"[DB] Column migration OK: {_tbl}.{_col}")
+                    except Exception as _me:
+                        print(f"[DB] Column migration skipped ({_tbl}.{_col}): {_me}")
+                        try:
+                            _conn.rollback()
+                        except Exception:
+                            pass
+
+                # Ensure photo column is TEXT type in both students and archive tables
+                for _tbl in ["students", "archive"]:
+                    try:
+                        _conn.execute(_text(f"ALTER TABLE {_tbl} ALTER COLUMN photo TYPE TEXT;"))
+                        _conn.commit()
+                        print(f"[DB] Altered photo column to TEXT type OK: {_tbl}")
+                    except Exception as _pe:
+                        print(f"[DB] Alter photo column to TEXT skipped ({_tbl}): {_pe}")
+                        try:
+                            _conn.rollback()
+                        except Exception:
+                            pass
+        else:
+            print("[DB] Schema up to date. Skipping startup DDL migrations.")
 
 # ─────────────────────────────────────────────
 # Credentials — read from .env; never hard-coded
@@ -187,7 +211,7 @@ os.makedirs(PHOTOS_DIR, exist_ok=True)
 def _save_photo_file(student_id: str, data_url: str) -> str:
     """
     Save photo data URL directly to database (and optionally backup to file).
-    Returns the data_url to store directly in the DB column.
+    Returns the relative URL path to store in the DB.
     """
     if not data_url:
         return ''
@@ -203,9 +227,10 @@ def _save_photo_file(student_id: str, data_url: str) -> str:
         filepath = os.path.join(PHOTOS_DIR, filename)
         with open(filepath, 'wb') as f:
             f.write(base64.b64decode(encoded))
+        return f'/photos/{filename}'
     except Exception:
         pass
-    return data_url
+    return ''
 
 
 def _delete_photo_file(photo_url: str):
@@ -225,6 +250,29 @@ def _delete_photo_file(photo_url: str):
 # ─────────────────────────────────────────────
 @app.route('/photos/<path:filename>')
 def serve_photo(filename):
+    filepath = os.path.join(PHOTOS_DIR, filename)
+    if not os.path.exists(filepath):
+        # File missing on disk (e.g., ephemeral hosting container restart).
+        # Lazy-restore from DB photo_base64
+        student_id = filename.split('.')[0]
+        student = Student.query.filter_by(id=student_id).first()
+        b64_data = ''
+        if student and student.photo_base64:
+            b64_data = student.photo_base64
+        else:
+            archived = Archive.query.filter_by(id=student_id).first()
+            if archived and archived.photo_base64:
+                b64_data = archived.photo_base64
+        
+        if b64_data and b64_data.startswith('data:'):
+            try:
+                header, encoded = b64_data.split(',', 1)
+                os.makedirs(PHOTOS_DIR, exist_ok=True)
+                with open(filepath, 'wb') as f:
+                    f.write(base64.b64decode(encoded))
+            except Exception:
+                pass
+
     return send_from_directory(PHOTOS_DIR, filename)
 
 
@@ -490,6 +538,7 @@ def student_portal_submit(sid):
     # Save photo if provided
     if photo_data and photo_data.startswith('data:'):
         _delete_photo_file(student.photo)
+        student.photo_base64 = photo_data
         new_photo = _save_photo_file(student.id, photo_data)
         if new_photo:
             student.photo = new_photo
@@ -566,8 +615,9 @@ def add_student():
     if Student.query.filter_by(roll=body['roll']).first():
         return jsonify({'ok': False, 'message': 'A student with this roll number already exists'}), 409
 
-    student_id = str(uuid.uuid4().hex[:16])
-    photo_url  = _save_photo_file(student_id, body.get('photo', ''))
+    student_id   = str(uuid.uuid4().hex[:16])
+    photo_b64    = body.get('photo', '')
+    photo_url    = _save_photo_file(student_id, photo_b64)
 
     student = Student(
         id=student_id,
@@ -585,6 +635,7 @@ def add_student():
         year=(body.get('year') or '').strip().replace('–', '-').replace('\u2013', '-'),
         session=(body.get('session') or body.get('year') or '').strip().replace('–', '-').replace('\u2013', '-'),
         photo=photo_url,
+        photo_base64=photo_b64,
         optional_subjects=body.get('optional_subject', ''),
     )
     db.session.add(student)
@@ -684,6 +735,10 @@ def update_student(sid):
     allowed = ['name', 'roll', 'reg', 'cls', 'group', 'section', 'father', 'mother',
                'dob', 'phone', 'religion', 'year', 'session', 'photo', 'optional_subjects']
 
+    # Also accept the 'optional_subject' alias (without the trailing 's') that the frontend sends
+    if 'optional_subject' in body and 'optional_subjects' not in body:
+        body['optional_subjects'] = body['optional_subject']
+
     for key in allowed:
         if key not in body:
             continue
@@ -691,9 +746,11 @@ def update_student(sid):
             val = body[key]
             if val and val.startswith('data:'):
                 _delete_photo_file(student.photo)
+                student.photo_base64 = val
                 student.photo = _save_photo_file(sid, val)
             elif val == '':
                 _delete_photo_file(student.photo)
+                student.photo_base64 = ''
                 student.photo = ''
         else:
             val = body[key]
@@ -827,7 +884,12 @@ def import_students():
             year=student_data.get('year', '').strip().replace('–', '-').replace('\u2013', '-'),
             session=student_data.get('session', student_data.get('year', '')).strip().replace('–', '-').replace('\u2013', '-'),
             photo='',
-            optional_subjects=student_data.get('optional_subject', ''),
+            optional_subjects=(
+                student_data.get('optional_subject') or
+                student_data.get('optional_subjects') or
+                student_data.get('optionalSubjects') or
+                ''
+            ),
         )
         db.session.add(student)
         existing_rolls.add(student_data['roll'])
@@ -960,6 +1022,7 @@ def _get_marks_dict(student_id=None):
             'cq':       mark.cq,
             'mcq':      mark.mcq,
             'prac':     mark.prac,
+            'absent':   mark.absent or False,
             'ey':       mark.year,
             'examType': mark.exam_type,
             'year':     mark.year,
@@ -997,6 +1060,7 @@ def get_marks(sid):
             'cq':       mark.cq,
             'mcq':      mark.mcq,
             'prac':     mark.prac,
+            'absent':   mark.absent or False,
             'ey':       mark.year,
             'examType': mark.exam_type,
             'year':     mark.year,
@@ -1087,6 +1151,7 @@ def bulk_photo_upload():
                             'message': 'Failed to save photo file'})
             continue
 
+        student.photo_base64 = photo_b64
         student.photo = new_url
         try:
             db.session.commit()
@@ -1199,7 +1264,9 @@ def public_result_summary():
 
     for sub in subs:
         m = stu_marks.get(sub['code'], {})
-        absent = not m or (str(m.get('cq', '')) == '' and str(m.get('mcq', '')) == '')
+        # Absent = no mark row, explicit absent flag, or both cq/mcq empty
+        absent = (not m) or m.get('absent', False) or \
+                 (str(m.get('cq', '')) == '' and str(m.get('mcq', '')) == '')
         cq   = min(int(m.get('cq')  or 0), sub.get('cqMax', 70))  if not absent else 0
         mcq  = min(int(m.get('mcq') or 0), sub.get('mcqMax', 30)) if not absent else 0
         prac = min(int(m.get('prac') or 0), 25) if (sub.get('hasPrac') and not absent) else 0
@@ -1216,7 +1283,7 @@ def public_result_summary():
                 total_gpa += gp
                 cnt += 1
                 if lg == 'F':
-                    fail_cnt += 1
+                    fail_cnt += 1   # Only F grade = fail, not absence
             total_mark += tot
 
         subject_rows.append({
@@ -1234,10 +1301,22 @@ def public_result_summary():
             'absent':      absent,
         })
 
-    # Task 2: GPA = 0 if any compulsory subject failed
+    # GPA = 0 if any compulsory subject failed; absent subjects excluded from GPA
     avg = 0.0 if fail_cnt > 0 else (min(round(total_gpa / cnt, 2), 5.0) if cnt else 0.0)
-    passed = (fail_cnt == 0 and total_mark > 0)
-    mMax = sum((s.get('cqMax', 70) + s.get('mcqMax', 30) + (25 if s.get('hasPrac') else 0)) for s in subs)
+    # passed: no F-grade failures AND appeared in at least 1 subject
+    passed = (fail_cnt == 0 and cnt > 0)
+    # mMax counts only non-absent subjects
+    mMax = sum(
+        (s.get('cqMax', 70) + s.get('mcqMax', 30) + (25 if s.get('hasPrac') else 0))
+        for s in subs
+        if not (stu_marks.get(s['code'], {}) and
+                (stu_marks.get(s['code'], {}).get('absent', False) or
+                 (str(stu_marks.get(s['code'], {}).get('cq', '')) == '' and
+                  str(stu_marks.get(s['code'], {}).get('mcq', '')) == '')))
+        and stu_marks.get(s['code'])
+    )
+    if mMax == 0:  # fallback for display if all absent
+        mMax = sum((s.get('cqMax', 70) + s.get('mcqMax', 30) + (25 if s.get('hasPrac') else 0)) for s in subs)
 
     # Merit position
     peer_scores = []
@@ -1346,9 +1425,11 @@ def save_marks(sid):
 
         # FIX: Validate and safely convert mark values
         try:
-            cq = int(float(marks_data.get('cq') or 0))
-            mcq = int(float(marks_data.get('mcq') or 0))
-            prac = int(float(marks_data.get('prac') or 0))
+            # If subject is marked absent, store zeros and flag
+            is_absent = bool(marks_data.get('absent', False))
+            cq   = 0 if is_absent else int(float(marks_data.get('cq')  or 0))
+            mcq  = 0 if is_absent else int(float(marks_data.get('mcq') or 0))
+            prac = 0 if is_absent else int(float(marks_data.get('prac') or 0))
         except (ValueError, TypeError):
             return jsonify({'ok': False, 'message': f'Invalid mark format for subject {subject_code}. Marks must be numeric.'}), 400
 
@@ -1360,6 +1441,7 @@ def save_marks(sid):
             cq=cq,
             mcq=mcq,
             prac=prac,
+            absent=is_absent,
             selected_optional=selected_optional,
         )
         db.session.add(mark)
@@ -1406,17 +1488,23 @@ def save_batch_subject_marks():
             cq_raw = entry.get('cq')
             mcq_raw = entry.get('mcq')
             prac_raw = entry.get('prac')
+            is_absent = bool(entry.get('absent', False))
 
-            is_empty = (cq_raw == '' or cq_raw is None) and (mcq_raw == '' or mcq_raw is None) and (prac_raw == '' or prac_raw is None)
+            # A row is empty only if not absent AND all marks are blank
+            is_empty = (not is_absent) and \
+                       (cq_raw == '' or cq_raw is None) and \
+                       (mcq_raw == '' or mcq_raw is None) and \
+                       (prac_raw == '' or prac_raw is None)
 
             # Delete existing marks for this student, exam type, and subject code
             Mark.query.filter_by(student_id=sid, exam_type=exam_type, subject_code=subject_code).delete()
 
             if not is_empty:
                 try:
-                    cq = int(float(cq_raw or 0))
-                    mcq = int(float(mcq_raw or 0))
-                    prac = int(float(prac_raw or 0))
+                    # When absent: store zeros with absent=True flag
+                    cq   = 0 if is_absent else int(float(cq_raw or 0))
+                    mcq  = 0 if is_absent else int(float(mcq_raw or 0))
+                    prac = 0 if is_absent else int(float(prac_raw or 0))
                 except (ValueError, TypeError):
                     return jsonify({'ok': False, 'message': f'Invalid mark format for student {sid}. Marks must be numeric.'}), 400
 
@@ -1433,6 +1521,7 @@ def save_batch_subject_marks():
                     cq=cq,
                     mcq=mcq,
                     prac=prac,
+                    absent=is_absent,
                     selected_optional=selected_optional or ''
                 )
                 db.session.add(mark)
@@ -1691,55 +1780,55 @@ def _grade_letter(total):
 
 SUBJECT_LIST = {
     'Science': [
-        {'name': 'Bangla 1st Paper',      'code': '101', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': False},
-        {'name': 'Bangla 2nd Paper',      'code': '102', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': False},
-        {'name': 'English 1st Paper',     'code': '107', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': False},
-        {'name': 'English 2nd Paper',     'code': '108', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': False},
-        {'name': 'ICT',                   'code': '275', 'hasPrac': True,  'cqMax': 50, 'mcqMax': 25, 'optional': False},
-        {'name': 'Physics 1st Paper',     'code': '174', 'hasPrac': True,  'cqMax': 50, 'mcqMax': 25, 'optional': False},
-        {'name': 'Physics 2nd Paper',     'code': '175', 'hasPrac': True,  'cqMax': 50, 'mcqMax': 25, 'optional': False},
-        {'name': 'Chemistry 1st Paper',   'code': '176', 'hasPrac': True,  'cqMax': 50, 'mcqMax': 25, 'optional': False},
-        {'name': 'Chemistry 2nd Paper',   'code': '177', 'hasPrac': True,  'cqMax': 50, 'mcqMax': 25, 'optional': False},
-        {'name': 'Biology 1st Paper',     'code': '178', 'hasPrac': True,  'cqMax': 50, 'mcqMax': 25, 'optional': True},
-        {'name': 'Biology 2nd Paper',     'code': '179', 'hasPrac': True,  'cqMax': 50, 'mcqMax': 25, 'optional': True},
-        {'name': 'Higher Math 1st Paper', 'code': '265', 'hasPrac': True,  'cqMax': 50, 'mcqMax': 25, 'optional': True},
-        {'name': 'Higher Math 2nd Paper', 'code': '266', 'hasPrac': True,  'cqMax': 50, 'mcqMax': 25, 'optional': True},
+        {'name': 'Bangla 1st Paper',      'code': '101', 'hasPrac': False, 'cqMax': 70,  'mcqMax': 30, 'optional': False},
+        {'name': 'Bangla 2nd Paper',      'code': '102', 'hasPrac': False, 'cqMax': 70,  'mcqMax': 30, 'optional': False},
+        {'name': 'English 1st Paper',     'code': '107', 'hasPrac': False, 'cqMax': 100, 'mcqMax': 0,  'optional': False},
+        {'name': 'English 2nd Paper',     'code': '108', 'hasPrac': False, 'cqMax': 100, 'mcqMax': 0,  'optional': False},
+        {'name': 'ICT',                   'code': '275', 'hasPrac': True,  'cqMax': 50,  'mcqMax': 25, 'optional': False},
+        {'name': 'Physics 1st Paper',     'code': '174', 'hasPrac': True,  'cqMax': 50,  'mcqMax': 25, 'optional': False},
+        {'name': 'Physics 2nd Paper',     'code': '175', 'hasPrac': True,  'cqMax': 50,  'mcqMax': 25, 'optional': False},
+        {'name': 'Chemistry 1st Paper',   'code': '176', 'hasPrac': True,  'cqMax': 50,  'mcqMax': 25, 'optional': False},
+        {'name': 'Chemistry 2nd Paper',   'code': '177', 'hasPrac': True,  'cqMax': 50,  'mcqMax': 25, 'optional': False},
+        {'name': 'Biology 1st Paper',     'code': '178', 'hasPrac': True,  'cqMax': 50,  'mcqMax': 25, 'optional': True},
+        {'name': 'Biology 2nd Paper',     'code': '179', 'hasPrac': True,  'cqMax': 50,  'mcqMax': 25, 'optional': True},
+        {'name': 'Higher Math 1st Paper', 'code': '265', 'hasPrac': True,  'cqMax': 50,  'mcqMax': 25, 'optional': True},
+        {'name': 'Higher Math 2nd Paper', 'code': '266', 'hasPrac': True,  'cqMax': 50,  'mcqMax': 25, 'optional': True},
     ],
     'Humanities': [
-        {'name': 'Bangla 1st Paper',             'code': '101', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': False},
-        {'name': 'Bangla 2nd Paper',             'code': '102', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': False},
-        {'name': 'English 1st Paper',            'code': '107', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': False},
-        {'name': 'English 2nd Paper',            'code': '108', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': False},
-        {'name': 'ICT',                          'code': '275', 'hasPrac': True,  'cqMax': 50, 'mcqMax': 25, 'optional': False},
-        {'name': 'Civics & Good Governance 1st', 'code': '269', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': False},
-        {'name': 'Civics & Good Governance 2nd', 'code': '270', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': False},
-        {'name': 'Economics 1st Paper',          'code': '109', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': False},
-        {'name': 'Economics 2nd Paper',          'code': '110', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': False},
-        {'name': 'Sociology',                    'code': '116', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': False},
-        {'name': 'Social Work 1st Paper',        'code': '271', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': False},
-        {'name': 'Social Work 2nd Paper',        'code': '272', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': False},
-        {'name': 'Islamic History & Culture',    'code': '267', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': False},
-        {'name': 'Logic 1st Paper',              'code': '121', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': True},
-        {'name': 'Logic 2nd Paper',              'code': '122', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': True},
-        {'name': 'Home Science 1st Paper',       'code': '273', 'hasPrac': True,  'cqMax': 50, 'mcqMax': 25, 'optional': True},
-        {'name': 'Home Science 2nd Paper',       'code': '274', 'hasPrac': True,  'cqMax': 50, 'mcqMax': 25, 'optional': True},
+        {'name': 'Bangla 1st Paper',             'code': '101', 'hasPrac': False, 'cqMax': 70,  'mcqMax': 30, 'optional': False},
+        {'name': 'Bangla 2nd Paper',             'code': '102', 'hasPrac': False, 'cqMax': 70,  'mcqMax': 30, 'optional': False},
+        {'name': 'English 1st Paper',            'code': '107', 'hasPrac': False, 'cqMax': 100, 'mcqMax': 0,  'optional': False},
+        {'name': 'English 2nd Paper',            'code': '108', 'hasPrac': False, 'cqMax': 100, 'mcqMax': 0,  'optional': False},
+        {'name': 'ICT',                          'code': '275', 'hasPrac': True,  'cqMax': 50,  'mcqMax': 25, 'optional': False},
+        {'name': 'Civics & Good Governance 1st', 'code': '269', 'hasPrac': False, 'cqMax': 70,  'mcqMax': 30, 'optional': False},
+        {'name': 'Civics & Good Governance 2nd', 'code': '270', 'hasPrac': False, 'cqMax': 70,  'mcqMax': 30, 'optional': False},
+        {'name': 'Economics 1st Paper',          'code': '109', 'hasPrac': False, 'cqMax': 70,  'mcqMax': 30, 'optional': False},
+        {'name': 'Economics 2nd Paper',          'code': '110', 'hasPrac': False, 'cqMax': 70,  'mcqMax': 30, 'optional': False},
+        {'name': 'Sociology',                    'code': '116', 'hasPrac': False, 'cqMax': 70,  'mcqMax': 30, 'optional': False},
+        {'name': 'Social Work 1st Paper',        'code': '271', 'hasPrac': False, 'cqMax': 70,  'mcqMax': 30, 'optional': False},
+        {'name': 'Social Work 2nd Paper',        'code': '272', 'hasPrac': False, 'cqMax': 70,  'mcqMax': 30, 'optional': False},
+        {'name': 'Islamic History & Culture',    'code': '267', 'hasPrac': False, 'cqMax': 70,  'mcqMax': 30, 'optional': False},
+        {'name': 'Logic 1st Paper',              'code': '121', 'hasPrac': False, 'cqMax': 70,  'mcqMax': 30, 'optional': True},
+        {'name': 'Logic 2nd Paper',              'code': '122', 'hasPrac': False, 'cqMax': 70,  'mcqMax': 30, 'optional': True},
+        {'name': 'Home Science 1st Paper',       'code': '273', 'hasPrac': True,  'cqMax': 50,  'mcqMax': 25, 'optional': True},
+        {'name': 'Home Science 2nd Paper',       'code': '274', 'hasPrac': True,  'cqMax': 50,  'mcqMax': 25, 'optional': True},
     ],
     'Business': [
-        {'name': 'Bangla 1st Paper',                 'code': '101', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': False},
-        {'name': 'Bangla 2nd Paper',                 'code': '102', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': False},
-        {'name': 'English 1st Paper',                'code': '107', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': False},
-        {'name': 'English 2nd Paper',                'code': '108', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': False},
-        {'name': 'ICT',                              'code': '275', 'hasPrac': True,  'cqMax': 50, 'mcqMax': 25, 'optional': False},
-        {'name': 'Accounting 1st Paper',             'code': '253', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': False},
-        {'name': 'Accounting 2nd Paper',             'code': '254', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': False},
-        {'name': 'Business Org. & Mgmt 1st',         'code': '277', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': False},
-        {'name': 'Business Org. & Mgmt 2nd',         'code': '278', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': False},
-        {'name': 'Finance, Banking & Insurance 1st', 'code': '292', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': False},
-        {'name': 'Finance, Banking & Insurance 2nd', 'code': '293', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': False},
-        {'name': 'Economics 1st Paper',              'code': '109', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': True},
-        {'name': 'Economics 2nd Paper',              'code': '110', 'hasPrac': False, 'cqMax': 70, 'mcqMax': 30, 'optional': True},
-        {'name': 'Home Science 1st Paper',           'code': '273', 'hasPrac': True,  'cqMax': 50, 'mcqMax': 25, 'optional': True},
-        {'name': 'Home Science 2nd Paper',           'code': '274', 'hasPrac': True,  'cqMax': 50, 'mcqMax': 25, 'optional': True},
+        {'name': 'Bangla 1st Paper',                 'code': '101', 'hasPrac': False, 'cqMax': 70,  'mcqMax': 30, 'optional': False},
+        {'name': 'Bangla 2nd Paper',                 'code': '102', 'hasPrac': False, 'cqMax': 70,  'mcqMax': 30, 'optional': False},
+        {'name': 'English 1st Paper',                'code': '107', 'hasPrac': False, 'cqMax': 100, 'mcqMax': 0,  'optional': False},
+        {'name': 'English 2nd Paper',                'code': '108', 'hasPrac': False, 'cqMax': 100, 'mcqMax': 0,  'optional': False},
+        {'name': 'ICT',                              'code': '275', 'hasPrac': True,  'cqMax': 50,  'mcqMax': 25, 'optional': False},
+        {'name': 'Accounting 1st Paper',             'code': '253', 'hasPrac': False, 'cqMax': 70,  'mcqMax': 30, 'optional': False},
+        {'name': 'Accounting 2nd Paper',             'code': '254', 'hasPrac': False, 'cqMax': 70,  'mcqMax': 30, 'optional': False},
+        {'name': 'Business Org. & Mgmt 1st',         'code': '277', 'hasPrac': False, 'cqMax': 70,  'mcqMax': 30, 'optional': False},
+        {'name': 'Business Org. & Mgmt 2nd',         'code': '278', 'hasPrac': False, 'cqMax': 70,  'mcqMax': 30, 'optional': False},
+        {'name': 'Finance, Banking & Insurance 1st', 'code': '292', 'hasPrac': False, 'cqMax': 70,  'mcqMax': 30, 'optional': False},
+        {'name': 'Finance, Banking & Insurance 2nd', 'code': '293', 'hasPrac': False, 'cqMax': 70,  'mcqMax': 30, 'optional': False},
+        {'name': 'Economics 1st Paper',              'code': '109', 'hasPrac': False, 'cqMax': 70,  'mcqMax': 30, 'optional': True},
+        {'name': 'Economics 2nd Paper',              'code': '110', 'hasPrac': False, 'cqMax': 70,  'mcqMax': 30, 'optional': True},
+        {'name': 'Home Science 1st Paper',           'code': '273', 'hasPrac': True,  'cqMax': 50,  'mcqMax': 25, 'optional': True},
+        {'name': 'Home Science 2nd Paper',           'code': '274', 'hasPrac': True,  'cqMax': 50,  'mcqMax': 25, 'optional': True},
     ],
 }
 
@@ -1840,13 +1929,15 @@ def export_csv():
                         continue
 
                     m      = stu_marks.get(sub['code'], {})
-                    cq     = min(int(m.get('cq')  or 0), sub['cqMax'])
-                    mcq    = min(int(m.get('mcq') or 0), sub['mcqMax'])
-                    prac   = min(int(m.get('prac') or 0), 25) if sub['hasPrac'] else 0
+                    # Absent = no mark row, explicit absent flag, or both cq/mcq empty
+                    absent = (not m) or m.get('absent', False) or \
+                             (m.get('cq', '') == '' and m.get('mcq', '') == '')
+                    cq     = min(int(m.get('cq')  or 0), sub['cqMax'])  if not absent else 0
+                    mcq    = min(int(m.get('mcq') or 0), sub['mcqMax']) if not absent else 0
+                    prac   = min(int(m.get('prac') or 0), 25) if (sub['hasPrac'] and not absent) else 0
                     theory = cq + mcq
                     tot    = theory + prac
-                    lg, gp = _grade_letter(tot)
-                    absent = not m or (m.get('cq', '') == '' and m.get('mcq', '') == '')
+                    lg, gp = _grade_letter(tot) if not absent else ('Ab', 0.0)
 
                     if not absent:
                         if is_optional:
@@ -1856,17 +1947,17 @@ def export_csv():
                             total_gpa += gp
                             cnt       += 1
                             if lg == 'F':
-                                fail_cnt += 1
+                                fail_cnt += 1   # Only F grade = fail, not absence
                         total_mark += tot
 
-                    row += ['' if absent else cq,
-                            '' if absent else mcq,
-                            ('' if absent else prac) if sub['hasPrac'] else '']
+                    row += ['Ab' if absent else cq,
+                            'Ab' if absent else mcq,
+                            ('Ab' if absent else prac) if sub['hasPrac'] else '']
 
                 avg    = 0.0 if fail_cnt > 0 else (min(round(total_gpa / cnt, 2), 5.0) if cnt else 0.0)
-                passed = fail_cnt == 0 and total_mark > 0
-                row   += [total_mark or '', avg if total_mark else '',
-                          ('Pass' if passed else 'Fail') if total_mark else '']
+                passed = fail_cnt == 0 and cnt > 0
+                row   += [total_mark or '', avg if cnt else '',
+                          ('Pass' if passed else 'Fail') if cnt else 'Ab']
                 writer.writerow(row)
             writer.writerow([])
 
@@ -1947,8 +2038,14 @@ def _compute_student_result(sid, marks_data, group, optional_subject='', cls=Non
 
     for sub in subs:
         m = stu_marks.get(sub['code'], {})
-        if not m:
+        # Absent = no mark row, explicit absent flag, or both cq/mcq empty strings
+        absent = (not m) or m.get('absent', False) or \
+                 (str(m.get('cq', '')) == '' and str(m.get('mcq', '')) == '')
+
+        if absent:
+            # Absent subjects excluded entirely — not a fail, not in GPA
             continue
+
         cq     = min(int(m.get('cq')  or 0), sub.get('cqMax', 70))
         mcq    = min(int(m.get('mcq') or 0), sub.get('mcqMax', 30))
         prac   = min(int(m.get('prac') or 0), 25) if sub.get('hasPrac') else 0
@@ -1960,7 +2057,7 @@ def _compute_student_result(sid, marks_data, group, optional_subject='', cls=Non
         is_optional = sub.get('optional', False) and (sub['code'] in opt_codes)
 
         if is_optional:
-            # 4th subject rule: only GP above 2.0 contributes to GPA, and it's not in the divisor
+            # 4th subject rule: only GP above 2.0 contributes to GPA
             if gp > 2.0:
                 total_gpa += (gp - 2.0)
             # Optional subject failure does not fail the student
@@ -1968,12 +2065,13 @@ def _compute_student_result(sid, marks_data, group, optional_subject='', cls=Non
             total_gpa += gp
             cnt       += 1
             if lg == 'F':
-                fail_cnt += 1
+                fail_cnt += 1   # Only F grade (not absence) causes failure
 
         total_mark += tot
 
     avg = 0.0 if fail_cnt > 0 else (min(round(total_gpa / cnt, 2), 5.0) if cnt else 0.0)
-    return total_mark, avg, (fail_cnt == 0 and total_mark > 0)
+    # passed: no failures AND appeared in at least 1 subject
+    return total_mark, avg, (fail_cnt == 0 and cnt > 0)
 
 
 @app.route('/api/analyze-promotion', methods=['GET'])
@@ -2275,6 +2373,55 @@ def server_error(e):
     import traceback
     detail = str(e) if str(e) else repr(e)
     return jsonify({'ok': False, 'message': f'Internal server error: {detail}'}), 500
+
+
+# Run photo migrations: copy base64 from photo to photo_base64, save to file, and replace with URL
+with app.app_context():
+    try:
+        _st_mig = Student.query.filter(Student.photo.like('data:%')).all()
+        if _st_mig:
+            print(f"[DB Migration] Migrating {len(_st_mig)} student photos to photo_base64...", flush=True)
+            for _s in _st_mig:
+                try:
+                    _s.photo_base64 = _s.photo
+                    _url = _save_photo_file(_s.id, _s.photo)
+                    if _url:
+                        _s.photo = _url
+                    else:
+                        _s.photo = ''
+                except Exception as _me:
+                    print(f"[DB Migration] Student {_s.id} error: {_me}", flush=True)
+            db.session.commit()
+            print("[DB Migration] Student photo migration done!", flush=True)
+    except Exception as _e:
+        print(f"[DB Migration] Student photo migration failed: {_e}", flush=True)
+        try:
+            db.session.rollback()
+        except Exception:
+            pass
+
+    try:
+        _ar_mig = Archive.query.filter(Archive.photo.like('data:%')).all()
+        if _ar_mig:
+            print(f"[DB Migration] Migrating {len(_ar_mig)} archived photos to photo_base64...", flush=True)
+            for _a in _ar_mig:
+                try:
+                    _a.photo_base64 = _a.photo
+                    _url = _save_photo_file(_a.id, _a.photo)
+                    if _url:
+                        _a.photo = _url
+                    else:
+                        _a.photo = ''
+                except Exception as _me:
+                    print(f"[DB Migration] Archive {_a.id} error: {_me}", flush=True)
+            db.session.commit()
+            print("[DB Migration] Archive photo migration done!", flush=True)
+    except Exception as _e:
+        print(f"[DB Migration] Archive photo migration failed: {_e}", flush=True)
+        try:
+            db.session.rollback()
+        except Exception:
+            pass
 
 
 # ─────────────────────────────────────────────

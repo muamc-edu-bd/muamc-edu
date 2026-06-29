@@ -1809,7 +1809,7 @@
         const stu = LS.students().find(s => s.id === id);
         if (!stu) return;
 
-        const updated = { ...stu, name: n, roll: ro, reg: re, cls: cl, group: gr, section: se, father: fa, mother: mo, dob, phone: ph, religion: rl, session: sn, photo: editPhotoData, optional_subject: optSub, optionalSubjects: optSub, optional_subjects: optSub };
+        const updated = { ...stu, name: n, roll: ro, reg: re, cls: cl, group: gr, section: se, father: fa, mother: mo, dob, phone: ph, religion: rl, session: sn, photo: editPhotoData, optional_subject: optSub, optional_subjects: optSub, optionalSubjects: optSub };
 
         const r = await fetch('/api/students/' + id, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updated) });
         let res = {};
@@ -1929,7 +1929,7 @@
         const roll = getExcelValue(row, ['roll', 'roll_no', 'roll_number']);
         if (!name || !roll) { skippedClient++; continue; }
         
-        const optSub = getExcelValue(row, ['optional_subject', 'optional_subjects', 'optional', 'optional_subject_code', 'optional_subject_codes']);
+        const optSub = getExcelValue(row, ['optional_subject', 'optional_subjects', 'optional', 'optional_subject_code', 'optional_subject_codes', 'optionalsubject', 'optionalsubjects']);
         
         students.push({
           name: name,
@@ -1946,6 +1946,7 @@
           session: getExcelValue(row, ['session', 'year']),
           photo: '',
           optional_subject: optSub,
+          optional_subjects: optSub,
           optionalSubjects: optSub
         });
       }
