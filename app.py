@@ -1459,11 +1459,19 @@ def save_marks(sid):
     return jsonify({'ok': True, 'message': 'Marks saved successfully'})
 
 
-@app.route('/api/marks/batch', methods=['GET'])
+@app.route('/api/marks/batch', methods=['GET', 'POST'])
 @require_auth
 def get_batch_marks():
-    ids_str = request.args.get('ids', '')
-    year_filter = (request.args.get('year') or '').strip().replace('\u2013', '-').replace('\u2014', '-')
+    # Support both GET (legacy, short lists) and POST (large student lists).
+    # GET with 250+ student IDs produces a ~4800-char URL which exceeds server
+    # limits (414 Too Long). POST sends ids in the request body to avoid this.
+    if request.method == 'POST':
+        body = request.get_json(force=True, silent=True) or {}
+        ids_str = ','.join(body.get('ids', []))
+        year_filter = (body.get('year') or '').strip().replace('\u2013', '-').replace('\u2014', '-')
+    else:
+        ids_str = request.args.get('ids', '')
+        year_filter = (request.args.get('year') or '').strip().replace('\u2013', '-').replace('\u2014', '-')
 
     if not ids_str:
         return jsonify({'ok': True, 'data': {}})
@@ -1475,8 +1483,7 @@ def get_batch_marks():
 
     # If a specific year/session is requested, filter marks to only that year.
     # This prevents marks from different sessions (e.g. 2024-2025 vs 2025-2026)
-    # from colliding and overwriting each other in the dict — which was the root
-    # cause of Humanities ICT marks not appearing in production.
+    # from colliding and overwriting each other in the dict.
     if year_filter:
         filtered = {}
         for sid, exams in marks.items():
@@ -1485,7 +1492,6 @@ def get_batch_marks():
                 filtered_subjects = {}
                 for key, val in subjects.items():
                     if key == 'selectedOptional':
-                        # Always carry over the optional selection
                         filtered_subjects[key] = val
                     elif isinstance(val, dict) and val.get('year') == year_filter:
                         filtered_subjects[key] = val
@@ -1497,11 +1503,10 @@ def get_batch_marks():
 
     return jsonify({'ok': True, 'data': marks})
 
-
-
 @app.route('/api/marks/batch-subject', methods=['POST'])
 @require_auth
 def save_batch_subject_marks():
+
     body = request.get_json(force=True, silent=True) or {}
     subject_code = body.get('subjectCode')
     exam_type = body.get('examType')

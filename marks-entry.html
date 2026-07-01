@@ -1165,9 +1165,17 @@ async function loadBatchStudents(){
 
     let marksMap = {};
     try{
-      const sids = students.map(s => s.id).join(',');
-      const mr = await fetch(`/api/marks/batch?ids=${encodeURIComponent(sids)}&year=${encodeURIComponent(batchSession)}`);
+      const sids = students.map(s => s.id);
+      // POST instead of GET — the query string with 250 IDs (~4800 chars)
+      // exceeds server URL length limits (414 URI Too Long), causing a silent
+      // empty response. Sending IDs in the request body avoids this entirely.
+      const mr = await fetch('/api/marks/batch', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ ids: sids, year: batchSession })
+      });
       const md = await mr.json();
+
       marksMap = (md && md.data) ? md.data : {};
     }catch(e){
       console.error('Error fetching batch marks:', e);
