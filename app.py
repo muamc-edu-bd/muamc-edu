@@ -61,23 +61,8 @@ if _db_url.startswith('postgresql'):
     }
 
 # Secret key for server-side session (session cookie auth)
-_secret_key = os.environ.get('SECRET_KEY')
-if not _secret_key:
-    import sys
-    print("[WARNING] SECRET_KEY environment variable is not set! "
-          "Session cookies will be invalidated on every server restart. "
-          "Set SECRET_KEY in Render Environment Variables.", file=sys.stderr)
-    _secret_key = secrets.token_hex(32)  # fallback — NOT stable across restarts
-app.secret_key = _secret_key
-
-# Session cookie security — required for HTTPS / production (Render)
-_is_production = bool(os.environ.get('DATABASE_URL'))  # True when using external DB (Render)
-app.config['SESSION_COOKIE_HTTPONLY']  = True
-app.config['SESSION_COOKIE_SAMESITE'] = 'None' if _is_production else 'Lax'
-app.config['SESSION_COOKIE_SECURE']   = _is_production   # HTTPS only in production
-app.config['SESSION_COOKIE_NAME']     = 'hsc_session'
-
-CORS(app, supports_credentials=True, origins='*')
+app.secret_key = os.environ.get('SECRET_KEY') or secrets.token_hex(32)
+CORS(app, supports_credentials=True)
 
 # Initialize database
 db.init_app(app)
@@ -1478,12 +1463,40 @@ def save_marks(sid):
 @require_auth
 def get_batch_marks():
     ids_str = request.args.get('ids', '')
+    year_filter = (request.args.get('year') or '').strip().replace('\u2013', '-').replace('\u2014', '-')
+
     if not ids_str:
         return jsonify({'ok': True, 'data': {}})
     sids = [sid.strip() for sid in ids_str.split(',') if sid.strip()]
     if not sids:
         return jsonify({'ok': True, 'data': {}})
-    return jsonify({'ok': True, 'data': _get_marks_dict(sids)})
+
+    marks = _get_marks_dict(sids)
+
+    # If a specific year/session is requested, filter marks to only that year.
+    # This prevents marks from different sessions (e.g. 2024-2025 vs 2025-2026)
+    # from colliding and overwriting each other in the dict — which was the root
+    # cause of Humanities ICT marks not appearing in production.
+    if year_filter:
+        filtered = {}
+        for sid, exams in marks.items():
+            filtered_exams = {}
+            for exam_type, subjects in exams.items():
+                filtered_subjects = {}
+                for key, val in subjects.items():
+                    if key == 'selectedOptional':
+                        # Always carry over the optional selection
+                        filtered_subjects[key] = val
+                    elif isinstance(val, dict) and val.get('year') == year_filter:
+                        filtered_subjects[key] = val
+                if filtered_subjects:
+                    filtered_exams[exam_type] = filtered_subjects
+            if filtered_exams:
+                filtered[sid] = filtered_exams
+        marks = filtered
+
+    return jsonify({'ok': True, 'data': marks})
+
 
 
 @app.route('/api/marks/batch-subject', methods=['POST'])

@@ -516,8 +516,8 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--slate);color:var(--
       <div class="fg">
         <label>Session</label>
         <select id="b-session">
-          <option value="2024-2025" selected>2024-2025</option>
-          <option value="2025-2026">2025-2026</option>
+          <option value="2024-2025">2024-2025</option>
+          <option value="2025-2026" selected>2025-2026</option>
           <option value="2026-2027">2026-2027</option>
           <option value="2027-2028">2027-2028</option>
           <option value="2028-2029">2028-2029</option>
@@ -1133,7 +1133,7 @@ async function loadBatchStudents(){
     '</div></div>';
 
   try{
-    const res  = await fetch(`/api/students?cls=${encodeURIComponent(cls)}&group=${encodeURIComponent(grp)}`);
+    const res  = await fetch(`/api/students?cls=${encodeURIComponent(cls)}&group=${encodeURIComponent(grp)}&session=${encodeURIComponent(batchSession)}`);
     const data = await res.json();
     let students = (data && data.data) ? data.data : [];
 
@@ -1166,7 +1166,7 @@ async function loadBatchStudents(){
     let marksMap = {};
     try{
       const sids = students.map(s => s.id).join(',');
-      const mr = await fetch(`/api/marks/batch?ids=${encodeURIComponent(sids)}`);
+      const mr = await fetch(`/api/marks/batch?ids=${encodeURIComponent(sids)}&year=${encodeURIComponent(batchSession)}`);
       const md = await mr.json();
       marksMap = (md && md.data) ? md.data : {};
     }catch(e){
@@ -1414,7 +1414,6 @@ async function saveBatchMarks(){
             cq: entry.cq !== '' ? parseInt(entry.cq, 10) : 0,
             mcq: entry.mcq !== '' ? parseInt(entry.mcq, 10) : 0,
             prac: entry.prac !== '' ? parseInt(entry.prac, 10) : 0,
-            absent: entry.absent || false,
             ey: session,
             year: session
           };
