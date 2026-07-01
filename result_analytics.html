@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Result Analytics — Moinuddin Adarsha Mohila College</title>
+  <meta name="description" content="Generate and print tabulation sheets for any class, department, session and exam at Moinuddin Adarsha Mohila College.">
+  <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700;900&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <style>
+    /* ═══════════════ DESIGN TOKENS ═══════════════ */
+    :root {
+      --navy:#0d2b45; --navy2:#174070; --navy3:#1f5490;
+      --gold:#a97c28; --gold2:#c9973a; --gold3:#e8b84b;
+      --slate:#f1f4f8; --slate2:#e8ecf2; --white:#fff;
+      --txt:#0f172a; --txt2:#334155; --muted:#64748b;
+      --border:#dde3ed; --border2:#c8d2e0;
+      --red:#b91c1c; --green:#166534; --amber:#92400e; --purple:#6d28d9;
+      --shadow-xs:0 1px 2px rgba(0,0,0,.06);
+      --shadow-sm:0 1px 4px rgba(13,43,69,.08),0 1px 3px rgba(13,43,69,.05);
+      --shadow:0 4px 16px rgba(13,43,69,.09);
+      --shadow-lg:0 8px 32px rgba(13,43,69,.14);
+      --r:6px; --r-md:10px; --r-lg:14px;
+    }
+
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{scroll-behavior:smooth;}
+    body{font-family:'Source Sans 3',sans-serif;background:var(--slate);color:var(--txt);display:flex;flex-direction:column;}
+
+    /* ═══ TOP NAV ═══ */
+    .top-nav-bar{position:fixed;top:0;left:0;right:0;height:70px;z-index:201;background:linear-gradient(180deg,#0d2b45 0%,#0a2138 100%);display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid rgba(255,255,255,.08);box-shadow:0 4px 12px rgba(0,0,0,.15);}
+    .top-nav-logo{display:flex;align-items:center;gap:14px;}
+    .top-nav-logo-img{width:48px;height:48px;border-radius:50%;background:#fff;border:2.5px solid var(--gold2);overflow:hidden;display:flex;align-items:center;justify-content:center;}
+    .top-nav-logo-img img{width:100%;height:100%;object-fit:contain;}
+    .top-nav-logo-text h1{font-family:'Merriweather',serif;font-size:.85rem;font-weight:700;color:#fff;}
+    .top-nav-logo-text p{font-size:.58rem;color:rgba(255,255,255,.5);margin-top:2px;}
+    .top-nav-admin{display:flex;align-items:center;gap:16px;}
+    .logout-btn{padding:8px 16px;border-radius:var(--r);border:1px solid rgba(255,255,255,.3);background:transparent;color:#fff;font-size:.78rem;font-family:inherit;cursor:pointer;font-weight:600;transition:all .15s;}
+    .logout-btn:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.6);}
+    .hdr-hamburger{display:none;background:none;border:none;color:#fff;font-size:1.4rem;cursor:pointer;width:32px;height:32px;align-items:center;justify-content:center;border-radius:var(--r);}
+    .hdr-hamburger:hover{background:rgba(255,255,255,.1);}
+
+    /* ═══ SIDEBAR ═══ */
+    .site-header{background:linear-gradient(180deg,#0d2b45 0%,#0a2138 100%);position:fixed;left:0;top:70px;width:220px;height:calc(100vh - 70px);z-index:200;border-right:1px solid rgba(255,255,255,.06);box-shadow:4px 0 16px rgba(0,0,0,.3);display:flex;flex-direction:column;overflow-y:auto;transition:transform .3s ease;}
+    .nav-strip{display:flex;flex-direction:column;padding:16px 0;background:rgba(0,0,0,.2);flex:1;}
+    .nt{padding:12px 16px;cursor:pointer;font-size:.79rem;font-weight:500;border-left:3px solid transparent;color:rgba(255,255,255,.55);transition:color .15s,border-color .15s,background .15s;display:flex;align-items:center;text-decoration:none;}
+    .nt:hover{color:rgba(255,255,255,.88);background:rgba(255,255,255,.05);}
+    .nt.active{color:var(--gold3);border-left-color:var(--gold2);background:rgba(255,255,255,.08);}
+    .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:190;}
+    .sidebar-overlay.active{display:block;}
+
+    /* ═══ MAIN ═══ */
+    .main{margin-left:220px;margin-top:70px;padding:28px 24px;flex:1;}
+
+    /* ═══ PAGE HEADER ═══ */
+    .pg-hd{margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--border);}
+    .pg-hd h2{font-family:'Merriweather',serif;font-size:1.2rem;font-weight:700;color:var(--navy);}
+    .pg-hd p{font-size:.78rem;color:var(--muted);margin-top:3px;}
+
+    /* ═══ CARDS ═══ */
+    .card{background:var(--white);border-radius:var(--r-lg);border:1px solid var(--border);box-shadow:var(--shadow-sm);margin-bottom:20px;overflow:hidden;}
+    .card-head{padding:15px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+    .card-head h3{font-family:'Merriweather',serif;font-size:.92rem;font-weight:700;color:var(--navy);}
+    .card-body{padding:20px;}
+
+    /* ═══ FORMS ═══ */
+    .fg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;}
+    .fg{display:flex;flex-direction:column;gap:5px;}
+    .fg label{font-size:.74rem;font-weight:600;color:var(--navy);}
+    .fg select{padding:8px 11px;border:1.5px solid var(--border2);border-radius:var(--r);font-size:.83rem;font-family:inherit;background:#fafcff;color:var(--txt);transition:border .15s,box-shadow .15s;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2364748b' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;}
+    .fg select:focus{outline:none;border-color:var(--navy3);box-shadow:0 0 0 3px rgba(31,84,144,.1);}
+    .fg select:disabled{background:#f1f4f8;color:var(--muted);cursor:not-allowed;}
+
+    /* ═══ BUTTONS ═══ */
+    .btn{padding:8px 18px;border-radius:var(--r);border:none;cursor:pointer;font-family:inherit;font-size:.8rem;font-weight:600;transition:all .14s;display:inline-flex;align-items:center;gap:6px;text-decoration:none;}
+    .btn-primary{background:var(--navy);color:#fff;}
+    .btn-primary:hover{background:var(--navy2);box-shadow:0 3px 10px rgba(13,43,69,.3);}
+    .btn-gold{background:var(--gold);color:#fff;}
+    .btn-gold:hover{background:var(--gold2);}
+    .btn-success{background:var(--green);color:#fff;}
+    .btn-success:hover{background:#15803d;}
+    .btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;}
+    .btn:disabled{opacity:.5;cursor:not-allowed;pointer-events:none;}
+
+    /* ═══ SUMMARY STATS ═══ */
+    .stat-strip{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;margin-bottom:20px;}
+    .stat-tile{background:#fff;border-radius:var(--r-md);padding:14px 12px;text-align:center;box-shadow:var(--shadow);border:1px solid var(--border);}
+    .stat-val{font-size:1.6rem;font-weight:800;line-height:1;margin-bottom:4px;}
+    .stat-lbl{font-size:.64rem;letter-spacing:.4px;font-weight:500;color:var(--muted);}
+    .stat-tile.blue .stat-val{color:var(--navy3);}
+    .stat-tile.green .stat-val{color:var(--green);}
+    .stat-tile.red .stat-val{color:var(--red);}
+    .stat-tile.amber .stat-val{color:var(--amber);}
+
+    /* ═══ EMPTY / LOADING ═══ */
+    .empty-state{text-align:center;padding:60px 20px;color:var(--muted);}
+    .empty-state .es-icon{font-size:3rem;margin-bottom:12px;}
+    .empty-state p{font-size:.85rem;line-height:1.6;}
+    .loading-spinner{width:36px;height:36px;border:3px solid var(--slate2);border-top-color:var(--navy);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+    #loading-state{text-align:center;padding:40px;}
+    #loading-state p{margin-top:10px;font-size:.85rem;color:var(--muted);}
+
+    /* ═══ ALERTS ═══ */
+    .alert{padding:10px 14px;border-radius:var(--r);font-size:.79rem;margin-bottom:0;border:1px solid;}
+    .alert-err{background:#fef2f2;color:#991b1b;border-color:#fecaca;}
+    .alert-ok{background:#f0fdf4;color:#15803d;border-color:#bbf7d0;}
+
+    /* ═══ RESPONSIVE ═══ */
+    @media(max-width:768px){
+      .hdr-hamburger{display:flex;}
+      .site-header{transform:translateX(-100%);transition:transform .3s ease;}
+      .site-header.active{transform:translateX(0);}
+      .main{margin-left:0;padding:14px 10px;}
+      .top-nav-bar{padding:0 16px;}
+      .top-nav-logo-text h1{font-size:.68rem;}
+    }
+
+    /* ═══════════════════════════════════════════
+       TABULATION SHEET — Screen Preview Wrapper
+       ═══════════════════════════════════════════ */
+    #sheet-preview-wrapper{
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:var(--r-lg);
+      box-shadow:var(--shadow);
+      overflow:auto;
+    }
+
+    /* ═══════════════════════════════════════════
+       TABULATION SHEET — Document Styles
+       ═══════════════════════════════════════════ */
+    #tabulation-sheet{
+      font-family:'Source Sans 3',sans-serif;
+      font-size:9.5pt;
+      color:#000;
+      background:#fff;
+      padding:14mm 12mm;
+      min-width:720px;
+    }
+
+    /* Sheet top header */
+    .ts-header{margin-bottom:10px;}
+    .ts-top-row{
+      display:grid;
+      grid-template-columns:72px 1fr 80px;
+      align-items:center;
+      gap:12px;
+      margin-bottom:6px;
+    }
+    .ts-logo{
+      width:72px;height:72px;border-radius:50%;
+      border:2px solid #ccc;object-fit:contain;display:block;
+    }
+    .ts-title-block{text-align:center;}
+    .ts-college-name{font-size:13.5pt;font-weight:800;font-family:'Merriweather',serif;color:#000;letter-spacing:.4px;line-height:1.2;}
+    .ts-exam-line{font-size:10pt;font-weight:700;margin-top:4px;color:#111;}
+    .ts-qr{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;}
+    .ts-qr canvas,.ts-qr img{width:72px!important;height:72px!important;}
+    .ts-qr-label{font-size:6.5pt;color:#555;text-align:center;margin-top:2px;}
+    .ts-divider{border:none;border-top:2.5px solid #000;margin:8px 0 6px;}
+
+    /* Two-column subject info block */
+    .ts-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px 20px;margin-bottom:8px;text-align:left;}
+    .ts-info-row{display:flex;gap:4px;font-size:9pt;}
+    .ts-info-label{font-weight:700;min-width:90px;flex-shrink:0;}
+
+    /* Summary counts */
+    .ts-summary{display:flex;gap:0;border:1.5px solid #333;border-radius:2px;overflow:hidden;margin-bottom:10px;width:fit-content;}
+    .ts-sum-cell{padding:4px 14px;font-size:8.5pt;font-weight:700;border-right:1px solid #aaa;text-align:center;}
+    .ts-sum-cell:last-child{border-right:none;}
+    .ts-sum-cell span{display:block;font-size:11pt;font-weight:800;color:#0d2b45;}
+
+    /* TABLE */
+    .ts-table{width:100%;border-collapse:collapse;font-size:8.8pt;}
+    .ts-table th,.ts-table td{border:1px solid #333;padding:4px 5px;vertical-align:middle;}
+    .ts-table thead{display:table-header-group;}
+
+    /* Main header row */
+    .ts-table thead tr.ts-hdr-main th{
+      background:#1a3a5c;
+      color:#fff;
+      font-weight:700;
+      font-size:8.5pt;
+      text-align:center;
+      padding:5px 4px;
+    }
+    .ts-table thead tr.ts-hdr-main th.ts-th-name{text-align:left;padding-left:6px;}
+
+    /* Sub-header row */
+    .ts-table thead tr.ts-hdr-sub th{
+      background:#e8ecf2;
+      color:#000;
+      font-weight:700;
+      font-size:7.5pt;
+      text-align:center;
+      padding:3px 4px;
+      border-top:none;
+    }
+
+
+    /* Body rows */
+    .ts-table tbody tr:nth-child(even){background:#f8fafc;}
+    .ts-table tbody td{text-align:center;}
+    .ts-table tbody td.ts-td-name{text-align:left;padding-left:6px;}
+    .ts-table tbody td.ts-td-absent{color:#b91c1c;font-weight:700;}
+
+    /* Grade classes */
+    .ts-grade{font-weight:800;}
+    .ts-grade-Ap{color:#14532d;}
+    .ts-grade-A{color:#1e3a8a;}
+    .ts-grade-Am{color:#4c1d95;}
+    .ts-grade-B{color:#92400e;}
+    .ts-grade-C{color:#78350f;}
+    .ts-grade-D{color:#7c2d12;}
+    .ts-grade-F{color:#991b1b;}
+    .ts-grade-Ab{color:#64748b;font-style:italic;}
+
+    /* Footer signatures — appears only on last page (not in tfoot) */
+    .ts-footer{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:20px;
+      padding-top:40px;
+      margin-top:14px;
+      border-top:1px dashed #aaa;
+      page-break-inside:avoid;
+    }
+    .ts-sign-box{text-align:center;}
+    .ts-sign-line{height:48px;border-bottom:1.5px solid #444;margin:0 20px 6px;}
+    .ts-sign-label{font-size:8.5pt;font-weight:700;color:#333;}
+    .ts-sign-title{font-size:8pt;color:#555;margin-top:2px;}
+
+    /* ═══════════════════════════════════════════
+       PRINT STYLES
+       ═══════════════════════════════════════════ */
+    @media print {
+      .top-nav-bar,
+      .site-header,
+      .sidebar-overlay,
+      .pg-hd,
+      #filter-card,
+      #action-bar,
+      #empty-state,
+      #loading-state,
+      #error-msg,
+      #filter-info,
+      .stat-strip { display:none !important; }
+
+      body { margin:0; padding:0; background:#fff; display:block; }
+      .main { margin:0; padding:0; }
+
+      #sheet-preview-wrapper {
+        border:none; box-shadow:none;
+        padding:0; border-radius:0; overflow:visible;
+      }
+
+      @page { size: A4 portrait; margin:12mm 10mm; }
+
+      #tabulation-sheet {
+        padding:0; min-width:unset; width:100%; font-size:8.5pt;
+      }
+
+      .ts-table thead { display:table-header-group; }
+      .ts-table tfoot { display:table-footer-group; }
+      .ts-table tbody tr { page-break-inside:avoid; }
+      .ts-header { page-break-after:avoid; }
+    }
+  </style>
+
+  <!-- PAGE TRANSITION LOADER -->
+  <style>
+    .page-loader{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.72);backdrop-filter:blur(2px);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .24s ease,visibility .24s ease;z-index:9999;}
+    .page-loader.visible{opacity:1;visibility:visible;pointer-events:auto;}
+    .page-loader-inner{display:flex;flex-direction:column;align-items:center;gap:12px;padding:16px 20px;background:rgba(255,255,255,.92);border:1px solid rgba(15,23,42,.1);box-shadow:0 12px 32px rgba(15,23,42,.12);}
+    .page-loader-dots{display:flex;gap:8px;}
+    .page-loader-dot{width:12px;height:12px;background:var(--navy);animation:page-loader-pulse 1s ease-in-out infinite both;}
+    .page-loader-dot:nth-child(2){animation-delay:.16s;}
+    .page-loader-dot:nth-child(3){animation-delay:.32s;}
+    @keyframes page-loader-pulse{0%,100%{transform:scale(1);opacity:.4;}50%{transform:scale(1.45);opacity:1;}}
+    .page-loader-text{font-size:.92rem;color:var(--navy);font-weight:700;letter-spacing:.02em;}
+  </style>
+</head>
+<body>
+
+<div id="page-loader" class="page-loader" aria-hidden="true">
+  <div class="page-loader-inner">
+    <div class="page-loader-dots">
+      <span class="page-loader-dot"></span>
+      <span class="page-loader-dot"></span>
+      <span class="page-loader-dot"></span>
+    </div>
+    <div class="page-loader-text">Loading…</div>
+  </div>
+</div>
+
+<!-- ═══ TOP NAV ═══ -->
+<div class="top-nav-bar">
+  <div class="top-nav-logo">
+    <div class="top-nav-logo-img">
+      <img src="https://www.muamc.edu.bd/wp-content/uploads/2025/01/logo-muam-scaled.jpeg" alt="College Logo">
+    </div>
+    <div class="top-nav-logo-text">
+      <h1>Moinuddin Adarsha Mohila College</h1>
+      <p>Student Database System</p>
+    </div>
+  </div>
+  <div class="top-nav-admin">
+    <button class="hdr-hamburger" id="hdr-hamburger" onclick="toggleSidebar()" aria-label="Toggle sidebar">&#9776;</button>
+    <button class="logout-btn" onclick="doLogout()">Logout</button>
+  </div>
+</div>
+
+<!-- ═══ SIDEBAR ═══ -->
+<header class="site-header" id="site-header">
+  <nav class="nav-strip" id="nav-strip">
+    <a class="nt" href="/">Dashboard</a>
+    <a class="nt" href="/student-list.html">Student Management</a>
+    <a class="nt" href="/marks-entry.html">Mark Entry</a>
+    <a class="nt" href="/Teachers.html">Teachers</a>
+    <a class="nt" href="/Result-card.html">Result Card</a>
+    <a class="nt" href="/Admit-card.html">Admit Card</a>
+    <a class="nt" href="/bulk-photo.html">Bulk Photo Upload</a>
+    <a class="nt" href="/analytics.html" style="border-top:1px solid rgba(255,255,255,.08);margin-top:8px;padding-top:16px;">Analytics</a>
+    <a class="nt active" href="/result_analytics.html">Result Analytics</a>
+  </nav>
+</header>
+
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+<!-- ═══ MAIN ═══ -->
+<main class="main" id="main-content">
+
+  <div class="pg-hd">
+    <h2>Result Analytics</h2>
+    <p>Select filters below and generate a printable tabulation sheet for any class, department and exam.</p>
+  </div>
+
+  <!-- ── FILTER CARD ── -->
+  <div class="card" id="filter-card">
+    <div class="card-head">
+      <h3>Filter Selection</h3>
+    </div>
+    <div class="card-body">
+      <div class="fg-grid" id="filter-grid">
+
+        <div class="fg">
+          <label for="sel-cls">Class</label>
+          <select id="sel-cls" onchange="onClassGroupChange()">
+            <option value="">&#8212; Select Class &#8212;</option>
+            <option value="Class-XI">Class-XI</option>
+            <option value="Class-XII">Class-XII</option>
+          </select>
+        </div>
+
+        <div class="fg">
+          <label for="sel-group">Department</label>
+          <select id="sel-group" onchange="onClassGroupChange()">
+            <option value="">&#8212; Select Department &#8212;</option>
+            <option value="Science">Science</option>
+            <option value="Humanities">Humanities</option>
+            <option value="Business">Business</option>
+          </select>
+        </div>
+
+        <div class="fg">
+          <label for="sel-session">Session</label>
+          <select id="sel-session" disabled onchange="onSessionChange()">
+            <option value="">&#8212; Select Session &#8212;</option>
+          </select>
+        </div>
+
+        <div class="fg">
+          <label for="sel-exam">Exam Name</label>
+          <select id="sel-exam" disabled onchange="checkReadyToLoad()">
+            <option value="">&#8212; Select Exam &#8212;</option>
+          </select>
+        </div>
+
+        <div class="fg">
+          <label for="sel-subject">Subject</label>
+          <select id="sel-subject" disabled onchange="checkReadyToLoad()">
+            <option value="">&#8212; Select Subject &#8212;</option>
+          </select>
+        </div>
+
+      </div>
+
+      <div id="filter-info" class="alert alert-ok" style="margin-top:14px;display:none;"></div>
+      <div id="error-msg"   class="alert alert-err" style="margin-top:14px;display:none;"></div>
+
+      <div class="btn-row" id="action-bar">
+        <button class="btn btn-primary" id="btn-load"  onclick="loadSheet()" disabled>Load Sheet</button>
+        <button class="btn btn-gold"    id="btn-print" onclick="printSheet()" disabled>Print</button>
+        <button class="btn btn-success" id="btn-pdf"   onclick="downloadPDF()" disabled>Download PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── STATS STRIP ── -->
+  <div class="stat-strip" id="stat-strip" style="display:none;">
+    <div class="stat-tile blue">
+      <div class="stat-val" id="stat-total">&#8212;</div>
+      <div class="stat-lbl">TOTAL STUDENTS</div>
+    </div>
+    <div class="stat-tile blue">
+      <div class="stat-val" id="stat-appeared">&#8212;</div>
+      <div class="stat-lbl">APPEARED</div>
+    </div>
+    <div class="stat-tile green">
+      <div class="stat-val" id="stat-passed">&#8212;</div>
+      <div class="stat-lbl">PASSED</div>
+    </div>
+    <div class="stat-tile red">
+      <div class="stat-val" id="stat-failed">&#8212;</div>
+      <div class="stat-lbl">FAILED</div>
+    </div>
+    <div class="stat-tile amber">
+      <div class="stat-val" id="stat-absent">&#8212;</div>
+      <div class="stat-lbl">ABSENT</div>
+    </div>
+  </div>
+
+  <!-- ── LOADING ── -->
+  <div id="loading-state" style="display:none;">
+    <div class="loading-spinner"></div>
+    <p>Loading tabulation sheet&#8230;</p>
+  </div>
+
+  <!-- ── EMPTY STATE ── -->
+  <div class="empty-state" id="empty-state">
+    <div class="es-icon">&#9700;</div>
+    <p>Select a <strong>Class, Department, Session, Exam</strong> and <strong>Subject</strong> above,<br>then click <strong>Load Sheet</strong> to generate the tabulation.</p>
+  </div>
+
+  <!-- ── SHEET PREVIEW ── -->
+  <div id="sheet-preview-wrapper" style="display:none;">
+    <div id="tabulation-sheet">
+
+      <!-- Document header -->
+      <div class="ts-header" id="ts-header">
+        <!-- Logo + Title block -->
+        <div class="ts-top-row">
+          <img id="ts-logo" class="ts-logo"
+               src="https://www.muamc.edu.bd/wp-content/uploads/2025/01/logo-muam-scaled.jpeg"
+               alt="College Logo">
+          <div class="ts-title-block">
+            <div class="ts-college-name" id="ts-college-name"></div>
+            <div class="ts-exam-line"    id="ts-exam-line"></div>
+          </div>
+          <div id="ts-qr" class="ts-qr"></div>
+        </div>
+        <hr class="ts-divider">
+        <div class="ts-info-grid" id="ts-info-grid"></div>
+        <hr class="ts-divider" style="margin-top:4px;">
+        <div class="ts-summary"  id="ts-summary"></div>
+      </div>
+
+      <!-- Marks table -->
+      <table class="ts-table" id="ts-table" aria-label="Tabulation Sheet">
+        <thead id="ts-thead"></thead>
+        <tbody id="ts-tbody"></tbody>
+      </table>
+
+      <!-- Signatures — only on the last page -->
+      <div class="ts-footer" id="ts-sign-footer" style="display:none;"></div>
+
+    </div><!-- end #tabulation-sheet -->
+  </div><!-- end #sheet-preview-wrapper -->
+
+</main>
+
+<script>
+// ════════════════════════════════════════════
+//  GLOBALS
+// ════════════════════════════════════════════
+const API_BASE = (window.API_BASE !== undefined ? window.API_BASE : '');
+let _sheetData = null;
+
+// ════════════════════════════════════════════
+//  AUTH
+// ════════════════════════════════════════════
+async function doLogout() {
+  if (!confirm('Are you sure you want to logout?')) return;
+  try { await fetch(API_BASE + '/api/logout', { method: 'POST' }); } catch (_) {}
+  window.location.href = 'login.html';
+}
+
+(async function init() {
+  try {
+    const res  = await fetch(API_BASE + '/api/auth-status');
+    const auth = await res.json();
+    if (!auth.authenticated) window.location.href = 'login.html';
+  } catch (_) {
+    window.location.href = 'login.html';
+  }
+})();
+
+// ════════════════════════════════════════════
+//  SIDEBAR TOGGLE
+// ════════════════════════════════════════════
+function toggleSidebar() {
+  document.getElementById('site-header').classList.toggle('active');
+  document.getElementById('sidebar-overlay').classList.toggle('active');
+}
+function closeSidebar() {
+  document.getElementById('site-header').classList.remove('active');
+  document.getElementById('sidebar-overlay').classList.remove('active');
+}
+
+// ════════════════════════════════════════════
+//  HELPERS
+// ════════════════════════════════════════════
+function showErr(msg) {
+  const el = document.getElementById('error-msg');
+  el.textContent = msg;
+  el.style.display = msg ? '' : 'none';
+}
+function showInfo(msg) {
+  const el = document.getElementById('filter-info');
+  el.textContent = msg;
+  el.style.display = msg ? '' : 'none';
+}
+function escHtml(s) {
+  return String(s || '')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function gradeClass(g) {
+  const map = { 'A+':'Ap', 'A':'A', 'A-':'Am', 'B':'B', 'C':'C', 'D':'D', 'F':'F', 'Ab':'Ab' };
+  return 'ts-grade ts-grade-' + (map[g] || 'Ab');
+}
+function fillSelect(id, items, valFn, lblFn, placeholder) {
+  const sel = document.getElementById(id);
+  sel.innerHTML = `<option value="">${placeholder}</option>`;
+  items.forEach(item => {
+    const o = document.createElement('option');
+    o.value = valFn(item);
+    o.textContent = lblFn(item);
+    sel.appendChild(o);
+  });
+  sel.disabled = items.length === 0;
+}
+
+// ════════════════════════════════════════════
+//  CASCADING FILTERS
+// ════════════════════════════════════════════
+window._filterData = null;
+
+async function onClassGroupChange() {
+  const cls   = document.getElementById('sel-cls').value;
+  const group = document.getElementById('sel-group').value;
+
+  // Reset downstream selects
+  ['sel-session','sel-exam','sel-subject'].forEach(id => {
+    const el = document.getElementById(id);
+    el.innerHTML = '<option value="">&#8212; Select &#8212;</option>';
+    el.disabled = true;
+  });
+  setButtons(false);
+  showErr(''); showInfo('');
+  resetSheet();
+
+  if (!cls || !group) return;
+
+  showInfo('Loading sessions\u2026');
+  try {
+    const r = await fetch(`${API_BASE}/api/tabulation-sheet/filters?cls=${encodeURIComponent(cls)}&group=${encodeURIComponent(group)}`);
+    const d = await r.json();
+    showInfo('');
+    if (!d.ok) { showErr(d.message || 'Failed to load filters.'); return; }
+
+    window._filterData = d;
+
+    fillSelect('sel-session', d.sessions, s => s, s => s, '&#8212; Select Session &#8212;');
+    document.getElementById('sel-session').disabled = d.sessions.length === 0;
+
+    if (d.sessions.length === 0) showInfo('No students found for this class and department.');
+  } catch (e) {
+    showInfo('');
+    showErr('Network error loading sessions. Please try again.');
+  }
+}
+
+function onSessionChange() {
+  // Reset exam + subject
+  ['sel-exam','sel-subject'].forEach(id => {
+    const el = document.getElementById(id);
+    el.innerHTML = '<option value="">&#8212; Select &#8212;</option>';
+    el.disabled = true;
+  });
+  setButtons(false);
+  resetSheet();
+
+  const ses = document.getElementById('sel-session').value;
+  if (!ses || !window._filterData) return;
+
+  const { exam_types, subjects } = window._filterData;
+
+  fillSelect('sel-exam', exam_types, e => e, e => e, '&#8212; Select Exam &#8212;');
+  document.getElementById('sel-exam').disabled = exam_types.length === 0;
+
+  fillSelect('sel-subject', subjects, s => s.code, s => `${s.name} (${s.code})`, '&#8212; Select Subject &#8212;');
+  document.getElementById('sel-subject').disabled = subjects.length === 0;
+
+  if (exam_types.length === 0) showInfo('No exam records found for this session yet.');
+  else showInfo('');
+}
+
+function checkReadyToLoad() {
+  const allFilled = ['sel-cls','sel-group','sel-session','sel-exam','sel-subject']
+    .every(id => document.getElementById(id).value !== '');
+  setButtons(allFilled, /* printEnabled */ false);
+}
+
+function setButtons(loadEnabled, printEnabled) {
+  document.getElementById('btn-load').disabled  = !loadEnabled;
+  document.getElementById('btn-print').disabled = !(printEnabled !== undefined ? printEnabled : false);
+  document.getElementById('btn-pdf').disabled   = !(printEnabled !== undefined ? printEnabled : false);
+}
+
+// ════════════════════════════════════════════
+//  LOAD SHEET
+// ════════════════════════════════════════════
+async function loadSheet() {
+  const cls     = document.getElementById('sel-cls').value;
+  const group   = document.getElementById('sel-group').value;
+  const session = document.getElementById('sel-session').value;
+  const exam    = document.getElementById('sel-exam').value;
+  const subject = document.getElementById('sel-subject').value;
+
+  if (!cls || !group || !session || !exam || !subject) {
+    showErr('Please select all five filter fields before loading.');
+    return;
+  }
+
+  showErr('');
+  resetSheet();
+  document.getElementById('loading-state').style.display = '';
+  document.getElementById('empty-state').style.display   = 'none';
+  document.getElementById('btn-load').disabled = true;
+
+  const params = new URLSearchParams({ cls, group, session, exam_type: exam, subject_code: subject });
+  try {
+    const r = await fetch(`${API_BASE}/api/tabulation-sheet?${params}`);
+    const d = await r.json();
+    document.getElementById('loading-state').style.display = 'none';
+    document.getElementById('btn-load').disabled = false;
+
+    if (!d.ok) { showErr(d.message || 'Failed to load tabulation sheet.'); return; }
+
+    _sheetData = d;
+    renderSheet(d);
+
+    // Enable print/PDF now that the sheet is rendered
+    document.getElementById('btn-print').disabled = false;
+    document.getElementById('btn-pdf').disabled   = false;
+
+  } catch (e) {
+    document.getElementById('loading-state').style.display = 'none';
+    document.getElementById('btn-load').disabled = false;
+    showErr('Network error. Please try again.');
+  }
+}
+
+function resetSheet() {
+  _sheetData = null;
+  document.getElementById('sheet-preview-wrapper').style.display = 'none';
+  document.getElementById('stat-strip').style.display             = 'none';
+  document.getElementById('btn-print').disabled = true;
+  document.getElementById('btn-pdf').disabled   = true;
+  // Clear QR and sign footer so stale content never shows
+  const qrEl = document.getElementById('ts-qr');
+  if (qrEl) qrEl.innerHTML = '';
+  const sf = document.getElementById('ts-sign-footer');
+  if (sf) sf.style.display = 'none';
+}
+
+// ════════════════════════════════════════════
+//  RENDER TABULATION SHEET
+// ════════════════════════════════════════════
+function renderSheet(d) {
+  const sub     = d.subject;
+  const rows    = d.rows;
+  const hasPrac = sub.hasPrac;
+
+  // Stats strip
+  document.getElementById('stat-total').textContent    = d.summary.total_students;
+  document.getElementById('stat-appeared').textContent = d.summary.total_appeared;
+  document.getElementById('stat-passed').textContent   = d.summary.passed;
+  document.getElementById('stat-failed').textContent   = d.summary.failed;
+  document.getElementById('stat-absent').textContent   = d.summary.absent;
+  document.getElementById('stat-strip').style.display  = '';
+
+  // Document header
+  document.getElementById('ts-college-name').textContent = d.college_name;
+  document.getElementById('ts-exam-line').textContent    =
+    d.exam_type + '  \u2014  ' + d.cls + '  \u2014  Session: ' + d.session;
+
+  // QR code — encodes a compact sheet summary for quick scanning
+  const qrEl = document.getElementById('ts-qr');
+  qrEl.innerHTML = '';   // clear previous
+  const qrText = [
+    d.college_name,
+    'Class: ' + d.cls + ' | Dept: ' + d.group,
+    'Session: ' + d.session + ' | Exam: ' + d.exam_type,
+    'Subject: ' + d.subject.name + ' (Code: ' + d.subject.code + ')',
+    'Total: ' + d.summary.total_students +
+      ' | Appeared: ' + d.summary.total_appeared +
+      ' | Passed: '   + d.summary.passed +
+      ' | Failed: '   + d.summary.failed +
+      ' | Absent: '   + d.summary.absent,
+  ].join('\n');
+  try {
+    const qrWrapper = document.createElement('div');
+    qrEl.appendChild(qrWrapper);
+    new QRCode(qrWrapper, {
+      text:          qrText,
+      width:         72,
+      height:        72,
+      colorDark:     '#000000',
+      colorLight:    '#ffffff',
+      correctLevel:  QRCode.CorrectLevel.M,
+    });
+    const lbl = document.createElement('div');
+    lbl.className   = 'ts-qr-label';
+    lbl.textContent = 'Scan for details';
+    qrEl.appendChild(lbl);
+  } catch (e) {
+    /* QRCode.js not loaded — skip silently */
+  }
+
+  document.getElementById('ts-info-grid').innerHTML = `
+    <div class="ts-info-row"><span class="ts-info-label">Subject:</span><span>${escHtml(sub.name)}</span></div>
+    <div class="ts-info-row"><span class="ts-info-label">Department:</span><span>${escHtml(d.group)}</span></div>
+    <div class="ts-info-row"><span class="ts-info-label">Subject Code:</span><span>${escHtml(sub.code)}</span></div>
+    <div class="ts-info-row"><span class="ts-info-label">Session:</span><span>${escHtml(d.session)}</span></div>
+  `;
+
+  document.getElementById('ts-summary').innerHTML = `
+    <div class="ts-sum-cell">Total Students<span>${d.summary.total_students}</span></div>
+    <div class="ts-sum-cell">Appeared<span>${d.summary.total_appeared}</span></div>
+    <div class="ts-sum-cell">Passed<span style="color:#166534">${d.summary.passed}</span></div>
+    <div class="ts-sum-cell">Failed<span style="color:#b91c1c">${d.summary.failed}</span></div>
+    <div class="ts-sum-cell">Absent<span style="color:#92400e">${d.summary.absent}</span></div>
+  `;
+
+  // Table header — rowspan trick for two-level header
+  const extraCol = hasPrac ? 1 : 0;
+  document.getElementById('ts-thead').innerHTML = `
+    <tr class="ts-hdr-main">
+      <th rowspan="2" style="width:38px;">SL<br>No.</th>
+      <th rowspan="2" style="width:54px;">Roll</th>
+      <th rowspan="2" class="ts-th-name" style="min-width:160px;">Name</th>
+      <th colspan="${2 + extraCol}">Number</th>
+      <th rowspan="2" style="width:54px;">Total<br>Marks</th>
+      <th rowspan="2" style="width:48px;">Grade<br>Points</th>
+      <th rowspan="2" style="width:44px;">Grade</th>
+    </tr>
+    <tr class="ts-hdr-sub">
+      <th style="width:46px;">CQ</th>
+      <th style="width:46px;">MCQ</th>
+      ${hasPrac ? '<th style="width:58px;">Practical</th>' : ''}
+    </tr>
+  `;
+
+  // Table body
+  const tbody = document.getElementById('ts-tbody');
+  if (!rows || rows.length === 0) {
+    const c = 7 + extraCol;
+    tbody.innerHTML = `<tr><td colspan="${c}" style="text-align:center;padding:24px;color:#64748b;">No students found for the selected filters.</td></tr>`;
+  } else {
+    tbody.innerHTML = rows.map(row => {
+      if (row.absent) {
+        return `<tr>
+          <td>${row.sl}</td>
+          <td>${escHtml(row.roll)}</td>
+          <td class="ts-td-name">${escHtml(row.name)}</td>
+          <td class="ts-td-absent">Ab</td>
+          <td class="ts-td-absent">Ab</td>
+          ${hasPrac ? '<td class="ts-td-absent">Ab</td>' : ''}
+          <td class="ts-td-absent">&#8212;</td>
+          <td class="ts-td-absent">&#8212;</td>
+          <td class="ts-td-absent ts-grade ts-grade-Ab">Ab</td>
+        </tr>`;
+      }
+      const gpStr = row.gpa !== null ? Number(row.gpa).toFixed(2) : '&#8212;';
+      return `<tr>
+        <td>${row.sl}</td>
+        <td>${escHtml(row.roll)}</td>
+        <td class="ts-td-name">${escHtml(row.name)}</td>
+        <td>${row.cq !== null ? row.cq : '&#8212;'}</td>
+        <td>${row.mcq !== null ? row.mcq : '&#8212;'}</td>
+        ${hasPrac ? `<td>${row.prac !== null ? row.prac : '&#8212;'}</td>` : ''}
+        <td><strong>${row.total !== null ? row.total : '&#8212;'}</strong></td>
+        <td>${gpStr}</td>
+        <td class="${gradeClass(row.grade)}">${row.grade}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  // Signatures — render once after the table (last page only, not repeating)
+  const signFooter = document.getElementById('ts-sign-footer');
+  signFooter.innerHTML = `
+    <div class="ts-sign-box">
+      <div class="ts-sign-line"></div>
+      <div class="ts-sign-label">Chief Examiner</div>
+      <div class="ts-sign-title">Signature &amp; Date</div>
+    </div>
+    <div class="ts-sign-box">
+      <div class="ts-sign-line"></div>
+      <div class="ts-sign-label">Principal</div>
+      <div class="ts-sign-title">Moinuddin Adarsha Mohila College, Sylhet</div>
+    </div>
+  `;
+  signFooter.style.display = '';
+
+  // Show the preview
+  document.getElementById('empty-state').style.display          = 'none';
+  document.getElementById('sheet-preview-wrapper').style.display = '';
+}
+
+// ════════════════════════════════════════════
+//  PRINT / PDF
+// ════════════════════════════════════════════
+function printSheet() {
+  window.print();
+}
+
+async function downloadPDF() {
+  const el = document.getElementById('tabulation-sheet');
+  if (!el || !_sheetData) return;
+
+  const sub  = _sheetData.subject || {};
+  const cls  = document.getElementById('sel-cls').value;
+  const exam = document.getElementById('sel-exam').value;
+  const filename = ('Tabulation_' + cls + '_' + (sub.code || 'sheet') + '_' + exam + '.pdf').replace(/\s+/g, '_');
+
+  const btn = document.getElementById('btn-pdf');
+  btn.disabled = true;
+  btn.textContent = 'Generating PDF\u2026';
+
+  try {
+    await html2pdf().set({
+      margin:      [8, 6, 8, 6],
+      filename:    filename,
+      image:       { type: 'jpeg', quality: 0.97 },
+      html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+      jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak:   { mode: ['css', 'legacy'] },
+    }).from(el).save();
+  } catch (e) {
+    showErr('PDF generation failed. Please try using the Print button instead.');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '&#128196; Download PDF';
+  }
+}
+
+// ════════════════════════════════════════════
+//  PAGE TRANSITION LOADER
+// ════════════════════════════════════════════
+(function() {
+  const loader = document.getElementById('page-loader');
+  if (!loader) return;
+  const show = () => loader.classList.add('visible');
+  const hide = () => loader.classList.remove('visible');
+  document.addEventListener('click', function(e) {
+    const anchor = e.target.closest('a');
+    if (!anchor || !anchor.href) return;
+    const target = anchor.getAttribute('target');
+    const href   = anchor.getAttribute('href');
+    if (target === '_blank' || target === '_top' || target === '_parent') return;
+    if (!href || href.trim().startsWith('javascript:') || href.trim().startsWith('#')) return;
+    const url = new URL(anchor.href, location.href);
+    if (url.origin !== location.origin) return;
+    if (url.pathname === location.pathname && url.search === location.search) return;
+    e.preventDefault();
+    show();
+    setTimeout(() => { window.location.href = url.href; }, 180);
+  }, true);
+  window.addEventListener('beforeunload', show);
+  window.addEventListener('pageshow', hide);
+})();
+</script>
+
+</body>
+</html>

@@ -368,6 +368,13 @@ def bulk_photo_page():
 def analytics_page():
     return _serve_html('analytics.html')
 
+@app.route('/result_analytics.html')
+def result_analytics_page():
+    """Result Analytics — tabulation sheet generator page."""
+    if not session.get('authenticated'):
+        return redirect('/login')
+    return _serve_html('result_analytics.html')
+
 @app.route('/result_summery.html')
 def result_summery_page():
     """Public result summary page — accessible via QR code scan, no auth required."""
@@ -388,6 +395,220 @@ def html_pages(page):
         return redirect('/login')
     # Use _serve_html to ensure the global font and API scripts are correctly injected
     return _serve_html(page, inject_api=(page not in ('login.html', 'student-portal.html', 'result_summery.html')))
+
+
+# ─────────────────────────────────────────────
+# RESULT ANALYTICS — Tabulation Sheet API
+# ─────────────────────────────────────────────
+
+@app.route('/api/tabulation-sheet/filters', methods=['GET'])
+@require_auth
+def tabulation_filters():
+    """
+    Return distinct sessions, exam_types and subject list for a cls + group.
+    Used to populate cascading filter dropdowns on the Result Analytics page.
+    Query params: cls, group
+    """
+    cls_val   = (request.args.get('cls')   or '').strip()
+    group_val = (request.args.get('group') or '').strip()
+
+    if not cls_val or not group_val:
+        return jsonify({'ok': False, 'message': 'cls and group are required'}), 400
+
+    import copy as _copy
+
+    # Distinct sessions from matching students
+    students = Student.query.filter_by(cls=cls_val, group=group_val).all()
+    sessions_set = set()
+    for s in students:
+        val = (s.session or s.year or '').strip()
+        if val:
+            sessions_set.add(val)
+    sessions = sorted(sessions_set, reverse=True)
+
+    # Distinct exam_types from marks of these students
+    student_ids = [s.id for s in students]
+    exam_types_set = set()
+    if student_ids:
+        marks_rows = Mark.query.filter(Mark.student_id.in_(student_ids)).all()
+        for m in marks_rows:
+            if m.exam_type:
+                exam_types_set.add(m.exam_type)
+    exam_types = sorted(exam_types_set)
+
+    # Subject list filtered by paper (same logic used everywhere in codebase)
+    raw_subs = _copy.deepcopy(SUBJECT_LIST.get(group_val, []))
+    if cls_val == 'Class-XI':
+        raw_subs = [s for s in raw_subs if not ('2nd' in s['name'] or '2nd Paper' in s['name'] or s['name'].endswith(' 2nd'))]
+    elif cls_val == 'Class-XII':
+        raw_subs = [s for s in raw_subs if not ('1st' in s['name'] or '1st Paper' in s['name'] or s['name'].endswith(' 1st'))]
+    temp = []
+    for sub in raw_subs:
+        s = _copy.deepcopy(sub)
+        if s['code'] in ['116', '267']:
+            suffix = ' 1st Paper' if cls_val == 'Class-XI' else ' 2nd Paper'
+            s['name'] = s['name'].replace(' 1st Paper', '').replace(' 2nd Paper', '') + suffix
+        temp.append(s)
+
+    return jsonify({
+        'ok': True,
+        'sessions':   sessions,
+        'exam_types': exam_types,
+        'subjects':   [{'name': s['name'], 'code': s['code'], 'hasPrac': s.get('hasPrac', False)} for s in temp],
+    })
+
+
+@app.route('/api/tabulation-sheet', methods=['GET'])
+@require_auth
+def get_tabulation_sheet():
+    """
+    Return all data required to render one tabulation sheet for a specific
+    class / group / session / exam_type / subject_code combination.
+
+    Query params:
+        cls          — e.g. 'Class-XI'
+        group        — 'Science' | 'Humanities' | 'Business'
+        session      — e.g. '2024-2025'
+        exam_type    — e.g. 'First Terminal'
+        subject_code — e.g. '101'
+    """
+    cls_val      = (request.args.get('cls')          or '').strip()
+    group_val    = (request.args.get('group')         or '').strip()
+    session_val  = (request.args.get('session')       or '').strip().replace('\u2013', '-').replace('\u2014', '-')
+    exam_type    = (request.args.get('exam_type')     or '').strip()
+    subject_code = (request.args.get('subject_code')  or '').strip()
+
+    if not all([cls_val, group_val, session_val, exam_type, subject_code]):
+        return jsonify({'ok': False,
+                        'message': 'cls, group, session, exam_type and subject_code are all required'}), 400
+
+    import copy as _copy
+
+    # Resolve subject metadata from the canonical SUBJECT_LIST
+    raw_subs = _copy.deepcopy(SUBJECT_LIST.get(group_val, []))
+    if cls_val == 'Class-XI':
+        raw_subs = [s for s in raw_subs if not ('2nd' in s['name'] or '2nd Paper' in s['name'] or s['name'].endswith(' 2nd'))]
+    elif cls_val == 'Class-XII':
+        raw_subs = [s for s in raw_subs if not ('1st' in s['name'] or '1st Paper' in s['name'] or s['name'].endswith(' 1st'))]
+    temp = []
+    for sub in raw_subs:
+        s = _copy.deepcopy(sub)
+        if s['code'] in ['116', '267']:
+            suffix = ' 1st Paper' if cls_val == 'Class-XI' else ' 2nd Paper'
+            s['name'] = s['name'].replace(' 1st Paper', '').replace(' 2nd Paper', '') + suffix
+        temp.append(s)
+
+    subject_meta = next((s for s in temp if s['code'] == subject_code), None)
+    if subject_meta is None:
+        return jsonify({'ok': False,
+                        'message': f'Subject code {subject_code} not found for {group_val} / {cls_val}'}), 404
+
+    # Fetch students sorted by roll number
+    students = Student.query.filter_by(cls=cls_val, group=group_val).filter(
+        (Student.session == session_val) | (Student.year == session_val)
+    ).all()
+
+    # Sort numerically where possible, then alphabetically
+    def _roll_key(s):
+        try:
+            return (0, int(s.roll))
+        except (ValueError, TypeError):
+            return (1, s.roll or '')
+
+    students = sorted(students, key=_roll_key)
+
+    if not students:
+        college_setting = Setting.query.filter_by(key='collegeName').first()
+        return jsonify({
+            'ok': True,
+            'rows': [],
+            'summary': {'total_students': 0, 'total_appeared': 0, 'passed': 0, 'failed': 0, 'absent': 0},
+            'subject': subject_meta,
+            'cls': cls_val, 'group': group_val,
+            'session': session_val, 'exam_type': exam_type,
+            'college_name': (college_setting.value if college_setting else '') or 'Moinuddin Adarsha Mohila College, Sylhet',
+        })
+
+    student_ids = [s.id for s in students]
+
+    # Fetch marks for this exam_type + subject_code only (efficient single query)
+    mark_rows = Mark.query.filter(
+        Mark.student_id.in_(student_ids),
+        Mark.exam_type    == exam_type,
+        Mark.subject_code == subject_code,
+    ).all()
+    mark_map = {m.student_id: m for m in mark_rows}
+
+    cq_max   = subject_meta.get('cqMax',  70)
+    mcq_max  = subject_meta.get('mcqMax', 30)
+    has_prac = bool(subject_meta.get('hasPrac'))
+
+    rows = []
+    total_appeared = passed = failed = absent_count = 0
+
+    for idx, stu in enumerate(students, 1):
+        m = mark_map.get(stu.id)
+
+        # Absent if: no mark row, explicit absent flag, or cq+mcq both empty
+        if m is None:
+            is_absent = True
+        elif m.absent:
+            is_absent = True
+        elif str(m.cq or '') == '' and str(m.mcq or '') == '':
+            is_absent = True
+        else:
+            is_absent = False
+
+        if is_absent:
+            absent_count += 1
+            rows.append({
+                'sl': idx, 'roll': stu.roll, 'name': stu.name,
+                'cq': None, 'mcq': None, 'prac': None,
+                'total': None, 'gpa': None, 'grade': 'Ab', 'absent': True,
+            })
+            continue
+
+        total_appeared += 1
+        cq   = min(int(m.cq   or 0), cq_max)
+        mcq  = min(int(m.mcq  or 0), mcq_max)
+        prac = min(int(m.prac or 0), 25) if has_prac else 0
+        total = cq + mcq + prac
+        grade_letter, gpa_point = _grade_letter(total)
+
+        if grade_letter == 'F':
+            failed += 1
+        else:
+            passed += 1
+
+        rows.append({
+            'sl': idx, 'roll': stu.roll, 'name': stu.name,
+            'cq': cq, 'mcq': mcq,
+            'prac': prac if has_prac else None,
+            'total': total, 'gpa': gpa_point, 'grade': grade_letter,
+            'absent': False,
+        })
+
+    college_setting = Setting.query.filter_by(key='collegeName').first()
+    college_name = (college_setting.value if college_setting else '') or \
+                   'Moinuddin Adarsha Mohila College, Sylhet'
+
+    return jsonify({
+        'ok':           True,
+        'college_name': college_name,
+        'cls':          cls_val,
+        'group':        group_val,
+        'session':      session_val,
+        'exam_type':    exam_type,
+        'subject':      subject_meta,
+        'summary': {
+            'total_students': len(students),
+            'total_appeared': total_appeared,
+            'passed':         passed,
+            'failed':         failed,
+            'absent':         absent_count,
+        },
+        'rows': rows,
+    })
 
 
 # ─────────────────────────────────────────────
