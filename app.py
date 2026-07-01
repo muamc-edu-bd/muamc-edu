@@ -61,8 +61,23 @@ if _db_url.startswith('postgresql'):
     }
 
 # Secret key for server-side session (session cookie auth)
-app.secret_key = os.environ.get('SECRET_KEY') or secrets.token_hex(32)
-CORS(app, supports_credentials=True)
+_secret_key = os.environ.get('SECRET_KEY')
+if not _secret_key:
+    import sys
+    print("[WARNING] SECRET_KEY environment variable is not set! "
+          "Session cookies will be invalidated on every server restart. "
+          "Set SECRET_KEY in Render Environment Variables.", file=sys.stderr)
+    _secret_key = secrets.token_hex(32)  # fallback — NOT stable across restarts
+app.secret_key = _secret_key
+
+# Session cookie security — required for HTTPS / production (Render)
+_is_production = bool(os.environ.get('DATABASE_URL'))  # True when using external DB (Render)
+app.config['SESSION_COOKIE_HTTPONLY']  = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'None' if _is_production else 'Lax'
+app.config['SESSION_COOKIE_SECURE']   = _is_production   # HTTPS only in production
+app.config['SESSION_COOKIE_NAME']     = 'hsc_session'
+
+CORS(app, supports_credentials=True, origins='*')
 
 # Initialize database
 db.init_app(app)

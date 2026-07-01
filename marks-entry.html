@@ -1414,6 +1414,7 @@ async function saveBatchMarks(){
             cq: entry.cq !== '' ? parseInt(entry.cq, 10) : 0,
             mcq: entry.mcq !== '' ? parseInt(entry.mcq, 10) : 0,
             prac: entry.prac !== '' ? parseInt(entry.prac, 10) : 0,
+            absent: entry.absent || false,
             ey: session,
             year: session
           };
