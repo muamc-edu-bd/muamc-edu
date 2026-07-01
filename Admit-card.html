@@ -587,6 +587,9 @@
 
       let list = SUBS[group] || [];
       list = list.filter(sub => {
+        if (group === 'Science' && (sub.optionalGroup === 'scienceBio' || sub.optionalGroup === 'scienceMath')) return true;
+        if (group === 'Humanities' && (sub.optionalGroup === 'humLogic' || sub.optionalGroup === 'humHome')) return true;
+        if (group === 'Business' && (sub.optionalGroup === 'busEcon' || sub.optionalGroup === 'busHome')) return true;
         if (!sub.optionalGroup) return true;
         return sub.optionalGroup === studentOptionalId;
       });

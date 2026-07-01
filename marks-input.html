@@ -1534,6 +1534,10 @@ async function loadBatchStudents(){
     // only include students whose optional_subjects field contains this code
     if(foundSub.optionalGroup){
       students = students.filter(s => {
+        const og = foundSub.optionalGroup;
+        if (s.group === 'Science' && (og === 'scienceBio' || og === 'scienceMath')) return true;
+        if (s.group === 'Humanities' && (og === 'humLogic' || og === 'humHome')) return true;
+        if (s.group === 'Business' && (og === 'busEcon' || og === 'busHome')) return true;
         const optStr = String(s.optionalSubjects || s.optional_subjects || '').trim();
         return optStr.includes(code);
       });

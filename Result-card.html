@@ -645,6 +645,62 @@
       return sub.optionalGroup === selectedOptionalId;
     }
 
+    function getOptionalIdByCode(group, code) {
+      if(!code) return null;
+      const opts = OPTIONAL_SUBJECTS[group] || [];
+      const codes = code.toString().trim().split('/').map(c => c.trim()).filter(Boolean);
+      const match = opts.find(opt => codes.some(c => opt.codes.includes(c)));
+      return match ? match.id : null;
+    }
+
+    function computeStudentGPAAndResult(stu, marks, subs) {
+      const optionalSelected = (marks && marks.selectedOptional) || 
+                               getOptionalIdByCode(stu.group, stu.optionalSubjects || stu.optional_subject || stu.optional_subjects);
+      
+      let tGPA = 0, cnt = 0, fail = 0, tMark = 0;
+      let hasAbsent = false;
+      let hasFail = false;
+
+      subs.forEach(sub => {
+        const m = (marks && marks[sub.code]) || {};
+        const absent = !marks || m.absent === true ||
+                       ((m.cq === undefined || m.cq === '') &&
+                        (m.mcq === undefined || m.mcq === ''));
+        
+        const isSelOpt = isOptionalForFailCount(sub, optionalSelected);
+
+        if (absent) {
+          if (!isSelOpt) {
+            hasAbsent = true;
+          }
+        } else {
+          const cq = Math.min(+m.cq || 0, sub.cqMax);
+          const mcq = sub.mcqMax > 0 ? Math.min(+m.mcq || 0, sub.mcqMax) : 0;
+          const prac = sub.hasPrac ? (+m.prac || 0) : 0;
+          const tot = cq + mcq + prac;
+          const g = grade(tot);
+
+          if (isSelOpt) {
+            if (g.g > 2.0) {
+              tGPA += (g.g - 2.0);
+            }
+          } else {
+            tGPA += g.g;
+            cnt++;
+            if (g.l === 'F' || tot < 33) {
+              fail++;
+              hasFail = true;
+            }
+          }
+          tMark += tot;
+        }
+      });
+
+      const passed = !hasAbsent && !hasFail && fail === 0;
+      const gpa = (hasAbsent || hasFail || fail > 0) ? 0.0 : clampGPA(cnt > 0 ? tGPA / cnt : 0);
+      return { totalMark: tMark, gpa, passed, failCount: fail, absent: hasAbsent };
+    }
+
     function grade(m) {
       if (m >= 80) return { l: 'A+', g: 5.0 }; if (m >= 70) return { l: 'A', g: 4.0 };
       if (m >= 60) return { l: 'A-', g: 3.5 }; if (m >= 50) return { l: 'B', g: 3.0 };
@@ -755,48 +811,36 @@
           const examKeys = _marks[stu.id] ? Object.keys(_marks[stu.id]) : [];
           const tgt = et || examKeys[examKeys.length - 1];
           const marks = (tgt && _marks[stu.id] && _marks[stu.id][tgt]) ? _marks[stu.id][tgt] : {};
-          let tGPA = 0, cnt = 0, fail = 0, tMark = 0;
-          let hasAbsent = false;
-          let hasFail = false;
+          
+          const studentSubs = flatSubs(stu.group, stu.cls);
+          const res = computeStudentGPAAndResult(stu, marks, studentSubs);
 
           const subCells = subs.map(sub => {
             const m = marks[sub.code] || {};
+            const absent = !marks || m.absent === true ||
+                           ((m.cq === undefined || m.cq === '') &&
+                            (m.mcq === undefined || m.mcq === ''));
             const cq = Math.min(+m.cq || 0, sub.cqMax);
             const mcq = sub.mcqMax > 0 ? Math.min(+m.mcq || 0, sub.mcqMax) : 0;
             const prac = sub.hasPrac ? (+m.prac || 0) : 0;
-            const theory = cq + mcq, tot = theory + prac, g = grade(tot);
-            // Absent = explicit absent flag OR both cq/mcq not entered
-            const absent = m.absent === true ||
-                           ((m.cq === undefined || m.cq === '') &&
-                            (m.mcq === undefined || m.mcq === ''));
-            if (absent) {
-              hasAbsent = true;
-            } else {
-              tGPA += g.g;
-              cnt++;
-              tMark += tot;
-              if (g.l === 'F' || tot < 33) {
-                fail++;
-                hasFail = true;
-              }
-            }
+            const tot = cq + mcq + prac;
+            const g = grade(tot);
             const fc = (g.l === 'F' || tot < 33) && !absent ? 'color:#b91c1c;font-weight:700;' : '';
-            // MCQ cell: — for no-MCQ subjects or absent
             const mcqCell = sub.mcqMax === 0 ? '<td>—</td>' :
                             `<td style="${fc}">${absent ? '—' : (mcq||0)}</td>`;
             return `<td style="${fc}">${absent ? '—' : (cq||0)}</td>${mcqCell}<td>${sub.hasPrac ? (absent ? '—' : (prac||0)) : '—'}</td>`;
           }).join('');
 
-          const avg = (hasAbsent || hasFail || fail > 0) ? '0.00' : clampGPA(cnt > 0 ? tGPA / cnt : 0).toFixed(2);
-          const passed = !hasAbsent && !hasFail && fail === 0;
+          const avg = res.gpa.toFixed(2);
+          const passed = res.passed;
           html += `<tr>
             <td>${i + 1}</td>
             <td style="text-align:left;font-weight:600;">${stu.name}</td>
             <td>${stu.roll}</td><td>${stu.reg || '—'}</td>
             ${subCells}
-            <td style="font-weight:700;">${tMark || '—'}</td>
-            <td style="font-weight:700;">${tMark ? avg : '—'}</td>
-            <td class="${passed && tMark ? 'bulk-pass' : 'bulk-fail'}">${tMark ? (passed ? 'Pass' : 'Fail') : '—'}</td>
+            <td style="font-weight:700;">${res.totalMark || '—'}</td>
+            <td style="font-weight:700;">${res.totalMark ? avg : '—'}</td>
+            <td class="${passed && res.totalMark ? 'bulk-pass' : 'bulk-fail'}">${res.totalMark ? (passed ? 'Pass' : 'Fail') : '—'}</td>
           </tr>`;
         });
 
@@ -820,33 +864,21 @@
         const examKeys = _marks[stu.id] ? Object.keys(_marks[stu.id]).filter(k => k !== 'selectedOptional') : [];
         const tgt = et || examKeys[examKeys.length - 1];
         const marks = (tgt && _marks[stu.id] && _marks[stu.id][tgt]) ? _marks[stu.id][tgt] : {};
-        let tGPA = 0, cnt = 0, fail = 0, tMark = 0;
-        let hasAbsent = false;
-        let hasFail = false;
+        
+        const studentSubs = flatSubs(stu.group, stu.cls);
+        const res = computeStudentGPAAndResult(stu, marks, studentSubs);
+
         const row = [i+1, stu.name, stu.roll, stu.reg || ''];
         subs.forEach(sub => {
           const m = marks[sub.code] || {};
-          const absent = m.absent === true ||
+          const absent = !marks || m.absent === true ||
                          ((m.cq === undefined || m.cq === '') &&
                           (m.mcq === undefined || m.mcq === ''));
           const cq = Math.min(+m.cq||0,sub.cqMax), mcq = Math.min(+m.mcq||0,sub.mcqMax), prac = sub.hasPrac?(+m.prac||0):0;
-          const tot = cq + mcq + prac;
-          const g_ = grade(tot);
-          if (absent) {
-            hasAbsent = true;
-          } else {
-            tGPA += g_.g;
-            cnt++;
-            tMark += tot;
-            if (g_.l === 'F' || tot < 33) {
-              fail++;
-              hasFail = true;
-            }
-          }
           row.push(absent?'':(cq||0), absent?'':(mcq||0), sub.hasPrac?(absent?'':(prac||0)):'');
         });
-        const avg = (hasAbsent || hasFail || fail > 0) ? '0.00' : clampGPA(cnt>0?tGPA/cnt:0).toFixed(2);
-        row.push(tMark||'', tMark?avg:'', tMark?(!hasAbsent && !hasFail && fail===0?'Pass':'Fail'):'');
+        const avg = res.gpa.toFixed(2);
+        row.push(res.totalMark||'', res.totalMark?avg:'', res.totalMark?(res.passed?'Pass':'Fail'):'');
         rows.push(row);
       });
       const csv = [header,...rows].map(r=>r.map(c=>{const s=String(c).replace(/"/g,'""');return s.includes(',')||s.includes('"')||s.includes('\n')?`"${s}"`:s;}).join(',')).join('\n');
@@ -894,41 +926,18 @@
         const pMarks = db[p.id] || {};
         const pKey = Object.keys(pMarks).includes(examType) ? examType : (Object.keys(pMarks).pop() || null);
         if (!pKey || !pMarks[pKey]) return { id: p.id, gpa: 0, total: 0 };
-        const pm = pMarks[pKey]; const pOpt = pm.selectedOptional;
-        let pGPA = 0, pCnt = 0, pTotal = 0;
-        let pHasAbsent = false;
-        let pHasFail = false;
-        const pSubs = flatSubs(p.group, p.cls);
-        pSubs.forEach(sub => {
-          const m = pm[sub.code] || {};
-          const absent = !m || m.absent === true ||
-                         ((m.cq === undefined || m.cq === '') &&
-                          (m.mcq === undefined || m.mcq === ''));
-          if (absent) {
-            pHasAbsent = true;
-            return;
-          }
-          const cq = Math.min(+m.cq||0,sub.cqMax), mcq = Math.min(+m.mcq||0,sub.mcqMax);
-          const prac = sub.hasPrac?(+m.prac||0):0;
-          const tot = cq + mcq + prac;
-          const { g, l } = grade(tot);
-          if (l === 'F' || tot < 33) {
-            pHasFail = true;
-          }
-          if (isOptionalForFailCount(sub, pOpt)) { if (g > 2.0) pGPA += (g-2.0); }
-          else { pGPA += g; pCnt++; }
-          pTotal += tot;
-        });
-        const finalGPA = (pHasAbsent || pHasFail) ? 0 : (pCnt > 0 ? pGPA/pCnt : 0);
-        return { id: p.id, gpa: finalGPA, total: pTotal };
+        const pm = pMarks[pKey];
+        const res = computeStudentGPAAndResult(p, pm, flatSubs(p.group, p.cls));
+        return { id: p.id, gpa: res.gpa, total: res.totalMark };
       });
       peerScores.sort((a,b) => b.gpa - a.gpa || b.total - a.total);
       const meritPos = peerScores.findIndex(p => p.id === id) + 1;
       const meritTotal = peerScores.length;
 
-      let tGPA = 0, cnt = 0, fail = 0, tMark = 0, mMax = 0, failSubs = [];
-      let hasAbsent = false;
-      let hasFail = false;
+      const studentSubs = flatSubs(stu.group, stu.cls);
+      const resObj = computeStudentGPAAndResult(stu, marks, studentSubs);
+
+      let fail = resObj.failCount, tMark = resObj.totalMark, mMax = 0, failSubs = [];
       const ey = marks.ey || stu.year || '2024-2025';
       const clsLabel = stu.cls;
       const grpLabel = stu.group === 'Business' ? 'Business Studies' : stu.group;
@@ -954,25 +963,16 @@
         if (ci > 0) tableRows += `<tr><td colspan="10" style="background:#e8e8e8;font-weight:700;text-align:center;padding:3px 6px;font-size:8pt;border:1px solid #bbb;">${cat.cat}</td></tr>`;
         cat.items.forEach(sub => {
           const m = marks[sub.code] || {};
-          const absent = m.absent === true || ((m.cq === '' || m.cq === undefined) && (m.mcq === '' || m.mcq === undefined));
+          const absent = !marks || m.absent === true || ((m.cq === '' || m.cq === undefined) && (m.mcq === '' || m.mcq === undefined));
           const cq = Math.min(+m.cq||0, sub.cqMax), mcq = Math.min(+m.mcq||0, sub.mcqMax);
           const prac = sub.hasPrac ? (+m.prac||0) : 0;
           const theory = cq+mcq, tot = theory+prac, g = grade(tot);
           const lg = absent ? 'Ab' : g.l;
           const gpa = absent ? 0 : g.g;
           const isSelOpt = isOptionalForFailCount(sub, optionalSelected);
-          if (absent) {
-            hasAbsent = true;
-          } else {
-            if (isSelOpt) { if (gpa > 2.0) tGPA += (gpa-2.0); }
-            else { tGPA += gpa; cnt++; }
-            tMark += tot;
-            if (g.l === 'F' || tot < 33) {
-              hasFail = true;
-            }
-          }
+          
           mMax += (sub.cqMax||70)+(sub.mcqMax||30)+(sub.hasPrac?25:0);
-          if (lg==='F' && !isSelOpt && !absent) { fail++; failSubs.push(sub.name); }
+          if (lg==='F' && !isSelOpt && !absent) { failSubs.push(sub.name); }
           const isOpt = sub.optionalGroup === optionalSelected;
           const highMark = highestMarks[sub.code] || '—';
           const mcqDisplay = sub.mcqMax === 0 ? '—' : (absent ? 'A' : (m.mcq||'0'));
@@ -991,9 +991,8 @@
         });
       });
 
-      const passed = !hasAbsent && !hasFail && fail === 0;
-      // GPA = 0 if any subject failed or absent
-      const avg = (hasAbsent || hasFail || fail > 0) ? '0.00' : clampGPA(cnt > 0 ? tGPA / cnt : 0).toFixed(2);
+      const passed = resObj.passed;
+      const avg = resObj.gpa.toFixed(2);
       // mMax fallback: if student appeared in nothing, use all subjects total for display
       if (mMax === 0) mMax = cats.flatMap(c => c.items).reduce((a,s) => (a+(s.cqMax||70)+(s.mcqMax||0)+(s.hasPrac?25:0)), 0);
       const optionalSubjText = (() => {

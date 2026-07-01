@@ -685,14 +685,8 @@ def _resolve_optional_subjects(group: str, optional_subject: str) -> list:
         if not sub.get('optional'):
             resolved.append(sub)
             continue
-        # Science group students take BOTH Biology and Higher Mathematics.
-        # One is compulsory elective and the other is optional.
-        if group == 'Science':
-            resolved.append({**sub, 'name': OPT_NAMES.get(sub['code'], sub['name'])})
-        else:
-            # Humanities / Business students only take their chosen optional subject
-            if sub['code'] in opt_codes:
-                resolved.append({**sub, 'name': OPT_NAMES.get(sub['code'], sub['name'])})
+        # All groups take both optional subjects (one compulsory elective, one optional).
+        resolved.append({**sub, 'name': OPT_NAMES.get(sub['code'], sub['name'])})
     return resolved
 
 
@@ -1265,12 +1259,14 @@ def public_result_summary():
         highest_marks[sub['code']] = max_mark
 
     for sub in subs:
+        is_optional = sub.get('optional', False) and (sub['code'] in opt_codes)
         m = stu_marks.get(sub['code'], {})
         # Absent = no mark row, explicit absent flag, or both cq/mcq empty
         absent = (not m) or m.get('absent', False) or \
                  (str(m.get('cq', '')) == '' and str(m.get('mcq', '')) == '')
         if absent:
-            has_absent = True
+            if not is_optional:
+                has_absent = True
             cq = mcq = prac = tot = 0
             lg, gp = 'Ab', 0.0
         else:
@@ -1279,10 +1275,9 @@ def public_result_summary():
             prac = min(int(m.get('prac') or 0), 25) if sub.get('hasPrac') else 0
             tot  = cq + mcq + prac
             lg, gp = _grade_letter(tot)
-            if lg == 'F' or tot < 33:
-                has_fail = True
-
-        is_optional = sub.get('optional', False) and (sub['code'] in opt_codes)
+            if not is_optional:
+                if lg == 'F' or tot < 33:
+                    has_fail = True
 
         if not absent:
             if is_optional:
@@ -1929,22 +1924,13 @@ def export_csv():
                 for sub in subs:
                     is_optional = sub.get('optional', False) and (sub['code'] in student_opt_codes)
 
-                    is_unchosen_optional = False
-                    if sub.get('optional', False) and not is_optional:
-                        # For Science, they take both, so the unchosen one is compulsory rather than skipped.
-                        if g != 'Science':
-                            is_unchosen_optional = True
-
-                    if is_unchosen_optional:
-                        row += ['', '', '']
-                        continue
-
                     m      = stu_marks.get(sub['code'], {})
                     # Absent = no mark row, explicit absent flag, or both cq/mcq empty
                     absent = (not m) or m.get('absent', False) or \
                              (m.get('cq', '') == '' and m.get('mcq', '') == '')
                     if absent:
-                        has_absent = True
+                        if not is_optional:
+                            has_absent = True
                         cq = mcq = prac = tot = 0
                         lg, gp = 'Ab', 0.0
                     else:
@@ -1954,8 +1940,9 @@ def export_csv():
                         theory = cq + mcq
                         tot    = theory + prac
                         lg, gp = _grade_letter(tot)
-                        if lg == 'F' or tot < 33:
-                            has_fail = True
+                        if not is_optional:
+                            if lg == 'F' or tot < 33:
+                                has_fail = True
 
                     if not absent:
                         if is_optional:
@@ -2057,13 +2044,15 @@ def _compute_student_result(sid, marks_data, group, optional_subject='', cls=Non
     has_fail = False
 
     for sub in subs:
+        is_optional = sub.get('optional', False) and (sub['code'] in opt_codes)
         m = stu_marks.get(sub['code'], {})
         # Absent = no mark row, explicit absent flag, or both cq/mcq empty strings
         absent = (not m) or m.get('absent', False) or \
                  (str(m.get('cq', '')) == '' and str(m.get('mcq', '')) == '')
 
         if absent:
-            has_absent = True
+            if not is_optional:
+                has_absent = True
             continue
 
         cq     = min(int(m.get('cq')  or 0), sub.get('cqMax', 70))
@@ -2072,11 +2061,9 @@ def _compute_student_result(sid, marks_data, group, optional_subject='', cls=Non
         theory = cq + mcq
         tot    = theory + prac
         lg, gp = _grade_letter(tot)
-        if lg == 'F' or tot < 33:
-            has_fail = True
-
-        # Check if this subject is the student's optional subject
-        is_optional = sub.get('optional', False) and (sub['code'] in opt_codes)
+        if not is_optional:
+            if lg == 'F' or tot < 33:
+                has_fail = True
 
         if is_optional:
             # 4th subject rule: only GP above 2.0 contributes to GPA
