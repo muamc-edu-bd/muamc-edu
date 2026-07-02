@@ -330,6 +330,7 @@
       <a class="nt" href="/Admit-card.html">Admit Card</a>
       <a class="nt" href="/bulk-photo.html">Bulk Photo Upload</a>
       <a class="nt" href="/analytics.html" style="border-top:1px solid rgba(255,255,255,.08);margin-top:8px;padding-top:16px;">Analytics</a>
+      <a class="nt" href="/result_analytics.html">Result Analytics</a>
     </nav>
   </header>
 
@@ -679,6 +680,7 @@
           const prac = sub.hasPrac ? (+m.prac || 0) : 0;
           const tot = cq + mcq + prac;
           const g = grade(tot);
+          const subPassed = subjectPassed(cq, mcq, prac, sub.hasPrac, sub.mcqMax);
 
           if (isSelOpt) {
             if (g.g > 2.0) {
@@ -687,7 +689,7 @@
           } else {
             tGPA += g.g;
             cnt++;
-            if (g.l === 'F' || tot < 33) {
+            if (g.l === 'F' || !subPassed) {
               fail++;
               hasFail = true;
             }
@@ -706,6 +708,18 @@
       if (m >= 60) return { l: 'A-', g: 3.5 }; if (m >= 50) return { l: 'B', g: 3.0 };
       if (m >= 40) return { l: 'C', g: 2.0 }; if (m >= 33) return { l: 'D', g: 1.0 };
       return { l: 'F', g: 0.0 };
+    }
+    /**
+     * subjectPassed — mirrors Python _subject_passed() on the backend.
+     * Returns true only when ALL applicable components meet their pass mark:
+     *   CQ-only (mcqMax=0):  CQ >= 33
+     *   No practical:        CQ >= 23  AND  MCQ >= 10
+     *   With practical:      CQ >= 17  AND  MCQ >= 8  AND  Practical >= 8
+     */
+    function subjectPassed(cq, mcq, prac, hasPrac, mcqMax) {
+      if (mcqMax === 0) return cq >= 33;        // English 1st/2nd Paper (100-mark CQ-only)
+      if (hasPrac)      return cq >= 17 && mcq >= 8 && prac >= 8;
+      return cq >= 23 && mcq >= 10;
     }
     function clampGPA(v) { const n = parseFloat(v) || 0; return n > 5.0 ? 5.0 : n < 0 ? 0.0 : n; }
     function getLogoSrc() { return 'https://www.muamc.edu.bd/wp-content/uploads/2025/01/logo-muam-scaled.jpeg'; }
@@ -825,7 +839,8 @@
             const prac = sub.hasPrac ? (+m.prac || 0) : 0;
             const tot = cq + mcq + prac;
             const g = grade(tot);
-            const fc = (g.l === 'F' || tot < 33) && !absent ? 'color:#b91c1c;font-weight:700;' : '';
+            const subPassed = subjectPassed(cq, mcq, prac, sub.hasPrac, sub.mcqMax);
+            const fc = (!subPassed || g.l === 'F') && !absent ? 'color:#b91c1c;font-weight:700;' : '';
             const mcqCell = sub.mcqMax === 0 ? '<td>—</td>' :
                             `<td style="${fc}">${absent ? '—' : (mcq||0)}</td>`;
             return `<td style="${fc}">${absent ? '—' : (cq||0)}</td>${mcqCell}<td>${sub.hasPrac ? (absent ? '—' : (prac||0)) : '—'}</td>`;

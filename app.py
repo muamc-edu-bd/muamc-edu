@@ -575,7 +575,10 @@ def get_tabulation_sheet():
         total = cq + mcq + prac
         grade_letter, gpa_point = _grade_letter(total)
 
-        if grade_letter == 'F':
+        # A subject is failed if the student gets an F total OR fails any
+        # individual component (CQ / MCQ / Practical) below its pass mark.
+        sub_passed = _subject_passed(cq, mcq, prac, has_prac, cq_max, mcq_max)
+        if grade_letter == 'F' or not sub_passed:
             failed += 1
         else:
             passed += 1
@@ -1490,14 +1493,23 @@ def public_result_summary():
                 has_absent = True
             cq = mcq = prac = tot = 0
             lg, gp = 'Ab', 0.0
+            sub_passed = True  # absent — does not count as component-level fail
         else:
             cq   = min(int(m.get('cq')  or 0), sub.get('cqMax', 70))
             mcq  = min(int(m.get('mcq') or 0), sub.get('mcqMax', 30))
             prac = min(int(m.get('prac') or 0), 25) if sub.get('hasPrac') else 0
             tot  = cq + mcq + prac
             lg, gp = _grade_letter(tot)
+            # Check component-level pass marks (applies to optional subjects too,
+            # but optional subject failure does NOT cause overall failure)
+            sub_passed = _subject_passed(
+                cq, mcq, prac,
+                bool(sub.get('hasPrac')),
+                sub.get('cqMax', 70),
+                sub.get('mcqMax', 30),
+            )
             if not is_optional:
-                if lg == 'F' or tot < 33:
+                if lg == 'F' or not sub_passed:
                     has_fail = True
 
         if not absent:
@@ -1507,8 +1519,8 @@ def public_result_summary():
             else:
                 total_gpa += gp
                 cnt += 1
-                if lg == 'F':
-                    fail_cnt += 1   # Only F grade = fail, not absence
+                if lg == 'F' or not sub_passed:
+                    fail_cnt += 1   # F grade OR component-level fail
             total_mark += tot
 
         subject_rows.append({
@@ -1524,6 +1536,7 @@ def public_result_summary():
             'is_optional': is_optional,
             'has_prac':    bool(sub.get('hasPrac')),
             'absent':      absent,
+            'sub_passed':  None if absent else bool(sub_passed),
         })
 
     # GPA = 0 if any compulsory subject failed; absent subjects excluded from GPA
@@ -2036,6 +2049,34 @@ def _grade_letter(total):
     return 'F', 0.0
 
 
+def _subject_passed(cq, mcq, prac, has_prac, cq_max=70, mcq_max=30):
+    """
+    Determine whether a student passed a subject based on component-level pass marks.
+
+    Rules:
+      - CQ-only subjects (mcq_max == 0, e.g. English 1st/2nd Paper, 100 marks):
+            CQ pass mark = 33 out of 100
+      - Subjects WITHOUT practical (has_prac=False, cqMax=70, mcqMax=30):
+            CQ pass mark  = 23 out of 70
+            MCQ pass mark = 10 out of 30
+      - Subjects WITH practical (has_prac=True, cqMax=50, mcqMax=25, pracMax=25):
+            CQ pass mark          = 17 out of 50
+            MCQ pass mark         =  8 out of 25
+            Practical pass mark   =  8 out of 25
+
+    Returns True only when ALL applicable components meet their pass mark.
+    A student who fails ANY component fails the subject regardless of total.
+    """
+    if mcq_max == 0:
+        # CQ-only subject (English 1st/2nd Paper — 100 marks, no MCQ)
+        return cq >= 33
+    if has_prac:
+        # Subject with practical: CQ(50) + MCQ(25) + Practical(25)
+        return cq >= 17 and mcq >= 8 and prac >= 8
+    # Subject without practical: CQ(70) + MCQ(30)
+    return cq >= 23 and mcq >= 10
+
+
 SUBJECT_LIST = {
     'Science': [
         {'name': 'Bangla 1st Paper',      'code': '101', 'hasPrac': False, 'cqMax': 70,  'mcqMax': 30, 'optional': False},
@@ -2187,6 +2228,7 @@ def export_csv():
                             has_absent = True
                         cq = mcq = prac = tot = 0
                         lg, gp = 'Ab', 0.0
+                        sub_passed = True  # absent — does not count as component-level fail
                     else:
                         cq     = min(int(m.get('cq')  or 0), sub['cqMax'])
                         mcq    = min(int(m.get('mcq') or 0), sub['mcqMax'])
@@ -2194,8 +2236,16 @@ def export_csv():
                         theory = cq + mcq
                         tot    = theory + prac
                         lg, gp = _grade_letter(tot)
+                        # Check component-level pass marks (applies to optional subjects too,
+                        # but optional subject failure does NOT cause overall failure)
+                        sub_passed = _subject_passed(
+                            cq, mcq, prac,
+                            bool(sub.get('hasPrac')),
+                            sub.get('cqMax', 70),
+                            sub.get('mcqMax', 30),
+                        )
                         if not is_optional:
-                            if lg == 'F' or tot < 33:
+                            if lg == 'F' or not sub_passed:
                                 has_fail = True
 
                     if not absent:
@@ -2205,8 +2255,8 @@ def export_csv():
                         else:
                             total_gpa += gp
                             cnt       += 1
-                            if lg == 'F':
-                                fail_cnt += 1   # Only F grade = fail, not absence
+                            if lg == 'F' or not sub_passed:
+                                fail_cnt += 1   # F grade OR component-level fail
                         total_mark += tot
 
                     row += ['Ab' if absent else cq,
@@ -2315,20 +2365,28 @@ def _compute_student_result(sid, marks_data, group, optional_subject='', cls=Non
         theory = cq + mcq
         tot    = theory + prac
         lg, gp = _grade_letter(tot)
+        # Check component-level pass marks for EVERY subject (including optional).
+        # Optional subject component-level failure does NOT cause overall student failure.
+        sub_passed = _subject_passed(
+            cq, mcq, prac,
+            bool(sub.get('hasPrac')),
+            sub.get('cqMax', 70),
+            sub.get('mcqMax', 30),
+        )
         if not is_optional:
-            if lg == 'F' or tot < 33:
+            if lg == 'F' or not sub_passed:
                 has_fail = True
 
         if is_optional:
             # 4th subject rule: only GP above 2.0 contributes to GPA
             if gp > 2.0:
                 total_gpa += (gp - 2.0)
-            # Optional subject failure does not fail the student
+            # Optional subject failure (including component-level) does NOT fail the student
         else:
             total_gpa += gp
             cnt       += 1
-            if lg == 'F':
-                fail_cnt += 1   # Only F grade (not absence) causes failure
+            if lg == 'F' or not sub_passed:
+                fail_cnt += 1   # F grade OR component-level fail causes fail
 
         total_mark += tot
 

@@ -794,6 +794,18 @@ function grade(m){
   if(m>=40)return{l:'C',g:2.0};if(m>=33)return{l:'D',g:1.0};
   return{l:'F',g:0.0};
 }
+/**
+ * subjectPassed — mirrors Python _subject_passed() on the backend.
+ * Returns true only when ALL applicable components meet their pass mark:
+ *   CQ-only (mcqMax=0):  CQ >= 33
+ *   No practical:        CQ >= 23  AND  MCQ >= 10
+ *   With practical:      CQ >= 17  AND  MCQ >= 8  AND  Practical >= 8
+ */
+function subjectPassed(cq, mcq, prac, hasPrac, mcqMax){
+  if(mcqMax === 0) return cq >= 33;        // English 1st/2nd Paper (100-mark CQ-only)
+  if(hasPrac)      return cq >= 17 && mcq >= 8 && prac >= 8;
+  return cq >= 23 && mcq >= 10;
+}
 function gcls(l){return({'A+':'g-AP','A':'g-A','A-':'g-AM','B':'g-B','C':'g-C','D':'g-D','F':'g-F'})[l]||'g-F';}
 
 /* ═══════════════ STORAGE — API-backed ═══════════════ */
@@ -1293,8 +1305,12 @@ function calcBatchRow(sid){
   }
   totEl.value = tot || 0;
   const g = grade(tot);
-  grEl.textContent = g.l;
-  grEl.className   = 'g-chip ' + gcls(g.l);
+  const subPassed = subjectPassed(cq, mcq, prac, sub.hasPrac, sub.mcqMax || 0);
+  // Show 'F' chip (red) if total is F OR any component individually fails its pass mark
+  const displayLabel = (!subPassed && g.l !== 'F') ? g.l + '⚠' : g.l;
+  const chipClass = (!subPassed || g.l === 'F') ? 'g-chip g-F' : 'g-chip ' + gcls(g.l);
+  grEl.textContent = displayLabel;
+  grEl.className   = chipClass;
 }
 
 /* ─── Toggle absent state for a batch row ─── */
