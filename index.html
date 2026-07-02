@@ -68,15 +68,70 @@
     .pg-hd p { font-size: .78rem; color: var(--muted); margin-top: 3px; }
 
     /* ═══ STAT GRID ═══ */
-    .summary-strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin-bottom: 24px; }
-    .s-tile { background: #fff !important; border-radius: var(--r-md); padding: 16px 14px; color: #000 !important; text-align: center; box-shadow: var(--shadow); border: 1px solid var(--border); }
-    .s-tile.gold { background: #fff !important; }
-    .s-tile.green { background: #fff !important; }
-    .s-tile.amber { background: #fff !important; }
-    .s-tile.red { background: #fff !important; }
-    .s-tile.purple { background: #fff !important; }
+    .summary-strip {
+      display: flex;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding-bottom: 8px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border2) transparent;
+      -webkit-overflow-scrolling: touch;
+    }
+    .summary-strip::-webkit-scrollbar {
+      height: 5px;
+    }
+    .summary-strip::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .summary-strip::-webkit-scrollbar-thumb {
+      background: var(--border2);
+      border-radius: 10px;
+    }
+    .s-tile {
+      flex: 1 1 0px;
+      min-width: 110px;
+      background: #fff !important;
+      border-radius: var(--r-md);
+      padding: 16px 10px;
+      color: var(--txt) !important;
+      text-align: center;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--navy);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .s-tile:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(13,43,69,.12);
+    }
+    .s-tile.gold { border-top-color: var(--gold); }
+    .s-tile.green { border-top-color: var(--green); }
+    .s-tile.amber { border-top-color: var(--amber); }
+    .s-tile.red { border-top-color: var(--red); }
+    .s-tile.purple { border-top-color: var(--purple); }
     .s-val { font-size: 1.6rem; font-weight: 800; line-height: 1; margin-bottom: 5px; }
-    .s-lbl { font-size: .65rem; opacity: .82; letter-spacing: .4px; font-weight: 500; }
+    .s-lbl { font-size: .65rem; opacity: .82; letter-spacing: .4px; font-weight: 600; text-transform: uppercase; color: var(--muted); }
+
+    /* ═══ SHIMMER EFFECT ═══ */
+    .s-shimmer {
+      display: inline-block;
+      width: 45px;
+      height: 24px;
+      background: linear-gradient(90deg, #f1f4f8 25%, #e2e8f0 50%, #f1f4f8 75%);
+      background-size: 200% 100%;
+      animation: s-shimmer-pulse 1.4s infinite ease-in-out;
+      border-radius: 4px;
+      vertical-align: middle;
+    }
+    @keyframes s-shimmer-pulse {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
 
     /* ═══ GROUP TABS (dashboard class panels) ═══ */
   
@@ -165,7 +220,7 @@
       .site-header.active { transform: translateX(0); }
       .main { margin-left: 0; padding: 14px 10px; }
       .fg-grid { grid-template-columns: 1fr; }
-      .summary-strip { grid-template-columns: repeat(3, 1fr); }
+      /* summary-strip grid removed to support flex single-line scrolling */
       .grp-tab-bar { flex-wrap: wrap; }
       .top-nav-bar { padding: 0 16px; }
       .top-nav-logo-text h1 { font-size: .68rem; }
@@ -177,7 +232,7 @@
     }
     @media (min-width: 1280px) {
       .main { padding: 32px 40px; }
-      .summary-strip { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+      /* summary-strip grid removed to support flex single-line scrolling */
     }
 
     /* ═══ EDIT MODAL ═══ */
@@ -209,7 +264,89 @@
       display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
       background: var(--slate); border-radius: 0 0 14px 14px;
     }
-  </style>
+    /* ═══ QUICK ACTIONS ═══ */
+    .quick-actions-section {
+      margin-top: 32px;
+    }
+    .qa-title {
+      font-family: 'Merriweather', serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 16px;
+      border-bottom: 1.5px solid var(--border);
+      padding-bottom: 8px;
+    }
+    .qa-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+    }
+    .qa-card {
+      background: #fff;
+      border-radius: var(--r-md);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      text-decoration: none;
+      color: inherit;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    .qa-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow);
+      border-color: var(--gold2);
+    }
+    .qa-icon-wrapper {
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .qa-icon-wrapper svg {
+      width: 22px;
+      height: 22px;
+    }
+    .qa-icon-wrapper.blue { background: rgba(30, 64, 175, 0.1); color: #1e40af; }
+    .qa-icon-wrapper.orange { background: rgba(217, 119, 6, 0.1); color: #d97706; }
+    .qa-icon-wrapper.green { background: rgba(22, 101, 52, 0.1); color: #166534; }
+    .qa-icon-wrapper.purple { background: rgba(109, 40, 217, 0.1); color: #6d28d9; }
+    .qa-icon-wrapper.teal { background: rgba(13, 148, 136, 0.1); color: #0d9488; }
+    .qa-icon-wrapper.red { background: rgba(185, 28, 28, 0.1); color: #b91c1c; }
+    
+    .qa-info {
+      flex: 1;
+    }
+    .qa-info h4 {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 2px;
+    }
+    .qa-info p {
+      font-size: 0.72rem;
+      color: var(--muted);
+      line-height: 1.3;
+    }
+    .qa-arrow {
+      color: var(--muted);
+      transition: transform 0.2s, color 0.2s;
+      display: flex;
+      align-items: center;
+    }
+    .qa-card:hover .qa-arrow {
+      transform: translateX(4px);
+      color: var(--gold);
+    }
+    </style>
 
 
   <!-- PAGE TRANSITION LOADER -->
@@ -279,11 +416,98 @@
     <div id="tc-dashboard" class="tc active">
       <div class="pg-hd">
         <h2>Dashboard</h2>
-        <p>Overall academic overview of Moinuddin Adarsha Mohila College</p>
-      </div>
+        </div>
 
       <!-- Stat strip -->
-      <div class="summary-strip" id="stat-grid"></div>
+      <div class="summary-strip" id="stat-grid">
+        <div class="s-tile"><div class="s-val"><span class="s-shimmer"></span></div><div class="s-lbl">Total Students</div></div>
+        <div class="s-tile gold"><div class="s-val"><span class="s-shimmer"></span></div><div class="s-lbl">Class XI</div></div>
+        <div class="s-tile gold"><div class="s-val"><span class="s-shimmer"></span></div><div class="s-lbl">Class XII</div></div>
+        <div class="s-tile green"><div class="s-val"><span class="s-shimmer"></span></div><div class="s-lbl">Science Group</div></div>
+        <div class="s-tile amber"><div class="s-val"><span class="s-shimmer"></span></div><div class="s-lbl">Humanities Group</div></div>
+        <div class="s-tile red"><div class="s-val"><span class="s-shimmer"></span></div><div class="s-lbl">Business Group</div></div>
+        <div class="s-tile gold"><div class="s-val"><span class="s-shimmer"></span></div><div class="s-lbl">Results Generated</div></div>
+        <div class="s-tile purple"><div class="s-val"><span class="s-shimmer"></span></div><div class="s-lbl">Photos Attached</div></div>
+      </div>
+
+      <!-- Quick Actions Section -->
+      <div class="quick-actions-section">
+        <h3 class="qa-title">Quick Actions</h3>
+        <div class="qa-grid">
+          <a href="/student-list.html" class="qa-card">
+            <div class="qa-icon-wrapper blue">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <div class="qa-info">
+              <h4>Student Management</h4>
+              <p>Search, view, register or modify students</p>
+            </div>
+            <div class="qa-arrow">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+          </a>
+          <a href="/marks-entry.html" class="qa-card">
+            <div class="qa-icon-wrapper orange">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </div>
+            <div class="qa-info">
+              <h4>Mark Entry</h4>
+              <p>Input and update academic marks and results</p>
+            </div>
+            <div class="qa-arrow">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+          </a>
+          <a href="/Result-card.html" class="qa-card">
+            <div class="qa-icon-wrapper green">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            </div>
+            <div class="qa-info">
+              <h4>Result Card</h4>
+              <p>Generate and view individual student results</p>
+            </div>
+            <div class="qa-arrow">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+          </a>
+          <a href="/Admit-card.html" class="qa-card">
+            <div class="qa-icon-wrapper purple">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </div>
+            <div class="qa-info">
+              <h4>Admit Card</h4>
+              <p>Issue exam admit cards for students</p>
+            </div>
+            <div class="qa-arrow">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+          </a>
+          <a href="/bulk-photo.html" class="qa-card">
+            <div class="qa-icon-wrapper teal">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            </div>
+            <div class="qa-info">
+              <h4>Bulk Photo Upload</h4>
+              <p>Upload profile pictures for multiple students</p>
+            </div>
+            <div class="qa-arrow">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+          </a>
+          <a href="/result_analytics.html" class="qa-card">
+            <div class="qa-icon-wrapper red">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            </div>
+            <div class="qa-info">
+              <h4>Result Analytics</h4>
+              <p>Explore detailed result performance charts</p>
+            </div>
+            <div class="qa-arrow">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+          </a>
+        </div>
+      </div>
 
 
     </div>
@@ -399,20 +623,27 @@
       const sg = $('stat-grid');
       if (sg) {
         const vals = [ss.length, xi, xii, sc, hm, bs, rz, ph];
-        sg.innerHTML = `
-          <div class="s-tile"><div class="s-val">0</div><div class="s-lbl">Total Students</div></div>
-          <div class="s-tile gold"><div class="s-val">0</div><div class="s-lbl">Class XI</div></div>
-          <div class="s-tile gold"><div class="s-val">0</div><div class="s-lbl">Class XII</div></div>
-          <div class="s-tile green"><div class="s-val">0</div><div class="s-lbl">Science Group</div></div>
-          <div class="s-tile amber"><div class="s-val">0</div><div class="s-lbl">Humanities Group</div></div>
-          <div class="s-tile red"><div class="s-val">0</div><div class="s-lbl">Business Group</div></div>
-          <div class="s-tile gold"><div class="s-val">0</div><div class="s-lbl">Results Generated</div></div>
-          <div class="s-tile purple"><div class="s-val">0</div><div class="s-lbl">Photos Attached</div></div>`;
-        setTimeout(() => {
-          sg.querySelectorAll('.s-val').forEach((c, i) => {
-            setTimeout(() => animateCounter(c, vals[i], 1200), i * 100);
+        const valEls = sg.querySelectorAll('.s-val');
+        if (valEls.length === vals.length) {
+          valEls.forEach((el, i) => {
+            animateCounter(el, vals[i], 1200);
           });
-        }, 100);
+        } else {
+          sg.innerHTML = `
+            <div class="s-tile"><div class="s-val">0</div><div class="s-lbl">Total Students</div></div>
+            <div class="s-tile gold"><div class="s-val">0</div><div class="s-lbl">Class XI</div></div>
+            <div class="s-tile gold"><div class="s-val">0</div><div class="s-lbl">Class XII</div></div>
+            <div class="s-tile green"><div class="s-val">0</div><div class="s-lbl">Science Group</div></div>
+            <div class="s-tile amber"><div class="s-val">0</div><div class="s-lbl">Humanities Group</div></div>
+            <div class="s-tile red"><div class="s-val">0</div><div class="s-lbl">Business Group</div></div>
+            <div class="s-tile gold"><div class="s-val">0</div><div class="s-lbl">Results Generated</div></div>
+            <div class="s-tile purple"><div class="s-val">0</div><div class="s-lbl">Photos Attached</div></div>`;
+          setTimeout(() => {
+            sg.querySelectorAll('.s-val').forEach((c, i) => {
+              setTimeout(() => animateCounter(c, vals[i], 1200), i * 100);
+            });
+          }, 100);
+        }
       }
 
       const xiC = $('xi-count'), xiiC = $('xii-count');
