@@ -391,10 +391,10 @@ def html_pages(page):
     if not page.endswith('.html') or '/' in page or '..' in page:
         abort(404)
     # Auth-gate any .html page that is not the login or student-portal page
-    if page not in ('login.html', 'student-portal.html', 'result_summery.html') and not session.get('authenticated'):
+    if page not in ('login.html', 'student-portal.html', 'result_summery.html', 'std_result_view.html') and not session.get('authenticated'):
         return redirect('/login')
     # Use _serve_html to ensure the global font and API scripts are correctly injected
-    return _serve_html(page, inject_api=(page not in ('login.html', 'student-portal.html', 'result_summery.html')))
+    return _serve_html(page, inject_api=(page not in ('login.html', 'student-portal.html', 'result_summery.html', 'std_result_view.html')))
 
 
 # ─────────────────────────────────────────────

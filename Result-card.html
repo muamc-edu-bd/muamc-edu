@@ -202,7 +202,8 @@
       body { background: #fff !important; }
       .top-nav-bar, .site-header, .rc-sel-card, .res-subtab-bar, .btn-row, .pg-hd { display: none !important; }
       .main { padding: 0 !important; margin: 0 !important; }
-      .rc-page { width: 210mm !important; padding: 8mm 10mm !important; font-size: 11pt !important; box-shadow: none !important; }
+      .rc-page { width: 210mm !important; padding: 8mm 10mm !important; font-size: 11pt !important; box-shadow: none !important; page-break-after: always; break-after: page; }
+      .rc-page:last-child { page-break-after: avoid; break-after: avoid; }
       #result-modal { display: none !important; }
     }
 
@@ -346,6 +347,7 @@
     <div class="res-subtab-bar no-print">
       <div class="res-stab active" id="rst-single" onclick="switchResultTab('single')">Individual Result Search</div>
       <div class="res-stab" id="rst-bulk" onclick="switchResultTab('bulk')">Group-wise All Results</div>
+      <div class="res-stab" id="rst-batch" onclick="switchResultTab('batch')">Print All Result Cards</div>
     </div>
 
     <!-- ── Single result panel ── -->
@@ -468,6 +470,71 @@
         <div class="card">
           <div class="card-body">
             <div class="empty-state"><div class="es-rule"></div><p>Please select both Class and Group to view results.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Batch result card print panel ── -->
+    <div id="res-panel-batch" style="display:none;">
+      <div class="card no-print">
+        <div class="card-head">
+          <h3>Filter and Print All Result Cards</h3>
+          <span class="meta">Generate full printable result cards for the entire section</span>
+        </div>
+        <div class="card-body">
+          <div class="fg-grid">
+            <div class="fg">
+              <label>Class *</label>
+              <select id="ptr-class" onchange="loadBatchResultCards()">
+                <option value="">-- Select Class --</option>
+                <option value="Class-XI">Class XI</option>
+                <option value="Class-XII">Class XII</option>
+              </select>
+            </div>
+            <div class="fg">
+              <label>Group *</label>
+              <select id="ptr-group" onchange="loadBatchResultCards()">
+                <option value="">-- Select Group --</option>
+                <option value="Science">Science</option>
+                <option value="Humanities">Humanities</option>
+                <option value="Business">Business Studies</option>
+              </select>
+            </div>
+            <div class="fg">
+              <label>Session *</label>
+              <select id="ptr-session" onchange="loadBatchResultCards()">
+                <option value="">-- Select Session --</option>
+                <option value="2024-2025">2024-2025</option>
+                <option value="2025-2026">2025-2026</option>
+                <option value="2026-2027">2026-2027</option>
+                <option value="2027-2028">2027-2028</option>
+                <option value="2028-2029">2028-2029</option>
+                <option value="2029-2030">2029-2030</option>
+              </select>
+            </div>
+            <div class="fg">
+              <label>Exam Type *</label>
+              <select id="ptr-exam" onchange="loadBatchResultCards()">
+                <option value="">-- Select Exam --</option>
+                <option>Half-Yearly</option>
+                <option>Annual</option>
+                <option>Selection Test</option>
+                <option>Test</option>
+                <option>HSC</option>
+              </select>
+            </div>
+          </div>
+          <div class="btn-row" style="margin-top:14px;">
+            <button class="btn btn-primary" onclick="printBatchResultCards()">Print All Cards</button>
+            <button class="btn btn-gold" onclick="downloadBatchResultCardsPDF()">Download Combined PDF</button>
+          </div>
+        </div>
+      </div>
+      <div id="batch-print-output">
+        <div class="card no-print">
+          <div class="card-body">
+            <div class="empty-state"><div class="es-rule"></div><p>Please select Class, Group, Session and Exam Name to view result cards.</p></div>
           </div>
         </div>
       </div>
@@ -741,8 +808,10 @@
     function switchResultTab(tab) {
       $('rst-single').classList.toggle('active', tab === 'single');
       $('rst-bulk').classList.toggle('active', tab === 'bulk');
+      $('rst-batch').classList.toggle('active', tab === 'batch');
       $('res-panel-single').style.display = tab === 'single' ? '' : 'none';
       $('res-panel-bulk').style.display = tab === 'bulk' ? '' : 'none';
+      $('res-panel-batch').style.display = tab === 'batch' ? '' : 'none';
     }
 
     // ── Search result ──────────────────────────────────────────────────────
@@ -953,7 +1022,16 @@
       const resObj = computeStudentGPAAndResult(stu, marks, studentSubs);
 
       let fail = resObj.failCount, tMark = resObj.totalMark, mMax = 0, failSubs = [];
-      const ey = marks.ey || stu.year || '2024-2025';
+      let ey = '';
+      for (const key in marks) {
+        if (key !== 'selectedOptional' && marks[key] && (marks[key].ey || marks[key].year)) {
+          ey = marks[key].ey || marks[key].year;
+          break;
+        }
+      }
+      if (!ey) {
+        ey = stu.session || stu.year || '2024-2025';
+      }
       const clsLabel = stu.cls;
       const grpLabel = stu.group === 'Business' ? 'Business Studies' : stu.group;
 
@@ -1136,6 +1214,239 @@
         html2canvas: { scale: 2.5, useCORS: true, letterRendering: true, logging: false, windowWidth: 794 },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
       }).from(el).save();
+    }
+
+    // ── Batch results cards generation and print/pdf actions ────────────────
+    function loadBatchResultCards() {
+      const cls = $$('ptr-class'), grp = $$('ptr-group'), sn = $$('ptr-session'), et = $$('ptr-exam');
+      const out = $('batch-print-output');
+
+      if (!cls || !grp || !sn || !et) {
+        out.innerHTML = `<div class="card no-print"><div class="card-body"><div class="empty-state"><div class="es-rule"></div><p>Please select Class, Group, Session and Exam Name to view result cards.</p></div></div></div>`;
+        return;
+      }
+
+      out.innerHTML = `<div class="loading-container no-print"><div class="loading-spinner"></div><div class="loading-text">Generating result cards...</div></div>`;
+
+      setTimeout(() => {
+        let ss = _students.filter(s => s.cls === cls && s.group === grp && (s.session || s.year || '').replace(/–/g, '-') === sn.replace(/–/g, '-'));
+        if (!ss.length) {
+          out.innerHTML = `<div class="card no-print"><div class="card-body"><div class="empty-state"><div class="es-rule"></div><p>No students found.</p></div></div></div>`;
+          return;
+        }
+
+        const db = _marks;
+        const studentSubs = flatSubs(grp, cls);
+
+        // Pre-compute peer scores once for merit positioning
+        const peerScores = ss.map(p => {
+          const pMarks = db[p.id] || {};
+          if (!pMarks[et]) return { id: p.id, gpa: 0, total: 0 };
+          const pm = pMarks[et];
+          const res = computeStudentGPAAndResult(p, pm, studentSubs);
+          return { id: p.id, gpa: res.gpa, total: res.totalMark };
+        });
+        peerScores.sort((a,b) => b.gpa - a.gpa || b.total - a.total);
+        const meritTotal = peerScores.length;
+
+        const cats = getFilteredCats(grp, cls);
+        const ord = n => n+(n===1?'st':n===2?'nd':n===3?'rd':'th');
+        const ts = new Date().toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true});
+
+        let html = '';
+        let generatedCount = 0;
+        const qrcodesToGen = [];
+
+        ss.forEach((stu) => {
+          const marks = db[stu.id] && db[stu.id][et];
+          if (!marks) return; // Skip students with no marks recorded for this exam
+
+          generatedCount++;
+          const optionalSelected = marks.selectedOptional;
+          const resObj = computeStudentGPAAndResult(stu, marks, studentSubs);
+          let fail = resObj.failCount, tMark = resObj.totalMark, mMax = 0, failSubs = [];
+          
+          let ey = '';
+          for (const key in db[stu.id][et]) {
+            if (db[stu.id][et][key] && (db[stu.id][et][key].ey || db[stu.id][et][key].year)) {
+              ey = db[stu.id][et][key].ey || db[stu.id][et][key].year;
+              break;
+            }
+          }
+          if (!ey) ey = stu.session || stu.year || '2024-2025';
+
+          const clsLabel = stu.cls;
+          const grpLabel = stu.group === 'Business' ? 'Business Studies' : stu.group;
+
+          // Compute highest marks
+          const highestMarks = {};
+          studentSubs.forEach(sub => {
+            let maxMark = 0;
+            ss.forEach(p => {
+              const pm = (db[p.id] && db[p.id][et]) ? db[p.id][et] : {};
+              const mm = pm[sub.code] || {};
+              const absent = mm.absent === true || ((mm.cq === '' || mm.cq === undefined) && (mm.mcq === '' || mm.mcq === undefined));
+              if(absent) return;
+              const pcq = Math.min(+mm.cq||0, sub.cqMax), pmcq = Math.min(+mm.mcq||0, sub.mcqMax);
+              const pprac = sub.hasPrac ? (+mm.prac||0) : 0;
+              const ptot = pcq + pmcq + pprac;
+              if (ptot > maxMark) maxMark = ptot;
+            });
+            highestMarks[sub.code] = maxMark || '—';
+          });
+
+          // Subject rows
+          let tableRows = '';
+          cats.forEach((cat, ci) => {
+            if (ci > 0) tableRows += `<tr><td colspan="10" style="background:#e8e8e8;font-weight:700;text-align:center;padding:3px 6px;font-size:8pt;border:1px solid #bbb;">${cat.cat}</td></tr>`;
+            cat.items.forEach(sub => {
+              const m = marks[sub.code] || {};
+              const absent = m.absent === true || ((m.cq === '' || m.cq === undefined) && (m.mcq === '' || m.mcq === undefined));
+              const cq = Math.min(+m.cq||0, sub.cqMax), mcq = Math.min(+m.mcq||0, sub.mcqMax);
+              const prac = sub.hasPrac ? (+m.prac||0) : 0;
+              const theory = cq+mcq, tot = theory+prac, g = grade(tot);
+              const lg = absent ? 'Ab' : g.l;
+              const gpa = absent ? 0 : g.g;
+              const isSelOpt = isOptionalForFailCount(sub, optionalSelected);
+              
+              mMax += (sub.cqMax||70)+(sub.mcqMax||30)+(sub.hasPrac?25:0);
+              if (lg==='F' && !isSelOpt && !absent) { failSubs.push(sub.name); }
+              const isOpt = sub.optionalGroup === optionalSelected;
+              const highMark = highestMarks[sub.code] || '—';
+              tableRows += `<tr style="${g.l==='F'&&!absent?'background:#fff8f8;':''}">
+                <td class="sn">${sub.name}${isOpt?' <span style="font-size:7pt;color:#0d2b45;background:#e8f4f8;padding:1px 4px;border-radius:2px;">(Optional)</span>':''} <span style="font-size:7pt;color:#888;">${sub.code}</span></td>
+                <td>100</td>
+                <td>${absent?'A':(cq||'0')}</td>
+                <td>${absent?'A':(mcq||'0')}</td>
+                <td>${sub.hasPrac?(absent?'A':(prac||'0')):'—'}</td>
+                <td style="font-weight:600;">${absent?'0':tot}</td>
+                <td style="color:#1e3a8a;font-weight:600;">${highMark}</td>
+                <td>${absent?'0.00':gpa.toFixed(2)}</td>
+                <td style="font-weight:700;${g.l==='F'&&!isOpt?'color:#b91c1c;':''}">${lg}</td>
+                <td></td>
+              </tr>`;
+            });
+          });
+
+          const passed = resObj.passed;
+          const avg = resObj.gpa.toFixed(2);
+          if (mMax === 0) mMax = cats.flatMap(c => c.items).reduce((a,s) => (a+(s.cqMax||70)+(s.mcqMax||0)+(s.hasPrac?25:0)), 0);
+          
+          const optionalSubjText = (() => {
+            if (!optionalSelected) return 'N/A';
+            const found = (OPTIONAL_SUBJECTS[stu.group] || []).find(o => o.id === optionalSelected);
+            return found ? found.label : 'N/A';
+          })();
+
+          const meritPos = peerScores.findIndex(p => p.id === stu.id) + 1;
+          const photoBlock = stu.photo ? `<img src="${stu.photo}" class="rc-stu-photo" alt="Photo">` : `<div class="rc-stu-photo-ph">Photo<br>Not<br>Available</div>`;
+
+          const qrContainerId = `rc-qr-batch-${stu.id}`;
+          const qrTxt = `Student: ${stu.name}\nRoll: ${stu.roll}\nReg: ${stu.reg||'N/A'}\nClass: ${clsLabel} | Group: ${grpLabel}\nExam: ${et} ${ey}\nTotal: ${tMark}/${mMax} | GPA: ${avg}\nResult: ${passed?'PASS':'FAIL'}`;
+          qrcodesToGen.push({ id: qrContainerId, text: qrTxt });
+
+          html += `<div class="rc-page" style="margin-bottom: 20px; box-shadow: var(--shadow-sm); border: 1px solid var(--border);">
+            <div class="rc-college-hdr">
+              <div class="rc-col-left">${photoBlock}<div class="rc-stu-photo-lbl">Candidate's Photo</div></div>
+              <div class="rc-col-mid">
+                <h1>MOINUDDIN ADARSHA MOHILA COLLEGE</h1>
+                <img src="${getLogoSrc()}" class="rc-college-logo" alt="Logo">
+                <p>Shamimabad, Bagbari, Sylhet.</p>
+                <span class="transcript-lbl">Academic Transcript</span>
+              </div>
+              <div class="rc-col-right">
+                <table><tr><th>Range</th><th>LG</th><th>GPA</th></tr>
+                <tr><td>80-100</td><td>A+</td><td>5.0</td></tr><tr><td>70-79</td><td>A</td><td>4.0</td></tr>
+                <tr><td>60-69</td><td>A-</td><td>3.5</td></tr><tr><td>50-59</td><td>B</td><td>3.0</td></tr>
+                <tr><td>40-49</td><td>C</td><td>2.0</td></tr><tr><td>33-39</td><td>D</td><td>1.0</td></tr>
+                <tr><td>0-32</td><td>F</td><td>0.0</td></tr></table>
+              </div>
+            </div>
+            <div class="rc-stu-block">
+              <div class="rc-stu-row"><div class="rc-stu-lbl">Student Name</div><div>: ${stu.name}</div></div>
+              <div class="rc-stu-row"><div class="rc-stu-lbl">Father's Name</div><div>: ${stu.father||'N/A'}</div></div>
+              <div class="rc-stu-row"><div class="rc-stu-lbl">Mother's Name</div><div>: ${stu.mother||'N/A'}</div></div>
+              <div class="rc-stu-row"><div class="rc-stu-lbl">Class</div><div>: ${clsLabel}</div></div>
+              <div class="rc-stu-row"><div class="rc-stu-lbl">Roll Number</div><div>: ${stu.roll}</div></div>
+              <div class="rc-stu-row"><div class="rc-stu-lbl">Registration</div><div>: ${stu.reg||'N/A'}</div></div>
+              <div class="rc-stu-row"><div class="rc-stu-lbl">Group</div><div>: ${grpLabel}</div></div>
+              <div class="rc-stu-row"><div class="rc-stu-lbl">Examination</div><div>: ${et} ${ey}</div></div>
+            </div>
+            <div class="rc-exam-hdr">${et} Examination ${ey}</div>
+            <table class="rc-marks-tbl">
+              <tr><th class="lft">Subject</th><th>Total</th><th>CQ</th><th>MCQ</th><th>Practical</th><th>Total</th><th>Highest Mark</th><th>GPA</th><th>LG</th><th></th></tr>
+              ${tableRows}
+              <tfoot>
+                <tr><td style="text-align:left;padding-left:6px;"><strong>Total GPA &amp; Result</strong></td><td></td><td></td><td></td><td></td>
+                <td style="font-weight:600;">${tMark}/${mMax}</td><td></td>
+                <td style="font-weight:700;">${avg}</td>
+                <td style="font-weight:700;">${passed?'<span style="color:#dcfce7;">Pass</span>':'<span style="color:#fecaca;">Fail</span>'}</td><td></td></tr>
+              </tfoot>
+            </table>
+            <div class="rc-bottom">
+              <div class="rc-summary-box"><table>
+                <tr><td><strong>Total Marks Obtained</strong></td><td style="font-weight:700;">${tMark} out of ${mMax}</td></tr>
+                <tr><td>GPA</td><td style="font-weight:700;">${avg}</td></tr>
+                <tr><td>Result</td><td style="font-weight:700;${passed?'color:#166534;':'color:#b91c1c;'}">${passed?'PASS':'FAIL'}</td></tr>
+                <tr><td>Optional Subject</td><td style="font-size:8pt;">${optionalSubjText}</td></tr>
+                <tr><td>Merit Position</td><td style="font-weight:600;color:#1e3a8a;">${ord(meritPos)} out of ${meritTotal}</td></tr>
+              </table></div>
+              <div class="rc-qr-center">
+                <div id="${qrContainerId}" style="border:1px solid #ccc;"></div>
+                <div style="font-size:7.5pt;color:#444;margin-top:4px;text-align:center;font-weight:600;">Scan QR Code</div>
+              </div>
+            </div>
+            <div style="margin-top:5px;padding:6px 10px;border:1.5px solid #bbb;font-size:9.5pt;min-height:32px;"><strong>Remark:</strong>&nbsp;</div>
+            <div class="rc-sign-row">
+              <div class="rc-sign-box"><div class="rc-sign-line"></div><div class="rc-sign-lbl">Class Teacher</div></div>
+              <div class="rc-sign-box"><div class="rc-sign-line"></div><div class="rc-sign-lbl">Guardian</div></div>
+              <div class="rc-sign-box"><div class="rc-sign-line"></div><div class="rc-sign-lbl">Principal</div></div>
+            </div>
+            <div class="rc-gen-note">Generated by Academic Management System — Moinuddin Adarsha Mohila College, Shamimabad, Bagbari, Sylhet.</div>
+            <div style="text-align:center;font-size:7pt;color:#999;margin-top:4px;border-top:1px dashed #ddd;padding-top:4px;">Date &amp; Time of Printing: ${ts}</div>
+          </div>`;
+        });
+
+        if (generatedCount === 0) {
+          out.innerHTML = `<div class="card no-print"><div class="card-body"><div class="empty-state"><div class="es-rule"></div><p>No results recorded for this exam name among the selected student section.</p></div></div></div>`;
+          return;
+        }
+
+        out.innerHTML = html;
+
+        // Generate QR codes
+        qrcodesToGen.forEach(item => {
+          try {
+            new QRCode(document.getElementById(item.id), { text: item.text, width: 60, height: 60, colorDark: '#0d2b45', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
+          } catch(e) { console.error('Batch QR Gen failed for', item.id, e); }
+        });
+
+      }, 400);
+    }
+
+    function printBatchResultCards() {
+      const container = $('batch-print-output');
+      const pages = container.querySelectorAll('.rc-page');
+      if (!pages.length) { alert('No result cards generated to print.'); return; }
+      window.print();
+    }
+
+    function downloadBatchResultCardsPDF() {
+      const cls = $$('ptr-class'), grp = $$('ptr-group'), sn = $$('ptr-session'), et = $$('ptr-exam');
+      if (!cls || !grp || !sn || !et) { alert('Please select Class, Group, Session and Exam.'); return; }
+      
+      const container = $('batch-print-output');
+      const pages = container.querySelectorAll('.rc-page');
+      if (!pages.length) { alert('No result cards generated to download.'); return; }
+
+      html2pdf().set({
+        margin: [0,0,0,0],
+        filename: `Result_Cards_Batch_${grp}_${cls}_${sn}_${et}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2.0, useCORS: true, letterRendering: true, logging: false, windowWidth: 794 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['css', 'legacy'] }
+      }).from(container).save();
     }
 
     // ── Auth ───────────────────────────────────────────────────────────────
