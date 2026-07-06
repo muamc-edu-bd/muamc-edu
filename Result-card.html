@@ -748,6 +748,10 @@
           const tot = cq + mcq + prac;
           const g = grade(tot);
           const subPassed = subjectPassed(cq, mcq, prac, sub.hasPrac, sub.mcqMax);
+          if (!subPassed) {
+            g.l = 'F';
+            g.g = 0.0;
+          }
 
           if (isSelOpt) {
             if (g.g > 2.0) {
@@ -756,7 +760,7 @@
           } else {
             tGPA += g.g;
             cnt++;
-            if (g.l === 'F' || !subPassed) {
+            if (g.l === 'F') {
               fail++;
               hasFail = true;
             }
@@ -1060,8 +1064,9 @@
           const cq = Math.min(+m.cq||0, sub.cqMax), mcq = Math.min(+m.mcq||0, sub.mcqMax);
           const prac = sub.hasPrac ? (+m.prac||0) : 0;
           const theory = cq+mcq, tot = theory+prac, g = grade(tot);
-          const lg = absent ? 'Ab' : g.l;
-          const gpa = absent ? 0 : g.g;
+          const subPassed = absent ? true : subjectPassed(cq, mcq, prac, sub.hasPrac, sub.mcqMax);
+          const lg = absent ? 'Ab' : (subPassed ? g.l : 'F');
+          const gpa = absent ? 0 : (subPassed ? g.g : 0);
           const isSelOpt = isOptionalForFailCount(sub, optionalSelected);
           
           mMax += (sub.cqMax||70)+(sub.mcqMax||30)+(sub.hasPrac?25:0);
@@ -1069,7 +1074,7 @@
           const isOpt = sub.optionalGroup === optionalSelected;
           const highMark = highestMarks[sub.code] || '—';
           const mcqDisplay = sub.mcqMax === 0 ? '—' : (absent ? 'A' : (m.mcq||'0'));
-          tableRows += `<tr style="${g.l==='F'&&!absent?'background:#fff8f8;':''}">
+          tableRows += `<tr style="${lg==='F'&&!absent?'background:#fff8f8;':''}">
             <td class="sn">${sub.name}${isOpt?' <span style="font-size:7pt;color:#0d2b45;background:#e8f4f8;padding:1px 4px;border-radius:2px;">(Optional)</span>':''} <span style="font-size:7pt;color:#888;">${sub.code}</span></td>
             <td>100</td>
             <td>${absent?'A':(cq||'0')}</td>
@@ -1305,15 +1310,16 @@
               const cq = Math.min(+m.cq||0, sub.cqMax), mcq = Math.min(+m.mcq||0, sub.mcqMax);
               const prac = sub.hasPrac ? (+m.prac||0) : 0;
               const theory = cq+mcq, tot = theory+prac, g = grade(tot);
-              const lg = absent ? 'Ab' : g.l;
-              const gpa = absent ? 0 : g.g;
+              const subPassed = absent ? true : subjectPassed(cq, mcq, prac, sub.hasPrac, sub.mcqMax);
+              const lg = absent ? 'Ab' : (subPassed ? g.l : 'F');
+              const gpa = absent ? 0 : (subPassed ? g.g : 0);
               const isSelOpt = isOptionalForFailCount(sub, optionalSelected);
               
               mMax += (sub.cqMax||70)+(sub.mcqMax||30)+(sub.hasPrac?25:0);
               if (lg==='F' && !isSelOpt && !absent) { failSubs.push(sub.name); }
               const isOpt = sub.optionalGroup === optionalSelected;
               const highMark = highestMarks[sub.code] || '—';
-              tableRows += `<tr style="${g.l==='F'&&!absent?'background:#fff8f8;':''}">
+              tableRows += `<tr style="${lg==='F'&&!absent?'background:#fff8f8;':''}">
                 <td class="sn">${sub.name}${isOpt?' <span style="font-size:7pt;color:#0d2b45;background:#e8f4f8;padding:1px 4px;border-radius:2px;">(Optional)</span>':''} <span style="font-size:7pt;color:#888;">${sub.code}</span></td>
                 <td>100</td>
                 <td>${absent?'A':(cq||'0')}</td>

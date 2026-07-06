@@ -1237,7 +1237,7 @@ function calcRow(code,hasPrac,cqMax,mcqMax){
   const chip=$('gch-'+code);
   const subPassed=subjectPassed(cq,mcq,prac,hasPrac,mcqMax);
   // Show F chip (red) if total is F OR any component fails its pass mark
-  const displayLabel=(!subPassed&&g.l!=='F')?g.l+'⚠':g.l;
+  const displayLabel=!subPassed?'F':g.l;
   const chipClass=(!subPassed||g.l==='F')?'g-chip g-F':'g-chip '+gcls(g.l);
   chip.textContent=displayLabel;
   chip.className=chipClass;
@@ -1726,7 +1726,7 @@ function calcBatchRow(sid){
   const g = grade(tot);
   const subPassed = subjectPassed(cq, mcq, prac, sub.hasPrac, sub.mcqMax || 0);
   // Show F chip (red) if total is F OR any component individually fails its pass mark
-  const displayLabel = (!subPassed && g.l !== 'F') ? g.l + '⚠' : g.l;
+  const displayLabel = !subPassed ? 'F' : g.l;
   const chipClass = (!subPassed || g.l === 'F') ? 'g-chip g-F' : 'g-chip ' + gcls(g.l);
   grEl.textContent = displayLabel;
   grEl.className   = chipClass;

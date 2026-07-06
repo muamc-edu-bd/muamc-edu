@@ -468,7 +468,6 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--slate);color:var(--
   <a href="index.html" class="back-link no-print">← Back to Dashboard</a>
 
   <div class="pg-hd"><h2>Admin Mark Entry</h2><p>Enter marks for all students of a subject at once using <strong>Subject Batch Mode</strong>.</p></div>
-
   <!-- ═════════════════ SUBJECT BATCH MODE SECTION ═════════════════ -->
   <div id="batch-mode-section">
 
@@ -1307,7 +1306,7 @@ function calcBatchRow(sid){
   const g = grade(tot);
   const subPassed = subjectPassed(cq, mcq, prac, sub.hasPrac, sub.mcqMax || 0);
   // Show 'F' chip (red) if total is F OR any component individually fails its pass mark
-  const displayLabel = (!subPassed && g.l !== 'F') ? g.l + '⚠' : g.l;
+  const displayLabel = !subPassed ? 'F' : g.l;
   const chipClass = (!subPassed || g.l === 'F') ? 'g-chip g-F' : 'g-chip ' + gcls(g.l);
   grEl.textContent = displayLabel;
   grEl.className   = chipClass;

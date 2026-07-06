@@ -578,7 +578,11 @@ def get_tabulation_sheet():
         # A subject is failed if the student gets an F total OR fails any
         # individual component (CQ / MCQ / Practical) below its pass mark.
         sub_passed = _subject_passed(cq, mcq, prac, has_prac, cq_max, mcq_max)
-        if grade_letter == 'F' or not sub_passed:
+        if not sub_passed:
+            grade_letter = 'F'
+            gpa_point = 0.0
+
+        if grade_letter == 'F':
             failed += 1
         else:
             passed += 1
@@ -1508,8 +1512,12 @@ def public_result_summary():
                 sub.get('cqMax', 70),
                 sub.get('mcqMax', 30),
             )
+            if not sub_passed:
+                lg = 'F'
+                gp = 0.0
+
             if not is_optional:
-                if lg == 'F' or not sub_passed:
+                if lg == 'F':
                     has_fail = True
 
         if not absent:
@@ -1519,7 +1527,7 @@ def public_result_summary():
             else:
                 total_gpa += gp
                 cnt += 1
-                if lg == 'F' or not sub_passed:
+                if lg == 'F':
                     fail_cnt += 1   # F grade OR component-level fail
             total_mark += tot
 
@@ -2244,8 +2252,12 @@ def export_csv():
                             sub.get('cqMax', 70),
                             sub.get('mcqMax', 30),
                         )
+                        if not sub_passed:
+                            lg = 'F'
+                            gp = 0.0
+
                         if not is_optional:
-                            if lg == 'F' or not sub_passed:
+                            if lg == 'F':
                                 has_fail = True
 
                     if not absent:
@@ -2255,7 +2267,7 @@ def export_csv():
                         else:
                             total_gpa += gp
                             cnt       += 1
-                            if lg == 'F' or not sub_passed:
+                            if lg == 'F':
                                 fail_cnt += 1   # F grade OR component-level fail
                         total_mark += tot
 
@@ -2373,8 +2385,12 @@ def _compute_student_result(sid, marks_data, group, optional_subject='', cls=Non
             sub.get('cqMax', 70),
             sub.get('mcqMax', 30),
         )
+        if not sub_passed:
+            lg = 'F'
+            gp = 0.0
+
         if not is_optional:
-            if lg == 'F' or not sub_passed:
+            if lg == 'F':
                 has_fail = True
 
         if is_optional:
@@ -2385,7 +2401,7 @@ def _compute_student_result(sid, marks_data, group, optional_subject='', cls=Non
         else:
             total_gpa += gp
             cnt       += 1
-            if lg == 'F' or not sub_passed:
+            if lg == 'F':
                 fail_cnt += 1   # F grade OR component-level fail causes fail
 
         total_mark += tot
