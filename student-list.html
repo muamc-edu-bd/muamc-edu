@@ -1216,6 +1216,44 @@
     </div>
       </div>
 
+      <div class="card">
+        <div class="card-head">
+          <h3>Humanities Subject Bulk Input</h3><span class="meta">For Humanities Group Only — Assign main group subjects and optional subjects to Humanities students via Excel upload</span>
+        </div>
+        <div class="card-body">
+          <div style="display:flex;gap:16px;flex-wrap:wrap;">
+            <select id="hum-bulk-class" style="width:160px;">
+              <option value="">-- Select Class --</option>
+              <option value="Class-XI">Class-XI</option>
+              <option value="Class-XII">Class-XII</option>
+            </select>
+            <select id="hum-bulk-session" style="width:160px;">
+              <option value="">-- Select Session --</option>
+              <option value="2024-2025">2024-2025</option>
+              <option value="2025-2026">2025-2026</option>
+              <option value="2026-2027">2026-2027</option>
+              <option value="2027-2028">2027-2028</option>
+              <option value="2028-2029">2028-2029</option>
+              <option value="2029-2030">2029-2030</option>
+            </select>
+          </div>
+          <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:14px;">
+            <label class="btn btn-primary" style="cursor:pointer;">
+              Choose Excel/CSV File
+              <input type="file" id="hum-bulk-file" accept=".xls,.xlsx,.csv" style="display:none;"
+                onchange="handleHumBulkFile(this)">
+            </label>
+            <a href="#" onclick="downloadHumTemplate(event)" class="btn btn-outline btn-sm">Download Template</a>
+          </div>
+          <div id="hum-bulk-alert"></div>
+          <div id="hum-bulk-preview"
+            style="display:none;margin-top:14px;padding:12px;background:var(--slate);border-radius:8px;border:1px solid var(--border);font-size:.8rem;max-height:280px;overflow-y:auto;"></div>
+          <button class="btn btn-success" id="hum-bulk-submit" style="display:none;margin-top:14px;"
+            onclick="submitHumBulk()">Save Subject Assignments</button>
+          <div id="hum-bulk-result" style="display:none;margin-top:10px;"></div>
+        </div>
+      </div>
+
       <!-- ═══════════ STUDENT LIST ═══════════ -->
       <div id="stu-panel-list" style="display:none;">
         <div id="student-list-section">
@@ -1998,6 +2036,150 @@
       } finally {
         btn.disabled = false; btn.textContent = 'Import Students';
         $('import-cancel-btn').disabled = true;
+      }
+    }
+
+    // ── Humanities Subject Bulk Input ─────────────────────────────────────────
+    let _humBulkData = [];
+
+    function downloadHumTemplate(e) {
+      e.preventDefault();
+      const header = 'Roll,Main Subject Code,Optional';
+      const example1 = '1,269/109/116,121/122';
+      const example2 = '2,271/109/267,273/274';
+      const csv = header + '\n' + example1 + '\n' + example2;
+      const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'Humanities_Subject_Template.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    async function handleHumBulkFile(input) {
+      const file = input.files[0];
+      if (!file) return;
+      setAlert('hum-bulk-alert', '', '');
+      $('hum-bulk-preview').style.display = 'none';
+      $('hum-bulk-submit').style.display = 'none';
+      $('hum-bulk-result').style.display = 'none';
+
+      const formData = new FormData();
+      formData.append('file', file);
+      try {
+        const r = await fetch('/api/students/humanities-subjects-bulk/preview', { method: 'POST', body: formData });
+        const d = await r.json();
+        if (!d.ok) { setAlert('hum-bulk-alert', 'err', d.message || 'Failed to parse file.'); return; }
+        const rows = (d.data || []).map(row => {
+          const nr = {};
+          Object.keys(row).forEach(k => { nr[k.toLowerCase().replace(/[\s_]+/g, '')] = row[k]; });
+          return nr;
+        });
+        processHumBulkRows(rows);
+      } catch (err) {
+        setAlert('hum-bulk-alert', 'err', 'Network error: ' + err.message);
+      }
+    }
+
+    function processHumBulkRows(rows) {
+      const entries = [];
+      for (const row of rows) {
+        const roll = String(row.roll || row['rollno'] || row['rollnumber'] || '').trim();
+        const main = String(row.mainsubjectcode || row.mainsubjectcodes || row.mainsubject || row.main || '').trim();
+        const opt  = String(row.optional || row.optionalsubject || row.optionalcode || row.opt || '').trim();
+        if (!roll) continue;
+        entries.push({ roll, mainSubjects: main, optional: opt });
+      }
+
+      if (!entries.length) {
+        setAlert('hum-bulk-alert', 'err', 'No valid rows found. Ensure the file has columns: Roll, Main Subject Code, Optional.');
+        return;
+      }
+
+      _humBulkData = entries;
+
+      const SUBJ_NAMES = {
+        '269':'Civics', '270':'Civics', '109':'Economics', '110':'Economics',
+        '116':'Sociology', '271':'Social Work', '272':'Social Work',
+        '267':'Islamic History', '121':'Logic', '122':'Logic',
+        '273':'Home Science', '274':'Home Science'
+      };
+
+      let html = '<table style="width:100%;border-collapse:collapse;font-size:.75rem;">';
+      html += '<thead><tr style="background:#333;color:#fff;">';
+      html += '<th style="border:1px solid #555;padding:4px;">Roll</th>';
+      html += '<th style="border:1px solid #555;padding:4px;">Main Subject Codes</th>';
+      html += '<th style="border:1px solid #555;padding:4px;">Main Subjects (Resolved)</th>';
+      html += '<th style="border:1px solid #555;padding:4px;">Optional Codes</th>';
+      html += '</tr></thead><tbody>';
+      entries.forEach(e => {
+        const mainNames = e.mainSubjects.split('/').map(c => SUBJ_NAMES[c.trim()] || c.trim()).join(', ');
+        const optNames = e.optional.split('/').map(c => SUBJ_NAMES[c.trim()] || c.trim()).join(', ');
+        html += `<tr>`;
+        html += `<td style="border:1px solid #ddd;padding:3px;">${e.roll}</td>`;
+        html += `<td style="border:1px solid #ddd;padding:3px;">${e.mainSubjects}</td>`;
+        html += `<td style="border:1px solid #ddd;padding:3px;">${mainNames}</td>`;
+        html += `<td style="border:1px solid #ddd;padding:3px;">${e.optional || '\u2014'}</td>`;
+        html += `</tr>`;
+      });
+      html += '</tbody></table>';
+
+      $('hum-bulk-preview').innerHTML = '<div style="font-weight:600;margin-bottom:8px;color:var(--navy);">Preview \u2014 ' + entries.length + ' entries</div>' + html;
+      $('hum-bulk-preview').style.display = 'block';
+      $('hum-bulk-submit').style.display = 'inline-flex';
+      setAlert('hum-bulk-alert', 'info', entries.length + ' entries parsed. Review the preview below and click "Save Subject Assignments" to save.');
+    }
+
+    async function submitHumBulk() {
+      const cls = ($('hum-bulk-class') || {}).value || '';
+      const session = ($('hum-bulk-session') || {}).value || '';
+      if (!cls) { setAlert('hum-bulk-alert', 'err', 'Please select a Class.'); return; }
+      if (!session) { setAlert('hum-bulk-alert', 'err', 'Please select a Session.'); return; }
+      if (!_humBulkData.length) { setAlert('hum-bulk-alert', 'err', 'No data to submit.'); return; }
+
+      $('hum-bulk-submit').disabled = true;
+      $('hum-bulk-submit').textContent = 'Saving...';
+
+      try {
+        const r = await fetch('/api/students/humanities-subjects-bulk', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            cls: cls,
+            session: session,
+            entries: _humBulkData
+          })
+        });
+        const d = await r.json();
+        if (!d.ok) {
+          setAlert('hum-bulk-alert', 'err', d.message || 'Failed to save.');
+        } else {
+          setAlert('hum-bulk-alert', 'ok',
+            `Saved: ${d.saved} students. ` +
+            (d.not_found > 0 ? `Not found: ${d.not_found}. ` : '') +
+            (d.skipped > 0 ? `Skipped (non-Humanities): ${d.skipped}. ` : '') +
+            `Total processed: ${d.total}.`);
+
+          if (d.results && d.results.length) {
+            const failed = d.results.filter(r => r.status !== 'saved');
+            if (failed.length) {
+              let html = '<div style="margin-top:10px;"><strong>Issues:</strong></div>';
+              html += '<ul style="font-size:.78rem;color:var(--red);margin-top:4px;">';
+              failed.forEach(r => {
+                html += `<li>Roll ${r.roll}: ${r.message || r.status}</li>`;
+              });
+              html += '</ul>';
+              $('hum-bulk-result').innerHTML = html;
+              $('hum-bulk-result').style.display = 'block';
+            }
+          }
+        }
+      } catch (err) {
+        setAlert('hum-bulk-alert', 'err', 'Network error: ' + err.message);
+      } finally {
+        $('hum-bulk-submit').disabled = false;
+        $('hum-bulk-submit').textContent = 'Save Subject Assignments';
       }
     }
 

@@ -31,6 +31,7 @@ class Student(db.Model):
     photo    = db.Column(db.Text, default='')             # Stored as base64 data URL or filepath
     photo_base64 = deferred(db.Column(db.Text, default=''))
     optional_subjects = db.Column(db.String(50), default='')  # e.g. '178/179'
+    humanities_main_subjects = db.Column(db.String(100), default='')  # Humanities only: e.g. '269/109/116'
     student_submitted = db.Column(db.Boolean, default=False)  # True once student self-submits via portal
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -56,6 +57,7 @@ class Student(db.Model):
             'session':   self.session,
             'photo':            self.photo,
             'optionalSubjects':  self.optional_subjects,
+            'humanitiesMainSubjects': self.humanities_main_subjects or '',
             'studentSubmitted':  self.student_submitted or False,
             'createdAt':         self.created_at.strftime('%d/%m/%Y') if self.created_at else '',
         }

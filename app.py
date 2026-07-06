@@ -94,6 +94,7 @@ _COLUMN_MIGRATIONS = [
     ("students", "photo_base64",      "TEXT DEFAULT ''"),
     ("archive",  "photo_base64",      "TEXT DEFAULT ''"),
     ("marks",    "absent",            "BOOLEAN DEFAULT FALSE"),
+    ("students", "humanities_main_subjects", "VARCHAR(100) DEFAULT ''"),
 ]
 
 with app.app_context():
@@ -517,6 +518,10 @@ def get_tabulation_sheet():
 
     students = sorted(students, key=_roll_key)
 
+    # For Humanities, filter to only students who take this subject
+    if group_val == 'Humanities':
+        students = [s for s in students if _is_humanities_subject_applicable(s, subject_code) is True]
+
     if not students:
         college_setting = Setting.query.filter_by(key='collegeName').first()
         return jsonify({
@@ -865,6 +870,7 @@ def add_student():
         photo=photo_url,
         photo_base64=photo_b64,
         optional_subjects=body.get('optional_subject', ''),
+        humanities_main_subjects=body.get('humanities_main_subjects') or body.get('humanitiesMainSubjects') or '',
     )
     db.session.add(student)
     try:
@@ -925,7 +931,12 @@ def get_student_subjects(sid):
     student = Student.query.filter_by(id=sid).first()
     if not student:
         return jsonify({'ok': False, 'message': 'Student not found'}), 404
-    subjects = _resolve_optional_subjects(student.group, getattr(student, 'optional_subjects', '') or '')
+    if student.group == 'Humanities':
+        subjects = _get_humanities_subject_list(student)
+        if subjects is None:
+            subjects = []
+    else:
+        subjects = _resolve_optional_subjects(student.group, getattr(student, 'optional_subjects', '') or '')
     cls = student.cls or 'Class-XI'
     if cls == 'Class-XI':
         subjects = [sub for sub in subjects if not ('2nd' in sub['name'] or '2nd Paper' in sub['name'] or sub['name'].endswith(' 2nd'))]
@@ -955,11 +966,15 @@ def update_student(sid):
 
     body    = request.get_json(force=True, silent=True) or {}
     allowed = ['name', 'roll', 'reg', 'cls', 'group', 'section', 'father', 'mother',
-               'dob', 'phone', 'religion', 'year', 'session', 'photo', 'optional_subjects']
+               'dob', 'phone', 'religion', 'year', 'session', 'photo', 'optional_subjects', 'humanities_main_subjects']
 
     # Also accept the 'optional_subject' alias (without the trailing 's') that the frontend sends
     if 'optional_subject' in body and 'optional_subjects' not in body:
         body['optional_subjects'] = body['optional_subject']
+
+    # Also accept the camelCase 'humanitiesMainSubjects' field and map it
+    if 'humanitiesMainSubjects' in body and 'humanities_main_subjects' not in body:
+        body['humanities_main_subjects'] = body['humanitiesMainSubjects']
 
     for key in allowed:
         if key not in body:
@@ -1112,6 +1127,11 @@ def import_students():
                 student_data.get('optionalSubjects') or
                 ''
             ),
+            humanities_main_subjects=(
+                student_data.get('humanities_main_subjects') or
+                student_data.get('humanitiesMainSubjects') or
+                ''
+            ),
         )
         db.session.add(student)
         existing_rolls.add(student_data['roll'])
@@ -1124,6 +1144,143 @@ def import_students():
         return jsonify({'ok': False, 'message': f'Database error during import: {str(e)}'}), 500
     return jsonify({'ok': True, 'imported': imported, 'skipped': skipped,
                     'message': f'Successfully imported {imported} students'})
+
+
+@app.route('/api/students/humanities-subjects-bulk/preview', methods=['POST'])
+@require_auth
+def bulk_humanities_subjects_preview():
+    if 'file' not in request.files:
+        return jsonify({'ok': False, 'message': 'No file provided'}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'ok': False, 'message': 'No file selected'}), 400
+
+    filename = file.filename.lower()
+    rows = []
+
+    if filename.endswith('.csv'):
+        import csv
+        import io
+        try:
+            stream = io.StringIO(file.stream.read().decode("utf-8"), newline=None)
+            reader = csv.reader(stream)
+            header = next(reader, None)
+            if not header:
+                return jsonify({'ok': False, 'message': 'File is empty'}), 400
+
+            # Normalize header keys to match client-side expectations (lowercase, no spaces, no underscores)
+            norm_header = [h.lower().replace(' ', '').replace('_', '').strip() for h in header]
+            
+            for row in reader:
+                if not row or all(cell.strip() == '' for cell in row):
+                    continue
+                item = {}
+                for idx, h in enumerate(norm_header):
+                    if idx < len(row):
+                        item[h] = row[idx].strip()
+                rows.append(item)
+        except Exception as e:
+            return jsonify({'ok': False, 'message': f'Failed to parse CSV: {str(e)}'}), 400
+    elif filename.endswith(('.xlsx', '.xls')):
+        if not HAS_OPENPYXL:
+            return jsonify({'ok': False, 'message': 'openpyxl not installed on server'}), 400
+            
+        try:
+            # Import locally to be safe
+            from openpyxl import load_workbook
+            wb = load_workbook(file)
+            ws = wb.active
+            header_cells = [cell.value for cell in ws[1]]
+            norm_header = [str(h).lower().replace(' ', '').replace('_', '').strip() if h is not None else '' for h in header_cells]
+            
+            for row in ws.iter_rows(min_row=2, values_only=True):
+                if not row or all(cell is None for cell in row):
+                    continue
+                item = {}
+                for idx, h in enumerate(norm_header):
+                    if idx < len(row) and row[idx] is not None:
+                        item[h] = str(row[idx]).strip()
+                rows.append(item)
+        except Exception as e:
+            return jsonify({'ok': False, 'message': f'Failed to parse Excel: {str(e)}'}), 400
+    else:
+        return jsonify({'ok': False, 'message': 'Only Excel (.xlsx, .xls) and CSV (.csv) files are supported'}), 400
+
+    return jsonify({'ok': True, 'data': rows})
+
+
+@app.route('/api/students/humanities-subjects-bulk', methods=['POST'])
+@require_auth
+def bulk_humanities_subjects():
+    body = request.get_json(force=True, silent=True) or {}
+    cls = body.get('cls')
+    session = body.get('session')
+    entries = body.get('entries', [])
+
+    if not cls or not session:
+        return jsonify({'ok': False, 'message': 'Class and Session are required'}), 400
+    if not entries:
+        return jsonify({'ok': False, 'message': 'No entries provided'}), 400
+
+    saved = 0
+    not_found = 0
+    skipped = 0
+    total = len(entries)
+    results = []
+
+    for entry in entries:
+        roll = str(entry.get('roll') or '').strip()
+        main_subs = str(entry.get('mainSubjects') or '').strip()
+        optional = str(entry.get('optional') or '').strip()
+
+        if not roll:
+            continue
+
+        # Look up student by cls, session, and roll
+        stu = Student.query.filter_by(cls=cls, session=session, roll=roll).first()
+        if not stu:
+            not_found += 1
+            results.append({
+                'roll': roll,
+                'status': 'not_found',
+                'message': 'Student not found in this class/session'
+            })
+            continue
+
+        if stu.group != 'Humanities':
+            skipped += 1
+            results.append({
+                'roll': roll,
+                'status': 'skipped',
+                'message': f'Student is in {stu.group} group, not Humanities'
+            })
+            continue
+
+        # Assign subjects
+        stu.humanities_main_subjects = main_subs
+        stu.optional_subjects = optional
+        db.session.add(stu)
+        saved += 1
+        results.append({
+            'roll': roll,
+            'status': 'saved'
+        })
+
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'ok': False, 'message': f'Database error during assignment: {str(e)}'}), 500
+
+    return jsonify({
+        'ok': True,
+        'saved': saved,
+        'not_found': not_found,
+        'skipped': skipped,
+        'total': total,
+        'results': results
+    })
+
 
 
 # ─────────────────────────────────────────────
@@ -1437,7 +1594,12 @@ def public_result_summary():
     cls = student.cls or 'Class-XI'
     group = student.group or 'Science'
     optional_subject = getattr(student, 'optional_subjects', '') or ''
-    subs = _resolve_optional_subjects(group, optional_subject)
+    if group == 'Humanities':
+        subs = _get_humanities_subject_list(student, cls)
+        if subs is None:
+            subs = []
+    else:
+        subs = _resolve_optional_subjects(group, optional_subject)
     if cls == 'Class-XI':
         subs = [s for s in subs if not ('2nd' in s['name'] or '2nd Paper' in s['name'] or s['name'].endswith(' 2nd'))]
     elif cls == 'Class-XII':
@@ -1487,7 +1649,10 @@ def public_result_summary():
         highest_marks[sub['code']] = max_mark
 
     for sub in subs:
-        is_optional = sub.get('optional', False) and (sub['code'] in opt_codes)
+        if group == 'Humanities':
+            is_optional = sub.get('optional', False)
+        else:
+            is_optional = sub.get('optional', False) and (sub['code'] in opt_codes)
         m = stu_marks.get(sub['code'], {})
         # Absent = no mark row, explicit absent flag, or both cq/mcq empty
         absent = (not m) or m.get('absent', False) or \
@@ -2141,6 +2306,103 @@ SUBJECT_LIST = {
 
 
 # ─────────────────────────────────────────────
+# HUMANITIES PER-STUDENT SUBJECT ASSIGNMENT
+# ─────────────────────────────────────────────
+# Common subjects that ALL Humanities students always take
+HUMANITIES_COMMON_CODES = {'101', '102', '107', '108', '275'}
+
+# Map any single subject code → all codes in that subject pair (1st + 2nd paper)
+HUMANITIES_SUBJECT_PAIR_MAP = {
+    '269': ['269', '270'],   # Civics & Good Governance
+    '270': ['269', '270'],
+    '109': ['109', '110'],   # Economics
+    '110': ['109', '110'],
+    '116': ['116'],          # Sociology (single code, both classes)
+    '271': ['271', '272'],   # Social Work
+    '272': ['271', '272'],
+    '267': ['267'],          # Islamic History & Culture (single code, both classes)
+    '121': ['121', '122'],   # Logic
+    '122': ['121', '122'],
+    '273': ['273', '274'],   # Home Science
+    '274': ['273', '274'],
+}
+
+
+def _is_humanities_subject_applicable(student, subject_code):
+    """Check whether a given subject_code is applicable for a Humanities student.
+
+    Returns:
+        True  — subject is applicable (common, main, or optional)
+        False — subject is NOT applicable (student has assignments but not this subject)
+        None  — student has NO subject assignment at all
+    """
+    if subject_code in HUMANITIES_COMMON_CODES:
+        return True
+
+    main_str = getattr(student, 'humanities_main_subjects', '') or ''
+    opt_str  = getattr(student, 'optional_subjects', '') or ''
+
+    if not main_str.strip():
+        return None  # no assignment — caller decides how to handle
+
+    all_input_codes = [c.strip() for c in (main_str + '/' + opt_str).split('/') if c.strip()]
+    applicable_codes = set()
+    for c in all_input_codes:
+        applicable_codes.update(HUMANITIES_SUBJECT_PAIR_MAP.get(c, [c]))
+
+    return subject_code in applicable_codes
+
+
+def _get_humanities_subject_list(student, cls=None):
+    """Return the filtered subject list for a Humanities student with assigned subjects.
+
+    For a Humanities student whose humanities_main_subjects is set:
+      Returns only: common subjects + main group subjects + optional subjects
+      from the full SUBJECT_LIST['Humanities'] list.
+
+    For students with no assignment (empty humanities_main_subjects):
+      Returns None — caller should use full group subject list or show a warning.
+
+    For non-Humanities students:
+      Returns None — caller should use standard SUBJECT_LIST logic.
+    """
+    if not student or getattr(student, 'group', '') != 'Humanities':
+        return None
+
+    main_str = getattr(student, 'humanities_main_subjects', '') or ''
+    if not main_str.strip():
+        return None
+
+    import copy
+    if cls is None:
+        cls = getattr(student, 'cls', 'Class-XI') or 'Class-XI'
+
+    # Build the set of all applicable subject codes for this student
+    opt_str = getattr(student, 'optional_subjects', '') or ''
+    all_input_codes = [c.strip() for c in (main_str + '/' + opt_str).split('/') if c.strip()]
+    applicable_codes = set(HUMANITIES_COMMON_CODES)
+    for c in all_input_codes:
+        applicable_codes.update(HUMANITIES_SUBJECT_PAIR_MAP.get(c, [c]))
+
+    # Filter the base Humanities subject list
+    base = copy.deepcopy(SUBJECT_LIST.get('Humanities', []))
+    filtered = [sub for sub in base if sub['code'] in applicable_codes]
+
+    # Mark optional subjects: if a subject's code is in the student's optional_subjects
+    opt_codes = [c.strip() for c in opt_str.split('/') if c.strip()]
+    opt_expanded = set()
+    for c in opt_codes:
+        opt_expanded.update(HUMANITIES_SUBJECT_PAIR_MAP.get(c, [c]))
+
+    for sub in filtered:
+        if sub['code'] in opt_expanded:
+            sub['optional'] = True
+        elif sub['code'] not in HUMANITIES_COMMON_CODES:
+            sub['optional'] = False  # main group subject — not optional
+
+    return filtered
+
+# ─────────────────────────────────────────────
 # EXPORT CSV
 # ─────────────────────────────────────────────
 @app.route('/api/export/csv', methods=['GET'])
@@ -2224,8 +2486,21 @@ def export_csv():
                     }
                     student_opt_codes = LEGACY_MAP.get(optional_selected, [])
 
+                student_subs_map = {}
+                if g == 'Humanities':
+                    student_subs = _get_humanities_subject_list(stu, c) or []
+                    student_subs_map = {s['code']: s for s in student_subs}
+
                 for sub in subs:
-                    is_optional = sub.get('optional', False) and (sub['code'] in student_opt_codes)
+                    if g == 'Humanities':
+                        s_sub = student_subs_map.get(sub['code'])
+                        if not s_sub:
+                            # Not applicable to this student — leave columns blank
+                            row += ['', '', '']
+                            continue
+                        is_optional = s_sub.get('optional', False)
+                    else:
+                        is_optional = sub.get('optional', False) and (sub['code'] in student_opt_codes)
 
                     m      = stu_marks.get(sub['code'], {})
                     # Absent = no mark row, explicit absent flag, or both cq/mcq empty
@@ -2320,7 +2595,13 @@ def _compute_student_result(sid, marks_data, group, optional_subject='', cls=Non
             cls = 'Class-XI'
 
     # Resolve subjects
-    subs = _resolve_optional_subjects(group, optional_subject)
+    if group == 'Humanities':
+        stu = Student.query.filter_by(id=sid).first()
+        subs = _get_humanities_subject_list(stu, cls)
+        if subs is None:
+            subs = []
+    else:
+        subs = _resolve_optional_subjects(group, optional_subject)
 
     # Filter subjects based on student's class (Class-XI -> 1st Paper; Class-XII -> 2nd Paper)
     if cls == 'Class-XI':
@@ -2360,7 +2641,10 @@ def _compute_student_result(sid, marks_data, group, optional_subject='', cls=Non
     has_fail = False
 
     for sub in subs:
-        is_optional = sub.get('optional', False) and (sub['code'] in opt_codes)
+        if group == 'Humanities':
+            is_optional = sub.get('optional', False)
+        else:
+            is_optional = sub.get('optional', False) and (sub['code'] in opt_codes)
         m = stu_marks.get(sub['code'], {})
         # Absent = no mark row, explicit absent flag, or both cq/mcq empty strings
         absent = (not m) or m.get('absent', False) or \

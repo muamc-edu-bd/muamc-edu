@@ -700,6 +700,36 @@ const SUBS = {
   ]
 };
 
+/* ═══════════════ HUMANITIES SUBJECT FILTERING ═══════════════ */
+const HUMANITIES_COMMON_CODES = new Set(['101','102','107','108','275']);
+const HUMANITIES_PAIR_MAP = {
+  '269':['269','270'], '270':['269','270'],
+  '109':['109','110'], '110':['109','110'],
+  '116':['116'],
+  '271':['271','272'], '272':['271','272'],
+  '267':['267'],
+  '121':['121','122'], '122':['121','122'],
+  '273':['273','274'], '274':['273','274'],
+};
+
+/**
+ * Check if a Humanities student should appear in the marks-entry for a given subject.
+ * @returns {true} if subject is applicable
+ * @returns {false} if subject is NOT applicable (student has assignments but not for this subject)
+ * @returns {null} if student has NO subject assignment at all
+ */
+function isHumanitiesSubjectApplicable(student, subjectCode) {
+  if (HUMANITIES_COMMON_CODES.has(subjectCode)) return true;
+  const mainStr = String(student.humanitiesMainSubjects || '').trim();
+  const optStr  = String(student.optionalSubjects || student.optional_subjects || '').trim();
+  if (!mainStr) return null; // no assignment at all
+  const allCodes = [...mainStr.split('/'), ...optStr.split('/')]
+    .map(c => c.trim()).filter(Boolean);
+  const applicable = new Set();
+  allCodes.forEach(c => (HUMANITIES_PAIR_MAP[c] || [c]).forEach(x => applicable.add(x)));
+  return applicable.has(subjectCode);
+}
+
 const OPTIONAL_SUBJECTS = {
   'Science': [
     {id:'scienceBio', label:'Biology (1st & 2nd Paper)', codes:['178','179']},
@@ -1115,6 +1145,7 @@ function onBatchFilterChange(){
 
 /* ─── Load students for batch table ─── */
 async function loadBatchStudents(){
+  let humNotAssigned = [];
   const cls     = ($('b-class')    || {}).value || '';
   const grp     = ($('b-group')   || {}).value || '';
   const code    = ($('b-subject') || {}).value || '';
@@ -1159,12 +1190,44 @@ async function loadBatchStudents(){
       });
     }
 
+    // ── Humanities per-student subject filtering ──
+    // For Humanities: only show students who take this subject as main/optional.
+    // Students with no assignment (null) are shown as "Not Available" rows.
+    if (grp === 'Humanities' && !HUMANITIES_COMMON_CODES.has(code)) {
+      const assigned = [];
+      students.forEach(s => {
+        const result = isHumanitiesSubjectApplicable(s, code);
+        if (result === true) {
+          assigned.push(s);
+        } else if (result === null) {
+          humNotAssigned.push(s);
+        }
+        // result === false → exclude entirely
+      });
+      students = assigned;
+    }
+
     students.sort((a,b) => {
       const ra = parseInt(a.roll)||0, rb = parseInt(b.roll)||0;
       return ra !== rb ? ra - rb : a.roll.localeCompare(b.roll);
     });
     batchStudents = students;
 
+    if(!students.length && humNotAssigned.length > 0){
+      let noticeHtml = '<div class="batch-empty" style="padding:20px;"><strong style="color:#991b1b;">No students are assigned to this subject.</strong>';
+      noticeHtml += '<br><br>' + humNotAssigned.length + ' student(s) have no subject assignment yet:';
+      noticeHtml += '<ul style="text-align:left;max-width:400px;margin:8px auto;font-size:.78rem;">';
+      humNotAssigned.forEach(s => {
+        noticeHtml += '<li>Roll ' + s.roll + ' — ' + s.name + '</li>';
+      });
+      noticeHtml += '</ul>';
+      noticeHtml += '<p style="font-size:.72rem;color:var(--muted);margin-top:8px;">Use the "Humanities Subject Bulk Input" section in Student Management to assign subjects.</p></div>';
+      area.innerHTML = noticeHtml;
+      $('batch-action-bar').style.display = 'none';
+      $('batch-count-label').textContent = '0 students';
+      $('batch-card-meta').textContent = 'No students assigned';
+      return;
+    }
     if(!students.length){
       area.innerHTML = '<div class="batch-empty">No students found for the selected filters.' +
         (foundSub.optionalGroup ? ' (Only students who chose this optional subject are shown.)' : '') + '</div>';
@@ -1194,6 +1257,19 @@ async function loadBatchStudents(){
     batchMarksCache = marksMap;
 
     renderBatchTable(students, foundSub, marksMap, batchExamType);
+
+    // Show notice for Humanities students without subject assignments
+    if (humNotAssigned.length > 0) {
+      const noticeDiv = document.createElement('div');
+      noticeDiv.style.cssText = 'margin-top:12px;padding:10px 14px;border-radius:6px;background:#fef2f2;border:1px solid #fecaca;font-size:.79rem;color:#991b1b;';
+      let noticeHtml = '<strong>Not Available — ' + humNotAssigned.length + ' student(s) have no subject assignment:</strong><ul style="margin:6px 0 0 16px;">';
+      humNotAssigned.forEach(s => {
+        noticeHtml += '<li>Roll ' + s.roll + ' — ' + s.name + '</li>';
+      });
+      noticeHtml += '</ul><p style="margin-top:6px;font-size:.72rem;color:#64748b;">Use the "Humanities Subject Bulk Input" section in Student Management to assign subjects.</p>';
+      noticeDiv.innerHTML = noticeHtml;
+      area.appendChild(noticeDiv);
+    }
 
     const cqM = foundSub.cqMax || 70;
     const mcqM= foundSub.mcqMax|| 30;

@@ -704,11 +704,70 @@
       return res;
     }
 
+    function getStudentSubjects(stu, cls) {
+      const baseCats = getFilteredCats(stu.group, cls);
+      if (stu.group !== 'Humanities') return baseCats;
+
+      const mainStr = String(stu.humanitiesMainSubjects || '').trim();
+      const optStr  = String(stu.optionalSubjects || stu.optional_subjects || '').trim();
+
+      if (!mainStr) {
+        return baseCats.filter(cat => cat.cat === 'Common Subjects');
+      }
+
+      const mainInputs = mainStr.split('/').map(c => c.trim()).filter(Boolean);
+      const optInputs  = optStr.split('/').map(c => c.trim()).filter(Boolean);
+
+      const mainActive = new Set();
+      const HUMANITIES_COMMON_CODES = new Set(['101', '102', '107', '108', '275']);
+      const HUMANITIES_PAIR_MAP = {
+        '269': ['269', '270'], '270': ['269', '270'],
+        '109': ['109', '110'], '110': ['109', '110'],
+        '116': ['116'],
+        '271': ['271', '272'], '272': ['271', '272'],
+        '267': ['267'],
+        '121': ['121', '122'], '122': ['121', '122'],
+        '273': ['273', '274'], '274': ['273', '274'],
+      };
+
+      mainInputs.forEach(c => (HUMANITIES_PAIR_MAP[c] || [c]).forEach(x => mainActive.add(x)));
+
+      const optActive = new Set();
+      optInputs.forEach(c => (HUMANITIES_PAIR_MAP[c] || [c]).forEach(x => optActive.add(x)));
+
+      const res = [];
+      baseCats.forEach(cat => {
+        if (cat.cat === 'Common Subjects') {
+          const items = cat.items.map(sub => Object.assign({}, sub, { isSelOpt: false }));
+          res.push({ cat: cat.cat, items: items });
+        } else {
+          const filteredItems = [];
+          cat.items.forEach(sub => {
+            const code = sub.code;
+            if (optActive.has(code)) {
+              filteredItems.push(Object.assign({}, sub, { isSelOpt: true }));
+            } else if (mainActive.has(code)) {
+              filteredItems.push(Object.assign({}, sub, { isSelOpt: false }));
+            }
+          });
+          if (filteredItems.length > 0) {
+            res.push({ cat: cat.cat, items: filteredItems });
+          }
+        }
+      });
+      return res;
+    }
+
+    function flatStudentSubs(stu, cls) {
+      return getStudentSubjects(stu, cls).flatMap(c => c.items);
+    }
+
     function flatSubs(g, cls) {
       return getFilteredCats(g, cls).flatMap(c => c.items);
     }
 
     function isOptionalForFailCount(sub, selectedOptionalId) {
+      if (sub.isSelOpt !== undefined) return sub.isSelOpt;
       if (!sub.optionalGroup) return false;
       return sub.optionalGroup === selectedOptionalId;
     }
@@ -899,10 +958,17 @@
           const tgt = et || examKeys[examKeys.length - 1];
           const marks = (tgt && _marks[stu.id] && _marks[stu.id][tgt]) ? _marks[stu.id][tgt] : {};
           
-          const studentSubs = flatSubs(stu.group, stu.cls);
+          const studentSubs = flatStudentSubs(stu, stu.cls);
           const res = computeStudentGPAAndResult(stu, marks, studentSubs);
 
           const subCells = subs.map(sub => {
+            if (stu.group === 'Humanities') {
+              const curStudentSubs = flatStudentSubs(stu, stu.cls);
+              const hasSub = curStudentSubs.some(s => s.code === sub.code);
+              if (!hasSub) {
+                return '<td>—</td><td>—</td><td>—</td>';
+              }
+            }
             const m = marks[sub.code] || {};
             const absent = !marks || m.absent === true ||
                            ((m.cq === undefined || m.cq === '') &&
@@ -953,11 +1019,18 @@
         const tgt = et || examKeys[examKeys.length - 1];
         const marks = (tgt && _marks[stu.id] && _marks[stu.id][tgt]) ? _marks[stu.id][tgt] : {};
         
-        const studentSubs = flatSubs(stu.group, stu.cls);
+        const studentSubs = flatStudentSubs(stu, stu.cls);
         const res = computeStudentGPAAndResult(stu, marks, studentSubs);
 
         const row = [i+1, stu.name, stu.roll, stu.reg || ''];
         subs.forEach(sub => {
+          if (stu.group === 'Humanities') {
+            const curStudentSubs = flatStudentSubs(stu, stu.cls);
+            if (!curStudentSubs.some(s => s.code === sub.code)) {
+              row.push('', '', '');
+              return;
+            }
+          }
           const m = marks[sub.code] || {};
           const absent = !marks || m.absent === true ||
                          ((m.cq === undefined || m.cq === '') &&
@@ -1005,7 +1078,7 @@
       if (!stu) return;
       const db = _marks;
       const marks = db[id][examType];
-      const cats = getFilteredCats(stu.group, stu.cls);
+      const cats = getStudentSubjects(stu, stu.cls);
       const optionalSelected = marks.selectedOptional;
 
       // Merit position
@@ -1015,14 +1088,14 @@
         const pKey = Object.keys(pMarks).includes(examType) ? examType : (Object.keys(pMarks).pop() || null);
         if (!pKey || !pMarks[pKey]) return { id: p.id, gpa: 0, total: 0 };
         const pm = pMarks[pKey];
-        const res = computeStudentGPAAndResult(p, pm, flatSubs(p.group, p.cls));
+        const res = computeStudentGPAAndResult(p, pm, flatStudentSubs(p, p.cls));
         return { id: p.id, gpa: res.gpa, total: res.totalMark };
       });
       peerScores.sort((a,b) => b.gpa - a.gpa || b.total - a.total);
       const meritPos = peerScores.findIndex(p => p.id === id) + 1;
       const meritTotal = peerScores.length;
 
-      const studentSubs = flatSubs(stu.group, stu.cls);
+      const studentSubs = flatStudentSubs(stu, stu.cls);
       const resObj = computeStudentGPAAndResult(stu, marks, studentSubs);
 
       let fail = resObj.failCount, tMark = resObj.totalMark, mMax = 0, failSubs = [];
@@ -1040,7 +1113,7 @@
       const grpLabel = stu.group === 'Business' ? 'Business Studies' : stu.group;
 
       const highestMarks = {};
-      flatSubs(stu.group, stu.cls).forEach(sub => {
+      studentSubs.forEach(sub => {
         let maxMark = 0;
         peers.forEach(p => {
           const pm = (db[p.id] && db[p.id][examType]) ? db[p.id][examType] : {};
@@ -1241,20 +1314,18 @@
         }
 
         const db = _marks;
-        const studentSubs = flatSubs(grp, cls);
 
         // Pre-compute peer scores once for merit positioning
         const peerScores = ss.map(p => {
           const pMarks = db[p.id] || {};
           if (!pMarks[et]) return { id: p.id, gpa: 0, total: 0 };
           const pm = pMarks[et];
-          const res = computeStudentGPAAndResult(p, pm, studentSubs);
+          const res = computeStudentGPAAndResult(p, pm, flatStudentSubs(p, cls));
           return { id: p.id, gpa: res.gpa, total: res.totalMark };
         });
         peerScores.sort((a,b) => b.gpa - a.gpa || b.total - a.total);
         const meritTotal = peerScores.length;
 
-        const cats = getFilteredCats(grp, cls);
         const ord = n => n+(n===1?'st':n===2?'nd':n===3?'rd':'th');
         const ts = new Date().toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true});
 
@@ -1268,7 +1339,8 @@
 
           generatedCount++;
           const optionalSelected = marks.selectedOptional;
-          const resObj = computeStudentGPAAndResult(stu, marks, studentSubs);
+          const curStudentSubs = flatStudentSubs(stu, cls);
+          const resObj = computeStudentGPAAndResult(stu, marks, curStudentSubs);
           let fail = resObj.failCount, tMark = resObj.totalMark, mMax = 0, failSubs = [];
           
           let ey = '';
@@ -1283,9 +1355,9 @@
           const clsLabel = stu.cls;
           const grpLabel = stu.group === 'Business' ? 'Business Studies' : stu.group;
 
-          // Compute highest marks
+          // Compute highest marks for curStudentSubs
           const highestMarks = {};
-          studentSubs.forEach(sub => {
+          curStudentSubs.forEach(sub => {
             let maxMark = 0;
             ss.forEach(p => {
               const pm = (db[p.id] && db[p.id][et]) ? db[p.id][et] : {};
@@ -1302,6 +1374,7 @@
 
           // Subject rows
           let tableRows = '';
+          const cats = getStudentSubjects(stu, cls);
           cats.forEach((cat, ci) => {
             if (ci > 0) tableRows += `<tr><td colspan="10" style="background:#e8e8e8;font-weight:700;text-align:center;padding:3px 6px;font-size:8pt;border:1px solid #bbb;">${cat.cat}</td></tr>`;
             cat.items.forEach(sub => {
