@@ -205,6 +205,25 @@
       .rc-page { width: 210mm !important; padding: 8mm 10mm !important; font-size: 11pt !important; box-shadow: none !important; page-break-after: always; break-after: page; }
       .rc-page:last-child { page-break-after: avoid; break-after: avoid; }
       #result-modal { display: none !important; }
+
+      /* Preserve exact colors — prevent browser from inverting dark backgrounds */
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+      }
+      .rc-exam-hdr {
+        background: #000 !important;
+        color: #fff !important;
+      }
+      .rc-marks-tbl th {
+        background: #333 !important;
+        color: #fff !important;
+      }
+      .rc-marks-tbl tfoot td {
+        background: #333 !important;
+        color: #fff !important;
+      }
     }
 
     /* ═══ RESPONSIVE ═══ */
