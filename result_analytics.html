@@ -252,6 +252,13 @@
       body { margin:0; padding:0; background:#fff; display:block; }
       .main { margin:0; padding:0; }
 
+      /* Preserve exact colors — prevent browser from inverting/stripping backgrounds */
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+      }
+
       #sheet-preview-wrapper {
         border:none; box-shadow:none;
         padding:0; border-radius:0; overflow:visible;

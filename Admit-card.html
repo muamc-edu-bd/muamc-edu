@@ -201,6 +201,18 @@
       .main { padding: 0 !important; margin: 0 !important; }
       .ac-page { box-shadow: none !important; border: none !important; }
       #admit-modal { display: none !important; }
+
+      /* Preserve exact colors — prevent browser from inverting/stripping backgrounds */
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+      }
+
+      @page {
+        size: A4 portrait;
+        margin: 10mm;
+      }
     }
 
     /* ═══ RESPONSIVE ═══ */
@@ -841,7 +853,7 @@
       if (!win) { alert('Pop-up blocked. Please allow pop-ups.'); return; }
       win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Admit Card</title>
         <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700;900&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-        <style>${document.querySelector('style').textContent}@media print{body{padding:0;}@page{size:A4 portrait;margin:10mm;}}</style>
+        <style>${document.querySelector('style').textContent}@media print{*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important;}body{padding:0;}@page{size:A4 portrait;margin:10mm;}}</style>
         </head><body>${el.innerHTML}
   <script>
     (function(){
@@ -899,7 +911,7 @@
       win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Batch Admit Cards</title>
         <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700;900&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
         <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script>
-        <style>${document.querySelector('style').textContent}@media print{body{padding:0;}@page{size:A4 portrait;margin:8mm;}}</style>
+        <style>${document.querySelector('style').textContent}@media print{*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important;}body{padding:0;}@page{size:A4 portrait;margin:8mm;}}</style>
         </head><body style="background:#fff;">${cards}</body></html>`);
       win.document.close();
       // Generate QR codes then print
