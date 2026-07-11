@@ -128,11 +128,19 @@
       box-shadow:var(--shadow);
       overflow:auto;
     }
+    #rd-sheet-wrapper{
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:var(--r-lg);
+      box-shadow:var(--shadow);
+      overflow:auto;
+      margin-top:4px;
+    }
 
     /* ═══════════════════════════════════════════
        TABULATION SHEET — Document Styles
        ═══════════════════════════════════════════ */
-    #tabulation-sheet{
+    #tabulation-sheet, #rd-sheet{
       font-family:'Source Sans 3',sans-serif;
       font-size:9.5pt;
       color:#000;
@@ -168,10 +176,22 @@
     .ts-info-label{font-weight:700;min-width:90px;flex-shrink:0;}
 
     /* Summary counts */
-    .ts-summary{display:flex;gap:0;border:1.5px solid #333;border-radius:2px;overflow:hidden;margin-bottom:10px;width:fit-content;}
-    .ts-sum-cell{padding:4px 14px;font-size:8.5pt;font-weight:700;border-right:1px solid #aaa;text-align:center;}
+    .ts-summary{
+      display:flex;gap:0;flex-wrap:wrap;
+      border:1.5px solid #333;border-radius:2px;
+      overflow:hidden;margin-bottom:10px;
+      font-size:8.5pt;font-weight:700;
+    }
+    .ts-sum-cell{padding:4px 14px;border-right:1px solid #aaa;text-align:center;}
     .ts-sum-cell:last-child{border-right:none;}
     .ts-sum-cell span{display:block;font-size:11pt;font-weight:800;color:#0d2b45;}
+    /* Category sheet summary — inline text style */
+    .ts-summary.ts-summary-text{
+      border:none;background:transparent;flex-wrap:wrap;
+      font-size:8.5pt;gap:0;
+    }
+    .ts-sum-item{color:#000;}
+    .ts-sum-sep{padding:0 8px;color:#999;}
 
     /* TABLE */
     .ts-table{width:100%;border-collapse:collapse;font-size:8.8pt;}
@@ -218,7 +238,7 @@
     .ts-grade-F{color:#991b1b;}
     .ts-grade-Ab{color:#64748b;font-style:italic;}
 
-    /* Footer signatures — appears only on last page (not in tfoot) */
+    /* Footer signatures */
     .ts-footer{
       display:grid;
       grid-template-columns:1fr 1fr;
@@ -236,44 +256,141 @@
     /* ═══════════════════════════════════════════
        PRINT STYLES
        ═══════════════════════════════════════════ */
+    /* ═══ SUBTAB NAVIGATION ═══ */
+    .subtab-nav{
+      display:flex;gap:0;border-bottom:2px solid var(--border2);margin-bottom:20px;background:var(--white);
+      border-radius:var(--r-lg) var(--r-lg) 0 0;border:1px solid var(--border);border-bottom:none;
+      overflow:hidden;
+    }
+    .subtab-btn{
+      padding:13px 24px;font-size:.82rem;font-weight:600;font-family:inherit;
+      background:transparent;border:none;cursor:pointer;color:var(--muted);
+      border-bottom:3px solid transparent;transition:all .18s;letter-spacing:.01em;
+      position:relative;white-space:nowrap;
+    }
+    .subtab-btn:hover{color:var(--navy);background:var(--slate);}
+    .subtab-btn.active{
+      color:var(--navy);background:var(--white);
+      border-bottom:3px solid var(--gold2);
+    }
+    .subtab-pane{display:none;}
+    .subtab-pane.active{display:block;}
+
+    /* ═══ PUBLISH TOGGLE ═══ */
+    .publish-card{background:var(--white);border-radius:var(--r-lg);border:1px solid var(--border);
+      box-shadow:var(--shadow-sm);padding:24px 28px;margin-bottom:20px;}
+    .publish-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;}
+    .publish-title h3{font-family:'Merriweather',serif;font-size:.95rem;font-weight:700;color:var(--navy);}
+    .publish-title p{font-size:.77rem;color:var(--muted);margin-top:4px;}
+    .toggle-wrap{display:flex;align-items:center;gap:14px;}
+    .toggle-label{font-size:.8rem;font-weight:600;color:var(--txt2);}
+    .toggle-switch{position:relative;width:60px;height:30px;flex-shrink:0;}
+    .toggle-switch input{opacity:0;width:0;height:0;}
+    .toggle-slider{
+      position:absolute;inset:0;background:#cbd5e1;border-radius:15px;
+      cursor:pointer;transition:background .2s;
+    }
+    .toggle-slider::before{
+      content:'';position:absolute;left:3px;top:3px;
+      width:24px;height:24px;background:#fff;border-radius:50%;
+      transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,.2);
+    }
+    .toggle-switch input:checked + .toggle-slider{background:var(--green);}
+    .toggle-switch input:checked + .toggle-slider::before{transform:translateX(30px);}
+    .publish-status-row{margin-top:16px;display:flex;align-items:center;gap:10px;padding:10px 14px;
+      border-radius:var(--r);font-size:.82rem;font-weight:600;border:1px solid;}
+    .publish-status-row.on{background:#f0fdf4;color:#166534;border-color:#bbf7d0;}
+    .publish-status-row.off{background:#fef2f2;color:#991b1b;border-color:#fecaca;}
+    .publish-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+    .publish-status-row.on .publish-dot{background:#16a34a;}
+    .publish-status-row.off .publish-dot{background:#dc2626;}
+
+    /* ═══ RESULT DETAILS BREAKDOWN ═══ */
+    .rd-filter-card{background:var(--white);border-radius:var(--r-lg);border:1px solid var(--border);
+      box-shadow:var(--shadow-sm);margin-bottom:20px;overflow:hidden;}
+    .rd-filter-card .card-head{padding:15px 20px;border-bottom:1px solid var(--border);
+      display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+    .rd-filter-card .card-body{padding:20px;}
+    .breakdown-section{background:var(--white);border-radius:var(--r-lg);border:1px solid var(--border);
+      box-shadow:var(--shadow-sm);margin-bottom:14px;overflow:hidden;}
+    .bs-header{
+      display:flex;align-items:center;justify-content:space-between;padding:14px 18px;
+      cursor:pointer;user-select:none;gap:10px;transition:background .14s;
+    }
+    .bs-header:hover{background:var(--slate);}
+    .bs-header-left{display:flex;align-items:center;gap:10px;}
+    .bs-icon{font-size:1.3rem;flex-shrink:0;}
+    .bs-title{font-size:.88rem;font-weight:700;color:var(--navy);}
+    .bs-count{font-size:.76rem;font-weight:600;color:var(--muted);background:var(--slate);padding:2px 9px;
+      border-radius:20px;border:1px solid var(--border);}
+    .bs-header-right{display:flex;align-items:center;gap:10px;}
+    .bs-chevron{font-size:.85rem;color:var(--muted);transition:transform .2s;}
+    .bs-chevron.open{transform:rotate(180deg);}
+    .btn-print-list{padding:5px 12px;font-size:.73rem;font-weight:600;background:var(--navy);
+      color:#fff;border:none;border-radius:var(--r);cursor:pointer;font-family:inherit;transition:background .15s;}
+    .btn-print-list:hover{background:var(--navy2);}
+    .bs-body{padding:0 18px 16px;display:none;}
+    .bs-body.open{display:block;}
+    .rd-list{list-style:none;margin:0;padding:0;}
+    .rd-list-item{
+      display:flex;align-items:flex-start;gap:10px;padding:9px 10px;
+      border-radius:var(--r);transition:background .12s;
+    }
+    .rd-list-item:hover{background:var(--slate);}
+    .rd-num{font-weight:700;color:var(--muted);font-size:.78rem;min-width:24px;text-align:right;flex-shrink:0;margin-top:1px;}
+    .rd-name{font-size:.83rem;font-weight:600;color:var(--txt);}
+    .rd-roll{font-size:.74rem;color:var(--muted);margin-top:1px;}
+    .rd-gpa-badge{font-size:.73rem;font-weight:700;padding:2px 7px;border-radius:10px;
+      background:#dbeafe;color:#1e40af;margin-left:auto;flex-shrink:0;}
+    .rd-fail-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;}
+    .rd-fail-tag{font-size:.68rem;background:#fef2f2;color:#991b1b;border:1px solid #fecaca;
+      padding:1px 7px;border-radius:10px;font-weight:600;}
+    .rd-info-row{display:flex;flex-direction:column;flex:1;min-width:0;}
+
+    /* Top 10 special styling */
+    .top10-item .rd-num{color:var(--gold);font-size:.88rem;}
+    .top10-item.rank-1 .rd-num,.top10-item.rank-2 .rd-num,.top10-item.rank-3 .rd-num{color:var(--gold2);font-size:1rem;}
+    .rd-total-mark{font-size:.72rem;color:var(--muted);margin-left:6px;}
+
+    /* ════════════════════════════════════════════
+       PRINT STYLES — clean & conflict-free
+       ════════════════════════════════════════════ */
     @media print {
-      .top-nav-bar,
-      .site-header,
-      .sidebar-overlay,
-      .pg-hd,
-      #filter-card,
-      #action-bar,
-      #empty-state,
-      #loading-state,
-      #error-msg,
-      #filter-info,
-      .stat-strip { display:none !important; }
+      /* Hide ALL chrome UI */
+      .top-nav-bar, .site-header, .sidebar-overlay,
+      .pg-hd, .subtab-nav, .publish-card,
+      #filter-card, .rd-filter-card, #action-bar,
+      #empty-state, #loading-state, #rd-loading,
+      #error-msg, #filter-info, .stat-strip,
+      .btn-row, .btn-print-list { display:none !important; }
 
-      body { margin:0; padding:0; background:#fff; display:block; }
-      .main { margin:0; padding:0; }
+      body { margin:0; padding:0; background:#fff; }
+      .main { padding:0; margin:0; }
+      * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+      @page { size:A4 portrait; margin:12mm 10mm; }
 
-      /* Preserve exact colors — prevent browser from inverting/stripping backgrounds */
-      * {
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-        color-adjust: exact !important;
-      }
-
-      #sheet-preview-wrapper {
-        border:none; box-shadow:none;
-        padding:0; border-radius:0; overflow:visible;
-      }
-
-      @page { size: A4 portrait; margin:12mm 10mm; }
-
-      #tabulation-sheet {
-        padding:0; min-width:unset; width:100%; font-size:8.5pt;
-      }
-
+      /* Only show the active sheet; hide the other */
+      #tabulation-sheet { padding:0; width:100%; font-size:8.5pt; min-width:unset; }
+      #rd-sheet         { padding:0; width:100%; font-size:8.5pt; min-width:unset; }
+      #sheet-preview-wrapper,
+      #rd-sheet-wrapper { border:none; box-shadow:none; border-radius:0; overflow:visible; }
       .ts-table thead { display:table-header-group; }
       .ts-table tfoot { display:table-footer-group; }
       .ts-table tbody tr { page-break-inside:avoid; }
       .ts-header { page-break-after:avoid; }
+
+      /* Category sheet print: hide Tab 1 pane, show wrapper */
+      body.printing-rd-sheet #tab-tabulation  { display:none !important; }
+      body.printing-rd-sheet #tab-result-details { display:block !important; }
+      body.printing-rd-sheet #rd-sheet-wrapper { display:block !important; }
+
+      /* Tab 1 sheet print: hide Tab 2 pane */
+      body:not(.printing-rd-sheet) #tab-result-details { display:none !important; }
+      body:not(.printing-rd-sheet) #tab-tabulation { display:block !important; }
+      body:not(.printing-rd-sheet) #sheet-preview-wrapper { display:block !important; }
+
+      /* Footer always visible on print */
+      .ts-footer { display:grid !important; }
     }
   </style>
 
@@ -342,10 +459,24 @@
 
   <div class="pg-hd">
     <h2>Result Analytics</h2>
-    <p>Select filters below and generate a printable tabulation sheet for any class, department and exam.</p>
   </div>
 
-  <!-- ── FILTER CARD ── -->
+  <!-- ══ SUBTAB NAVIGATION ══ -->
+  <div class="subtab-nav" role="tablist" aria-label="Result Analytics tabs">
+    <button class="subtab-btn active" id="tab-btn-tabulation"
+            role="tab" aria-selected="true" aria-controls="tab-tabulation"
+            onclick="switchTab('tabulation')">
+      Tabulation Sheet
+    </button>
+    <button class="subtab-btn" id="tab-btn-result-details"
+            role="tab" aria-selected="false" aria-controls="tab-result-details"
+            onclick="switchTab('result-details')">
+      Result Details
+    </button>
+  </div>
+
+  <!-- ══ TAB 1: TABULATION SHEET ══ -->
+  <div id="tab-tabulation" class="subtab-pane active" role="tabpanel" aria-labelledby="tab-btn-tabulation">
   <div class="card" id="filter-card">
     <div class="card-head">
       <h3>Filter Selection</h3>
@@ -475,7 +606,138 @@
       <div class="ts-footer" id="ts-sign-footer" style="display:none;"></div>
 
     </div><!-- end #tabulation-sheet -->
-  </div><!-- end #sheet-preview-wrapper -->
+    </div><!-- end #sheet-preview-wrapper -->
+
+  </div><!-- end #tab-tabulation -->
+
+  <!-- ══ TAB 2: RESULT DETAILS ══ -->
+  <div id="tab-result-details" class="subtab-pane" role="tabpanel" aria-labelledby="tab-btn-result-details">
+
+    <!-- PUBLISH TOGGLE CARD -->
+    <div class="publish-card" id="publish-card">
+      <div class="publish-header">
+        <div class="publish-title">
+          <h3>Result Publish Control</h3>
+        </div>
+        <div class="toggle-wrap">
+          <span class="toggle-label" id="toggle-label-off">OFF</span>
+          <label class="toggle-switch" aria-label="Publish results">
+            <input type="checkbox" id="publish-toggle" onchange="onPublishToggle(this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+          <span class="toggle-label" id="toggle-label-on">ON</span>
+        </div>
+      </div>
+      <div class="publish-status-row off" id="publish-status-row">
+        <div class="publish-dot"></div>
+        <span id="publish-status-text">Results have NOT been published yet. Students will see a blank screen.</span>
+      </div>
+    </div>
+
+    <!-- RESULT BREAKDOWN FILTER CARD -->
+    <div class="rd-filter-card">
+      <div class="card-head">
+        <h3>Result List by Category</h3>
+      </div>
+      <div class="card-body">
+        <div class="fg-grid">
+          <div class="fg">
+            <label for="rd-cls">Class</label>
+            <select id="rd-cls" onchange="rdOnClassGroupChange()">
+              <option value="">&mdash; Select Class &mdash;</option>
+              <option value="Class-XI">Class-XI</option>
+              <option value="Class-XII">Class-XII</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label for="rd-group">Department</label>
+            <select id="rd-group" onchange="rdOnClassGroupChange()">
+              <option value="">&mdash; Select Department &mdash;</option>
+              <option value="Science">Science</option>
+              <option value="Humanities">Humanities</option>
+              <option value="Business">Business</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label for="rd-session">Session</label>
+            <select id="rd-session" disabled onchange="rdOnSessionChange()">
+              <option value="">&mdash; Select Session &mdash;</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label for="rd-exam">Exam Name</label>
+            <select id="rd-exam" disabled onchange="rdOnExamChange()">
+              <option value="">&mdash; Select Exam &mdash;</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label for="rd-category">Category</label>
+            <select id="rd-category" disabled onchange="rdCheckReady()">
+              <option value="">&mdash; Select Category &mdash;</option>
+              <option value="passed_all">Passed All Subjects</option>
+              <option value="failed_1">Failed in 1 Subject</option>
+              <option value="failed_2">Failed in 2 Subjects</option>
+              <option value="failed_3">Failed in 3 Subjects</option>
+              <option value="failed_all">Failed All Subjects</option>
+              <option value="top10">Top 10 List</option>
+            </select>
+          </div>
+        </div>
+        <div id="rd-alert" class="alert alert-err" style="margin-top:14px;display:none;"></div>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="rd-btn-generate" onclick="generateBreakdown()" disabled>Load Sheet</button>
+          <button class="btn btn-gold"    id="rd-btn-print"    onclick="rdPrintSheet()"       disabled style="display:none;">Print Sheet</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOADING STATE -->
+    <div id="rd-loading" style="display:none;text-align:center;padding:36px;">
+      <div class="loading-spinner"></div>
+      <p style="margin-top:12px;font-size:.85rem;color:var(--muted);">Calculating results&hellip;</p>
+    </div>
+
+    <!-- CATEGORY SHEET PREVIEW -->
+    <div id="rd-sheet-wrapper" style="display:none;">
+      <div id="rd-sheet">
+
+        <!-- Sheet Header -->
+        <div class="ts-header" id="rd-sheet-header">
+          <div class="ts-top-row">
+            <img id="rd-logo" class="ts-logo"
+                 src="https://www.muamc.edu.bd/wp-content/uploads/2025/01/logo-muam-scaled.jpeg"
+                 alt="College Logo">
+            <div class="ts-title-block">
+              <div class="ts-college-name" id="rd-college-name"></div>
+              <div class="ts-exam-line"    id="rd-exam-line"></div>
+            </div>
+          </div>
+          <hr class="ts-divider">
+          <div class="ts-info-grid" id="rd-info-grid"></div>
+          <hr class="ts-divider" style="margin-top:4px;">
+          <div class="ts-summary"  id="rd-summary"></div>
+        </div>
+
+        <!-- Student List Table -->
+        <table class="ts-table" id="rd-table" aria-label="Result Category List">
+          <thead id="rd-thead"></thead>
+          <tbody id="rd-tbody"></tbody>
+        </table>
+
+        <!-- Principal Signature Footer -->
+        <div class="ts-footer" id="rd-sign-footer">
+          <div></div> <!-- Empty left column to push signature to the right -->
+          <div class="ts-sign-box">
+            <div class="ts-sign-line"></div>
+            <div class="ts-sign-label">Principal</div>
+            <div class="ts-sign-title">Moinuddin Adarsha Mohila College, Sylhet</div>
+          </div>
+        </div>
+
+      </div><!-- end #rd-sheet -->
+    </div><!-- end #rd-sheet-wrapper -->
+
+  </div><!-- end #tab-result-details -->
 
 </main>
 
@@ -864,6 +1126,340 @@ async function downloadPDF() {
     btn.disabled = false;
     btn.innerHTML = '&#128196; Download PDF';
   }
+}
+
+// ════════════════════════════════════════════
+//  SUBTAB SWITCHING
+// ════════════════════════════════════════════
+function switchTab(tab) {
+  // Deactivate all tabs
+  document.querySelectorAll('.subtab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.subtab-pane').forEach(p => p.classList.remove('active'));
+  // Activate chosen tab
+  const btn  = document.getElementById('tab-btn-' + tab);
+  const pane = document.getElementById('tab-' + tab);
+  if (btn)  btn.classList.add('active');
+  if (pane) pane.classList.add('active');
+  // Load publish status when switching to Result Details
+  if (tab === 'result-details') loadPublishStatus();
+}
+
+// ════════════════════════════════════════════
+//  PUBLISH TOGGLE
+// ════════════════════════════════════════════
+let _publishSaving = false;
+
+async function loadPublishStatus() {
+  try {
+    const r = await fetch(API_BASE + '/api/result-publish-status');
+    const d = await r.json();
+    if (d.ok) applyPublishState(d.published);
+  } catch (_) { /* silently ignore */ }
+}
+
+function applyPublishState(published) {
+  const toggle  = document.getElementById('publish-toggle');
+  const row     = document.getElementById('publish-status-row');
+  const txt     = document.getElementById('publish-status-text');
+  if (!toggle) return;
+  toggle.checked = published;
+  if (published) {
+    row.className = 'publish-status-row on';
+    txt.textContent = 'Results are PUBLISHED';
+  } else {
+    row.className = 'publish-status-row off';
+    txt.textContent = 'Results have NOT been published yet';
+  }
+}
+
+async function onPublishToggle(checked) {
+  if (_publishSaving) return;
+  _publishSaving = true;
+  const toggle = document.getElementById('publish-toggle');
+  toggle.disabled = true;
+  try {
+    const r = await fetch(API_BASE + '/api/result-publish-status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ published: checked }),
+    });
+    const d = await r.json();
+    if (d.ok) {
+      applyPublishState(d.published);
+    } else {
+      // Revert toggle on failure
+      toggle.checked = !checked;
+      alert('Failed to update publish status: ' + (d.message || 'Unknown error'));
+    }
+  } catch (e) {
+    toggle.checked = !checked;
+    alert('Network error updating publish status. Please try again.');
+  } finally {
+    toggle.disabled = false;
+    _publishSaving = false;
+  }
+}
+
+// ════════════════════════════════════════════
+//  RESULT DETAILS — CASCADING FILTERS
+// ════════════════════════════════════════════
+window._rdFilterData = null;
+window._rdSheetData  = null;
+
+async function rdOnClassGroupChange() {
+  const cls   = document.getElementById('rd-cls').value;
+  const group = document.getElementById('rd-group').value;
+
+  ['rd-session','rd-exam','rd-category'].forEach(id => {
+    const el = document.getElementById(id);
+    el.innerHTML = `<option value="">&mdash; Select &mdash;</option>`;
+    el.disabled = true;
+  });
+  // Re-add category options (they are static)
+  const catSel = document.getElementById('rd-category');
+  [['passed_all','Passed All Subjects'],['failed_1','Failed in 1 Subject'],
+   ['failed_2','Failed in 2 Subjects'],['failed_3','Failed in 3 Subjects'],
+   ['failed_all','Failed All Subjects'],['top10','Top 10 List']].forEach(([v,t]) => {
+    const o = document.createElement('option'); o.value = v; o.textContent = t; catSel.appendChild(o);
+  });
+
+  document.getElementById('rd-btn-generate').disabled = true;
+  document.getElementById('rd-btn-print').style.display = 'none';
+  document.getElementById('rd-sheet-wrapper').style.display = 'none';
+  rdShowAlert('');
+  window._rdFilterData = null;
+  window._rdSheetData  = null;
+
+  if (!cls || !group) return;
+
+  rdShowAlert('Loading sessions…');
+  try {
+    const r = await fetch(`${API_BASE}/api/tabulation-sheet/filters?cls=${encodeURIComponent(cls)}&group=${encodeURIComponent(group)}`);
+    const d = await r.json();
+    rdShowAlert('');
+    if (!d.ok) { rdShowAlert(d.message || 'Failed to load sessions.'); return; }
+    window._rdFilterData = d;
+
+    const sesSel = document.getElementById('rd-session');
+    sesSel.innerHTML = '<option value="">&mdash; Select Session &mdash;</option>';
+    (d.sessions || []).forEach(s => {
+      const o = document.createElement('option');
+      o.value = s; o.textContent = s; sesSel.appendChild(o);
+    });
+    sesSel.disabled = (d.sessions || []).length === 0;
+    if (!sesSel.disabled && d.sessions.length === 1) {
+      sesSel.value = d.sessions[0];
+      rdOnSessionChange();
+    }
+  } catch (_) {
+    rdShowAlert('Network error loading sessions.');
+  }
+}
+
+function rdOnSessionChange() {
+  ['rd-exam','rd-category'].forEach(id => {
+    const el = document.getElementById(id);
+    el.innerHTML = `<option value="">&mdash; Select &mdash;</option>`;
+    el.disabled = true;
+  });
+  // Re-add category options
+  const catSel = document.getElementById('rd-category');
+  [['passed_all','Passed All Subjects'],['failed_1','Failed in 1 Subject'],
+   ['failed_2','Failed in 2 Subjects'],['failed_3','Failed in 3 Subjects'],
+   ['failed_all','Failed All Subjects'],['top10','Top 10 List']].forEach(([v,t]) => {
+    const o = document.createElement('option'); o.value = v; o.textContent = t; catSel.appendChild(o);
+  });
+
+  document.getElementById('rd-btn-generate').disabled = true;
+  document.getElementById('rd-btn-print').style.display = 'none';
+  document.getElementById('rd-sheet-wrapper').style.display = 'none';
+
+  if (!window._rdFilterData) return;
+  const examSel = document.getElementById('rd-exam');
+  examSel.innerHTML = '<option value="">&mdash; Select Exam &mdash;</option>';
+  (window._rdFilterData.exam_types || []).forEach(e => {
+    const o = document.createElement('option');
+    o.value = e; o.textContent = e; examSel.appendChild(o);
+  });
+  examSel.disabled = (window._rdFilterData.exam_types || []).length === 0;
+}
+
+function rdOnExamChange() {
+  // After exam selected, enable the category dropdown and reset sheet
+  const examVal = document.getElementById('rd-exam').value;
+  const catSel  = document.getElementById('rd-category');
+  catSel.disabled = !examVal;
+  document.getElementById('rd-btn-generate').disabled = true;
+  document.getElementById('rd-btn-print').style.display = 'none';
+  document.getElementById('rd-sheet-wrapper').style.display = 'none';
+  window._rdSheetData = null;
+}
+
+function rdCheckReady() {
+  const allFilled = ['rd-cls','rd-group','rd-session','rd-exam','rd-category']
+    .every(id => document.getElementById(id).value !== '');
+  document.getElementById('rd-btn-generate').disabled = !allFilled;
+}
+
+function rdShowAlert(msg) {
+  const el = document.getElementById('rd-alert');
+  el.textContent = msg;
+  el.style.display = msg ? '' : 'none';
+}
+
+// ════════════════════════════════════════════
+//  GENERATE BREAKDOWN — loads the result-details API
+//  then renders a category-sheet
+// ════════════════════════════════════════════
+async function generateBreakdown() {
+  const cls      = document.getElementById('rd-cls').value;
+  const group    = document.getElementById('rd-group').value;
+  const session  = document.getElementById('rd-session').value;
+  const exam     = document.getElementById('rd-exam').value;
+  const category = document.getElementById('rd-category').value;
+
+  if (!cls || !group || !session || !exam || !category) {
+    rdShowAlert('Please select all five filter fields.');
+    return;
+  }
+
+  rdShowAlert('');
+  document.getElementById('rd-sheet-wrapper').style.display = 'none';
+  document.getElementById('rd-btn-print').style.display     = 'none';
+  document.getElementById('rd-loading').style.display       = '';
+  document.getElementById('rd-btn-generate').disabled       = true;
+
+  const params = new URLSearchParams({ cls, group, session, exam_type: exam });
+  try {
+    const r = await fetch(`${API_BASE}/api/result-details?${params}`);
+    const d = await r.json();
+    document.getElementById('rd-loading').style.display   = 'none';
+    document.getElementById('rd-btn-generate').disabled   = false;
+
+    if (!d.ok) { rdShowAlert(d.message || 'Failed to load result details.'); return; }
+    window._rdSheetData = d;
+    renderCategorySheet(d, cls, group, session, exam, category);
+  } catch (e) {
+    document.getElementById('rd-loading').style.display = 'none';
+    document.getElementById('rd-btn-generate').disabled = false;
+    rdShowAlert('Network error. Please try again.');
+  }
+}
+
+// ════════════════════════════════════════════
+//  RENDER CATEGORY SHEET
+// ════════════════════════════════════════════
+const CAT_LABELS = {
+  passed_all: 'Passed All Subjects',
+  failed_1:   'Failed in 1 Subject',
+  failed_2:   'Failed in 2 Subjects',
+  failed_3:   'Failed in 3 Subjects',
+  failed_all: 'Failed All Subjects',
+  top10:      'Top 10 Merit List',
+};
+
+function renderCategorySheet(d, cls, group, session, exam, category) {
+  const label    = CAT_LABELS[category] || category;
+  const students = d[category] || [];
+  const isTop10  = (category === 'top10');
+  const isPass   = (category === 'passed_all' || category === 'top10');
+  const hasFailed = category.startsWith('failed');
+
+  // ── SHEET HEADER ──
+  document.getElementById('rd-college-name').textContent =
+    'Moinuddin Adarsha Mohila College, Sylhet';
+  document.getElementById('rd-exam-line').textContent =
+    `${exam} Examination — ${session}`;
+
+  // Info grid
+  document.getElementById('rd-info-grid').innerHTML = `
+    <div class="ts-info-row"><span class="ts-info-label">Class:</span><span>${escHtml(cls)}</span></div>
+    <div class="ts-info-row"><span class="ts-info-label">Department:</span><span>${escHtml(group)}</span></div>
+    <div class="ts-info-row"><span class="ts-info-label">Session:</span><span>${escHtml(session)}</span></div>
+    <div class="ts-info-row"><span class="ts-info-label">Exam:</span><span>${escHtml(exam)}</span></div>
+  `;
+
+  // Summary line
+  document.getElementById('rd-summary').innerHTML = `
+    <div class="ts-sum-cell">Category<span>${escHtml(label)}</span></div>
+    <div class="ts-sum-cell">Category Count<span>${students.length}</span></div>
+    <div class="ts-sum-cell">Total Students<span>${d.summary.total}</span></div>
+    <div class="ts-sum-cell">Passed All<span>${d.summary.passed}</span></div>
+    <div class="ts-sum-cell">Failed<span>${d.summary.failed}</span></div>
+    <div class="ts-sum-cell">Absent<span>${d.summary.absent}</span></div>
+  `;
+
+  // ── TABLE HEADERS ──
+  let theadHtml = '<tr>';
+  if (isTop10) {
+    theadHtml += '<th style="width:48px;">Rank</th><th>Roll</th><th>Name of Student</th><th style="width:70px;">GPA</th><th style="width:80px;">Total Marks</th>';
+  } else if (isPass) {
+    theadHtml += '<th style="width:40px;">SL</th><th style="width:70px;">Roll</th><th>Name of Student</th><th style="width:70px;">GPA</th><th style="width:80px;">Total Marks</th><th style="width:55px;">Result</th>';
+  } else {
+    // Failed categories
+    theadHtml += '<th style="width:40px;">SL</th><th style="width:70px;">Roll</th><th>Name of Student</th><th>Failed Subject(s)</th><th style="width:55px;">Result</th>';
+  }
+  theadHtml += '</tr>';
+  document.getElementById('rd-thead').innerHTML = theadHtml;
+
+  // ── TABLE ROWS ──
+  if (!students.length) {
+    const colspan = isTop10 ? 5 : (isPass ? 6 : 5);
+    document.getElementById('rd-tbody').innerHTML =
+      `<tr><td colspan="${colspan}" style="text-align:center;padding:20px;color:#64748b;">No students found in this category.</td></tr>`;
+  } else {
+    document.getElementById('rd-tbody').innerHTML = students.map((s, i) => {
+      if (isTop10) {
+        return `<tr>
+          <td style="text-align:center;font-weight:700;">${s.rank}</td>
+          <td style="text-align:center;">${escHtml(s.roll)}</td>
+          <td>${escHtml(s.name)}</td>
+          <td style="text-align:center;font-weight:700;">${s.gpa.toFixed(2)}</td>
+          <td style="text-align:center;">${s.total_mark}</td>
+        </tr>`;
+      } else if (isPass) {
+        return `<tr>
+          <td style="text-align:center;">${i + 1}</td>
+          <td style="text-align:center;">${escHtml(s.roll)}</td>
+          <td>${escHtml(s.name)}</td>
+          <td style="text-align:center;font-weight:700;">${s.gpa.toFixed(2)}</td>
+          <td style="text-align:center;">${s.total_mark}</td>
+          <td style="text-align:center;font-weight:700;color:#16a34a;">PASS</td>
+        </tr>`;
+      } else {
+        const failSubs = (s.failed_subjects || []).map(sub => escHtml(sub.name)).join(', ') || '&mdash;';
+        return `<tr>
+          <td style="text-align:center;">${i + 1}</td>
+          <td style="text-align:center;">${escHtml(s.roll)}</td>
+          <td>${escHtml(s.name)}</td>
+          <td style="color:#dc2626;font-size:.82em;">${failSubs}</td>
+          <td style="text-align:center;font-weight:700;color:#dc2626;">FAIL</td>
+        </tr>`;
+      }
+    }).join('');
+  }
+
+  // Show sheet and Print button
+  document.getElementById('rd-sheet-wrapper').style.display = '';
+  const printBtn = document.getElementById('rd-btn-print');
+  printBtn.style.display = '';
+  printBtn.disabled = false;
+
+  // Scroll to sheet
+  document.getElementById('rd-sheet-wrapper').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ════════════════════════════════════════════
+//  PRINT CATEGORY SHEET
+// ════════════════════════════════════════════
+function rdPrintSheet() {
+  document.body.classList.add('printing-rd-sheet');
+  setTimeout(() => {
+    window.print();
+    setTimeout(() => {
+      document.body.classList.remove('printing-rd-sheet');
+    }, 1000);
+  }, 150);
 }
 
 // ════════════════════════════════════════════

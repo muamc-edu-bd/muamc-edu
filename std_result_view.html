@@ -698,6 +698,59 @@
         min-height: 297mm;
       }
     }
+
+    /* ═══ NOT PUBLISHED SCREEN ═══ */
+    .not-published-card {
+      display: none;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(13,43,69,.15);
+      padding: 48px 32px;
+      text-align: center;
+      max-width: 500px;
+      width: 100%;
+      margin: 0 auto;
+    }
+    .np-icon {
+      font-size: 3.5rem;
+      margin-bottom: 16px;
+      line-height: 1;
+    }
+    .not-published-card h2 {
+      font-family: 'Merriweather', serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #0d2b45;
+      margin-bottom: 10px;
+    }
+    .not-published-card p {
+      font-size: 0.88rem;
+      color: #64748b;
+      line-height: 1.65;
+      margin-bottom: 20px;
+    }
+    .np-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #fef2f2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+      border-radius: 20px;
+      padding: 7px 18px;
+      font-size: 0.83rem;
+      font-weight: 600;
+    }
+    .np-dot {
+      width: 9px; height: 9px;
+      border-radius: 50%;
+      background: #dc2626;
+      animation: np-pulse 1.5s ease-in-out infinite;
+    }
+    @keyframes np-pulse {
+      0%,100% { opacity: 1; }
+      50%      { opacity: 0.3; }
+    }
   </style>
 </head>
 <body>
@@ -711,8 +764,22 @@
 
   <div class="app-container">
 
+    <!-- Not-Published Screen (shown when result_published=false) -->
+    <div class="not-published-card" id="not-published-card">
+      <div class="np-icon">⏳</div>
+      <h2>Results Not Published Yet</h2>
+      <p>
+        The examination results have not been published yet.<br>
+        Please check back later or contact the college office for updates.
+      </p>
+      <div class="np-badge">
+        <div class="np-dot"></div>
+        <span>Awaiting Publication</span>
+      </div>
+    </div>
+
     <!-- Search Form Card (Hidden on print) -->
-    <div class="card search-card">
+    <div class="card search-card" id="search-card">
       <div class="search-card-title">Search Exam Results</div>
       <form id="result-search-form" onsubmit="handleSearch(event)">
         <div class="form-grid">
@@ -806,6 +873,26 @@
     const API_BASE = window.location.origin;
     let currentStudentSid = '';
     let currentExamType = '';
+
+    // ════════════════════════════════════════
+    // PUBLISH GATE — check on page load
+    // ════════════════════════════════════════
+    (async function checkPublishGate() {
+      try {
+        const r = await fetch(API_BASE + '/api/result-publish-status');
+        const d = await r.json();
+        if (d.ok && !d.published) {
+          // Results are NOT published — hide search, show not-published screen
+          const searchCard      = document.getElementById('search-card');
+          const notPublished    = document.getElementById('not-published-card');
+          if (searchCard)   searchCard.style.display   = 'none';
+          if (notPublished) notPublished.style.display = 'block';
+        }
+        // If published === true, the search form stays visible (default)
+      } catch (_) {
+        // On network error: show search form as normal (fail-open for resilience)
+      }
+    })();
 
     function showAlert(msg) {
       const box = document.getElementById('alert-box');

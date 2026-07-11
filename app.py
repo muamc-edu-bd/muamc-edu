@@ -2209,6 +2209,264 @@ def save_settings():
 
 
 # ─────────────────────────────────────────────
+# RESULT PUBLISH STATUS  (global toggle)
+# ─────────────────────────────────────────────
+@app.route('/api/result-publish-status', methods=['GET'])
+def get_result_publish_status():
+    """
+    Public endpoint — no auth required.
+    Returns whether results are globally published (visible on std_result_view.html).
+    """
+    setting = Setting.query.filter_by(key='result_published').first()
+    published = (setting.value == 'true') if setting else False
+    return jsonify({'ok': True, 'published': published})
+
+
+@app.route('/api/result-publish-status', methods=['POST'])
+@require_auth
+def set_result_publish_status():
+    """
+    Auth-protected endpoint.
+    Body: {"published": true | false}
+    Upserts the result_published setting key.
+    """
+    body = request.get_json(force=True, silent=True) or {}
+    published = bool(body.get('published', False))
+    value_str = 'true' if published else 'false'
+
+    setting = Setting.query.filter_by(key='result_published').first()
+    if setting:
+        setting.value = value_str
+    else:
+        db.session.add(Setting(key='result_published', value=value_str))
+    db.session.commit()
+    return jsonify({'ok': True, 'published': published, 'message': f'Result publish status set to {value_str}'})
+
+
+# ─────────────────────────────────────────────
+# RESULT DETAILS  (pass/fail breakdown per exam)
+# ─────────────────────────────────────────────
+@app.route('/api/result-details', methods=['GET'])
+@require_auth
+def get_result_details():
+    """
+    Auth-protected endpoint.
+    Returns grouped pass/fail lists for a given class/group/session/exam_type.
+
+    Query params:
+        cls        — e.g. 'Class-XI'
+        group      — 'Science' | 'Humanities' | 'Business'
+        session    — e.g. '2024-2025'
+        exam_type  — e.g. 'Annual'
+
+    Response contains:
+        passed_all  — students who passed every compulsory subject
+        failed_1    — students who failed exactly 1 compulsory subject
+        failed_2    — students who failed exactly 2 compulsory subjects
+        failed_3    — students who failed exactly 3 compulsory subjects
+        failed_all  — students whose overall GPA=0 (failed all / grade F)
+        top10       — top 10 passing students by GPA desc, total_mark desc
+    """
+    import copy as _copy
+
+    cls_val     = (request.args.get('cls')       or '').strip()
+    group_val   = (request.args.get('group')     or '').strip()
+    session_val = (request.args.get('session')   or '').strip().replace('\u2013', '-').replace('\u2014', '-')
+    exam_type   = (request.args.get('exam_type') or '').strip()
+
+    if not all([cls_val, group_val, session_val, exam_type]):
+        return jsonify({'ok': False, 'message': 'cls, group, session, and exam_type are all required'}), 400
+
+    # Fetch students
+    students = Student.query.filter_by(cls=cls_val, group=group_val).filter(
+        (Student.session == session_val) | (Student.year == session_val)
+    ).all()
+
+    if not students:
+        return jsonify({
+            'ok': True,
+            'passed_all': [], 'failed_1': [], 'failed_2': [], 'failed_3': [],
+            'failed_all': [], 'top10': [],
+            'summary': {'total': 0, 'passed': 0, 'failed': 0, 'absent': 0},
+        })
+
+    # Sort students numerically by roll
+    def _roll_key(s):
+        try:
+            return (0, int(s.roll))
+        except (ValueError, TypeError):
+            return (1, s.roll or '')
+    students = sorted(students, key=_roll_key)
+
+    student_ids = [s.id for s in students]
+    all_marks = _get_marks_dict(student_ids)
+
+    LEGACY_MAP = {
+        'scienceBio': ['178', '179'], 'scienceMath': ['265', '266'],
+        'humLogic': ['121', '122'],   'humHome': ['273', '274'],
+        'busEcon': ['109', '110'],    'busHome': ['273', '274'],
+    }
+
+    passed_all = []
+    failed_1   = []
+    failed_2   = []
+    failed_3   = []
+    failed_all = []
+    absent_cnt = 0
+
+    for stu in students:
+        stu_marks_all = all_marks.get(stu.id, {})
+        stu_marks = stu_marks_all.get(exam_type, {})
+
+        # If student has no marks for this exam, treat as absent
+        if not stu_marks:
+            absent_cnt += 1
+            continue
+
+        # Resolve subject list
+        optional_subject = getattr(stu, 'optional_subjects', '') or ''
+        if group_val == 'Humanities':
+            subs = _get_humanities_subject_list(stu, cls_val)
+            if subs is None:
+                subs = []
+        else:
+            subs = _resolve_optional_subjects(group_val, optional_subject)
+
+        # Filter by class paper
+        if cls_val == 'Class-XI':
+            subs = [s for s in subs if not ('2nd' in s['name'] or '2nd Paper' in s['name'] or s['name'].endswith(' 2nd'))]
+        elif cls_val == 'Class-XII':
+            subs = [s for s in subs if not ('1st' in s['name'] or '1st Paper' in s['name'] or s['name'].endswith(' 1st'))]
+
+        # Rename Sociology/Islamic History
+        temp_subs = []
+        for sub in subs:
+            s = _copy.deepcopy(sub)
+            if s['code'] in ['116', '267']:
+                suffix = ' 1st Paper' if cls_val == 'Class-XI' else ' 2nd Paper'
+                s['name'] = s['name'].replace(' 1st Paper', '').replace(' 2nd Paper', '') + suffix
+            temp_subs.append(s)
+        subs = temp_subs
+
+        # Resolve optional codes
+        selected_optional = stu_marks.get('selectedOptional', '')
+        opt_codes = [c.strip() for c in (optional_subject or '').split('/') if c.strip()]
+        if not opt_codes and selected_optional:
+            opt_codes = LEGACY_MAP.get(selected_optional, [])
+
+        # Compute per-subject result
+        total_gpa = cnt = fail_cnt = total_mark = 0
+        has_absent = False
+        has_fail   = False
+        failed_subjects = []
+
+        for sub in subs:
+            if group_val == 'Humanities':
+                is_optional = sub.get('optional', False)
+            else:
+                is_optional = sub.get('optional', False) and (sub['code'] in opt_codes)
+
+            m = stu_marks.get(sub['code'], {})
+            absent = (not m) or m.get('absent', False) or \
+                     (str(m.get('cq', '')) == '' and str(m.get('mcq', '')) == '')
+
+            if absent:
+                if not is_optional:
+                    has_absent = True
+                continue
+
+            cq   = min(int(m.get('cq')  or 0), sub.get('cqMax', 70))
+            mcq  = min(int(m.get('mcq') or 0), sub.get('mcqMax', 30))
+            prac = min(int(m.get('prac') or 0), 25) if sub.get('hasPrac') else 0
+            tot  = cq + mcq + prac
+            lg, gp = _grade_letter(tot)
+
+            sub_passed = _subject_passed(
+                cq, mcq, prac,
+                bool(sub.get('hasPrac')),
+                sub.get('cqMax', 70),
+                sub.get('mcqMax', 30),
+            )
+            if not sub_passed:
+                lg = 'F'
+                gp = 0.0
+
+            if not is_optional:
+                if lg == 'F':
+                    has_fail = True
+                    failed_subjects.append({'name': sub['name'], 'code': sub['code']})
+
+            if is_optional:
+                if gp > 2.0:
+                    total_gpa += (gp - 2.0)
+            else:
+                total_gpa += gp
+                cnt += 1
+                if lg == 'F':
+                    fail_cnt += 1
+
+            total_mark += tot
+
+        avg = 0.0 if (fail_cnt > 0 or has_absent or has_fail) else (min(round(total_gpa / cnt, 2), 5.0) if cnt else 0.0)
+        passed = (fail_cnt == 0 and cnt > 0 and not has_absent and not has_fail)
+        gpa_is_zero = (avg == 0.0)
+
+        entry = {
+            'roll': stu.roll,
+            'name': stu.name,
+            'gpa': avg,
+            'total_mark': total_mark,
+            'fail_count': fail_cnt,
+            'failed_subjects': failed_subjects,
+        }
+
+        if passed:
+            passed_all.append(entry)
+        elif fail_cnt == 1:
+            failed_1.append(entry)
+        elif fail_cnt == 2:
+            failed_2.append(entry)
+        elif fail_cnt == 3:
+            failed_3.append(entry)
+        else:
+            # fail_cnt >= 4, or has_absent with gpa=0:
+            # "Failed all" = overall GPA is 0 (result is F)
+            failed_all.append(entry)
+
+    # Top 10 from passed_all only, sorted by GPA desc then total_mark desc
+    top10_pool = sorted(passed_all, key=lambda x: (-x['gpa'], -x['total_mark']))
+    top10 = []
+    for rank, e in enumerate(top10_pool[:10], 1):
+        top10.append({
+            'rank': rank,
+            'roll': e['roll'],
+            'name': e['name'],
+            'gpa': e['gpa'],
+            'total_mark': e['total_mark'],
+        })
+
+    total_count = len(students)
+    passed_count = len(passed_all)
+    failed_count = len(failed_1) + len(failed_2) + len(failed_3) + len(failed_all)
+
+    return jsonify({
+        'ok': True,
+        'passed_all': passed_all,
+        'failed_1': failed_1,
+        'failed_2': failed_2,
+        'failed_3': failed_3,
+        'failed_all': failed_all,
+        'top10': top10,
+        'summary': {
+            'total': total_count,
+            'passed': passed_count,
+            'failed': failed_count,
+            'absent': absent_cnt,
+        },
+    })
+
+
+# ─────────────────────────────────────────────
 # GRADING  helpers
 # ─────────────────────────────────────────────
 def _grade_letter(total):
