@@ -136,45 +136,55 @@
       width: 210mm; min-height: 297mm; background: #fff;
       margin: 0 auto; padding: 8mm 10mm;
       box-shadow: var(--shadow-lg);
-      font-family: 'Times New Roman', 'Merriweather', serif; font-size: 11pt;
+      font-family: Arial, 'Times New Roman', serif; font-size: 10pt;
     }
-    .rc-college-hdr { display: grid; grid-template-columns: 115px 1fr 125px; align-items: center; gap: 8px; margin-bottom: 6px; padding-bottom: 8px; border-bottom: 2.5px solid #000; }
-    .rc-col-left { display: flex; flex-direction: column; align-items: center; gap: 3px; }
-    .rc-stu-photo { width: 90px; height: 112px; object-fit: cover; border: 2px solid #444; display: block; }
-    .rc-stu-photo-ph { width: 90px; height: 112px; border: 2px solid #ccc; background: #f5f5f5; display: flex; align-items: center; justify-content: center; font-size: 8pt; color: #888; text-align: center; }
+    .rc-college-hdr { display: grid; grid-template-columns: 110px 1fr 120px; align-items: center; gap: 6px; margin-bottom: 4px; padding-bottom: 6px; border-bottom: 2.5px solid #000; }
+    .rc-col-left { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+    .rc-stu-photo { width: 88px; height: 108px; object-fit: cover; border: 2px solid #444; display: block; }
+    .rc-stu-photo-ph { width: 88px; height: 108px; border: 2px solid #ccc; background: #f5f5f5; display: flex; align-items: center; justify-content: center; font-size: 7.5pt; color: #888; text-align: center; }
     .rc-stu-photo-lbl { font-size: 7pt; color: #666; text-align: center; margin-top: 1px; }
     .rc-col-mid { text-align: center; }
-    .rc-col-mid h1 { font-size: 14pt; font-weight: 700; color: #000; letter-spacing: .4px; margin-bottom: 3px; line-height: 1.2; }
-    .rc-college-logo { width: 80px; height: 80px; border-radius: 50%; object-fit: contain; border: 1.5px solid #ccc; display: block; margin: 4px auto; }
-    .rc-col-mid p { font-size: 9pt; color: #333; margin-bottom: 1px; }
-    .transcript-lbl { font-size: 12pt; font-weight: 700; margin-top: 5px; display: block; }
+    .rc-col-mid h1 { font-size: 13pt; font-weight: 700; color: #000; letter-spacing: .3px; margin-bottom: 2px; line-height: 1.2; }
+    .rc-college-logo { width: 72px; height: 72px; border-radius: 50%; object-fit: contain; border: 1.5px solid #ccc; display: block; margin: 3px auto; }
+    .rc-col-mid p { font-size: 8.5pt; color: #333; margin-bottom: 1px; }
+    .transcript-lbl { font-size: 11pt; font-weight: 700; margin-top: 3px; display: block; }
     .rc-col-right { text-align: right; }
-    .rc-col-right table { width: 100%; border-collapse: collapse; font-size: 8pt; }
-    .rc-col-right th, .rc-col-right td { border: 1px solid #999; padding: 2px 5px; text-align: center; }
+    .rc-col-right table { width: 100%; border-collapse: collapse; font-size: 7.5pt; }
+    .rc-col-right th, .rc-col-right td { border: 1px solid #999; padding: 1.5px 4px; text-align: center; }
     .rc-col-right th { background: #e8e8e8; font-weight: 700; }
-    .rc-stu-block { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 16px; font-size: 9.5pt; border: 1px solid #bbb; padding: 6px 10px; margin-bottom: 5px; background: #fdfdfd; }
-    .rc-stu-row { display: flex; gap: 4px; padding: 1px 0; }
-    .rc-stu-lbl { font-weight: 700; min-width: 100px; flex-shrink: 0; }
-    .rc-exam-hdr { text-align: center; font-size: 11pt; font-weight: 700; background: #000; color: #fff; padding: 4px; margin-bottom: 0; }
-    .rc-marks-tbl { width: 100%; border-collapse: collapse; font-size: 8.5pt; margin-bottom: 5px; }
-    .rc-marks-tbl th { background: #333; color: #fff; padding: 4px 5px; text-align: center; border: 1px solid #555; font-weight: 600; font-size: 8pt; }
-    .rc-marks-tbl th.lft { text-align: left; padding-left: 6px; }
-    .rc-marks-tbl td { padding: 3px 5px; border: 1px solid #bbb; text-align: center; vertical-align: middle; }
+    .rc-stu-block { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 14px; font-size: 9pt; border: 1px solid #bbb; padding: 6px 10px; margin-bottom: 5px; background: #fdfdfd; }
+    .rc-stu-row { display: flex; gap: 3px; padding: 2.5px 0; }
+    .rc-stu-lbl { font-weight: 700; min-width: 95px; flex-shrink: 0; }
+    .rc-exam-hdr { text-align: center; font-size: 10.5pt; font-weight: 700; background: #000; color: #fff; padding: 5px; margin-bottom: 0; }
+    .rc-marks-tbl { width: 100%; border-collapse: collapse; font-size: 8pt; margin-bottom: 5px; }
+    .rc-marks-tbl th { background: #333; color: #fff; padding: 5px 4px; text-align: center; border: 1px solid #555; font-weight: 600; font-size: 7.5pt; }
+    .rc-marks-tbl th.lft { text-align: left; padding-left: 5px; }
+    .rc-marks-tbl td { padding: 4px 4px; border: 1px solid #bbb; text-align: center; vertical-align: middle; line-height: 1.4; }
     .rc-marks-tbl tbody tr:nth-child(even) { background: #f7f7f7; }
-    .sn { text-align: left !important; padding-left: 6px !important; font-weight: 500; }
-    .rc-marks-tbl tfoot td { background: #333; color: #fff; font-weight: 700; border: 1px solid #555; padding: 4px 5px; }
-    .rc-bottom { display: grid; grid-template-columns: 200px 1fr; gap: 10px; margin-top: 5px; }
-    .rc-summary-box { border: 1px solid #bbb; font-size: 8.5pt; }
+    .sn { text-align: left !important; padding-left: 5px !important; font-weight: 500; }
+    .rc-marks-tbl tfoot td { background: #333; color: #fff; font-weight: 700; border: 1px solid #555; padding: 5px 4px; }
+    .rc-bottom { display: grid; grid-template-columns: 220px 1fr; gap: 8px; margin-top: 6px; }
+    .rc-summary-box { border: 1px solid #bbb; font-size: 8pt; }
     .rc-summary-box table { width: 100%; border-collapse: collapse; }
-    .rc-summary-box td { padding: 3px 8px; border-bottom: 1px solid #e0e0e0; vertical-align: top; }
-    .rc-summary-box td:first-child { font-weight: 600; width: 90px; }
+    .rc-summary-box td { padding: 4px 7px; border-bottom: 1px solid #e0e0e0; vertical-align: top; line-height: 1.4; }
+    .rc-summary-box td:first-child { font-weight: 600; width: 120px; }
     .rc-summary-box tr:last-child td { border-bottom: none; }
-    .rc-qr-center { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
-    .rc-sign-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 8px; padding-top: 6px; border-top: 1px solid #ccc; }
-    .rc-sign-box { text-align: center; }
-    .rc-sign-line { height: 40px; border-bottom: 1px solid #555; margin-bottom: 4px; }
-    .rc-sign-lbl { font-size: 8pt; color: #555; }
-    .rc-gen-note { font-size: 7pt; color: #888; text-align: center; margin-top: 6px; padding-top: 5px; border-top: 1px dashed #ccc; }
+    .rc-qr-center { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; }
+    /* Signature row — always one horizontal line with 3 equal columns */
+    .rc-sign-row {
+      display: grid !important;
+      grid-template-columns: 1fr 1fr 1fr !important;
+      gap: 12px;
+      margin-top: 14px;
+      padding-top: 8px;
+      border-top: 1px solid #ccc;
+      width: 100%;
+    }
+    .rc-sign-box { text-align: center; width: 100%; }
+    .rc-sign-line { height: 44px; border-bottom: 1px solid #555; margin-bottom: 4px; }
+    .rc-sign-lbl { font-size: 8pt; color: #333; font-weight: 600; }
+    .rc-remark-box { margin-top: 6px; padding: 7px 10px; border: 1.5px solid #bbb; font-size: 9pt; min-height: 36px; }
+    .rc-gen-note { font-size: 6.5pt; color: #888; text-align: center; margin-top: 6px; padding-top: 5px; border-top: 1px dashed #ccc; }
 
     /* ═══ RESULT MODAL ═══ */
     #result-modal { position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,.6); display: none; align-items: center; justify-content: center; padding: 16px; }
@@ -198,13 +208,47 @@
 
     /* ═══ PRINT ═══ */
     @media print {
+      @page { size: A4 portrait; margin: 8mm 10mm; }
       .no-print { display: none !important; }
-      body { background: #fff !important; }
+      body { background: #fff !important; margin: 0 !important; padding: 0 !important; }
       .top-nav-bar, .site-header, .rc-sel-card, .res-subtab-bar, .btn-row, .pg-hd { display: none !important; }
       .main { padding: 0 !important; margin: 0 !important; }
-      .rc-page { width: 210mm !important; padding: 8mm 10mm !important; font-size: 11pt !important; box-shadow: none !important; page-break-after: always; break-after: page; }
+      .rc-page {
+        width: 100% !important;
+        min-height: 277mm !important;
+        padding: 5mm 6mm !important;
+        font-size: 9.5pt !important;
+        box-shadow: none !important;
+        border: none !important;
+        margin: 0 !important;
+        page-break-after: always;
+        break-after: page;
+        page-break-inside: avoid;
+        display: flex !important;
+        flex-direction: column !important;
+      }
       .rc-page:last-child { page-break-after: avoid; break-after: avoid; }
       #result-modal { display: none !important; }
+
+      /* Force signature row as a single horizontal line */
+      .rc-sign-row {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr 1fr !important;
+        width: 100% !important;
+        margin-top: 16px !important;
+      }
+      .rc-sign-box {
+        display: block !important;
+        width: 100% !important;
+        text-align: center !important;
+      }
+
+      /* Stretch marks table rows for page fill */
+      .rc-marks-tbl td { padding: 5px 4px !important; }
+      .rc-marks-tbl th { padding: 5px 4px !important; }
+      .rc-marks-tbl tfoot td { padding: 5px 4px !important; }
+      .rc-stu-row { padding: 3px 0 !important; }
+      .rc-summary-box td { padding: 5px 7px !important; }
 
       /* Preserve exact colors — prevent browser from inverting dark backgrounds */
       * {
@@ -1149,7 +1193,7 @@
 
       let tableRows = '';
       cats.forEach((cat, ci) => {
-        if (ci > 0) tableRows += `<tr><td colspan="10" style="background:#e8e8e8;font-weight:700;text-align:center;padding:3px 6px;font-size:8pt;border:1px solid #bbb;">${cat.cat}</td></tr>`;
+        if (ci > 0) tableRows += `<tr><td colspan="9" style="background:#e8e8e8;font-weight:700;text-align:center;padding:2px 5px;font-size:7.5pt;border:1px solid #bbb;">${cat.cat}</td></tr>`;
         cat.items.forEach(sub => {
           const m = marks[sub.code] || {};
           const absent = !marks || m.absent === true || ((m.cq === '' || m.cq === undefined) && (m.mcq === '' || m.mcq === undefined));
@@ -1160,23 +1204,22 @@
           const lg = absent ? 'Ab' : (subPassed ? g.l : 'F');
           const gpa = absent ? 0 : (subPassed ? g.g : 0);
           const isSelOpt = isOptionalForFailCount(sub, optionalSelected);
+          const fullMark = (sub.cqMax||70) + (sub.mcqMax||0) + (sub.hasPrac ? 25 : 0);
           
-          mMax += (sub.cqMax||70)+(sub.mcqMax||30)+(sub.hasPrac?25:0);
+          mMax += fullMark;
           if (lg==='F' && !isSelOpt && !absent) { failSubs.push(sub.name); }
           const isOpt = sub.optionalGroup === optionalSelected;
           const highMark = highestMarks[sub.code] || '—';
-          const mcqDisplay = sub.mcqMax === 0 ? '—' : (absent ? 'A' : (m.mcq||'0'));
           tableRows += `<tr style="${lg==='F'&&!absent?'background:#fff8f8;':''}">
-            <td class="sn">${sub.name}${isOpt?' <span style="font-size:7pt;color:#0d2b45;background:#e8f4f8;padding:1px 4px;border-radius:2px;">(Optional)</span>':''} <span style="font-size:7pt;color:#888;">${sub.code}</span></td>
-            <td>100</td>
+            <td class="sn">${sub.name}${isOpt?' <span style="font-size:6.5pt;color:#0d2b45;background:#e8f4f8;padding:1px 3px;border-radius:2px;">(Opt)</span>':''} <span style="font-size:6.5pt;color:#888;">(${sub.code})</span></td>
+            <td>${fullMark}</td>
             <td>${absent?'A':(cq||'0')}</td>
-            <td>${absent?'A':(mcq||'0')}</td>
+            <td>${sub.mcqMax===0?'—':(absent?'A':(mcq||'0'))}</td>
             <td>${sub.hasPrac?(absent?'A':(prac||'0')):'—'}</td>
             <td style="font-weight:600;">${absent?'0':tot}</td>
             <td style="color:#1e3a8a;font-weight:600;">${highMark}</td>
             <td>${absent?'0.00':gpa.toFixed(2)}</td>
-            <td style="font-weight:700;${g.l==='F'&&!isOpt?'color:#b91c1c;':''}">${lg}</td>
-            <td></td>
+            <td style="font-weight:700;${lg==='F'&&!isOpt?'color:#b91c1c;':''}">${lg}</td>
           </tr>`;
         });
       });
@@ -1224,36 +1267,36 @@
         </div>
         <div class="rc-exam-hdr">${examType} Examination ${ey}</div>
         <table class="rc-marks-tbl">
-          <tr><th class="lft">Subject</th><th>Total</th><th>CQ</th><th>MCQ</th><th>Practical</th><th>Total</th><th>Highest Mark</th><th>GPA</th><th>LG</th><th></th></tr>
+          <tr><th class="lft">Subject</th><th>Full Marks</th><th>CQ</th><th>MCQ</th><th>Practical</th><th>Total</th><th>Highest</th><th>GPA</th><th>LG</th></tr>
           ${tableRows}
           <tfoot>
-            <tr><td style="text-align:left;padding-left:6px;"><strong>Total GPA &amp; Result</strong></td><td></td><td></td><td></td><td></td>
+            <tr><td style="text-align:left;padding-left:5px;"><strong>Summary GPA &amp; Result</strong></td><td></td><td></td><td></td><td></td>
             <td style="font-weight:600;">${tMark}/${mMax}</td><td></td>
             <td style="font-weight:700;">${avg}</td>
-            <td style="font-weight:700;">${passed?'<span style="color:#dcfce7;">Pass</span>':'<span style="color:#fecaca;">Fail</span>'}</td><td></td></tr>
+            <td style="font-weight:700;">${passed?'<span style="color:#dcfce7;">Pass</span>':'<span style="color:#fecaca;">Fail</span>'}</td></tr>
           </tfoot>
         </table>
         <div class="rc-bottom">
           <div class="rc-summary-box"><table>
             <tr><td><strong>Total Marks Obtained</strong></td><td style="font-weight:700;">${tMark} out of ${mMax}</td></tr>
-            <tr><td>GPA</td><td style="font-weight:700;">${avg}</td></tr>
-            <tr><td>Result</td><td style="font-weight:700;${passed?'color:#166534;':'color:#b91c1c;'}">${passed?'PASS':'FAIL'}</td></tr>
-            <tr><td>Optional Subject</td><td style="font-size:8pt;">${optionalSubjText}</td></tr>
-            <tr><td>Merit Position</td><td style="font-weight:600;color:#1e3a8a;">${ord(meritPos)} out of ${meritTotal}</td></tr>
+            <tr><td>Grade Point Average (GPA)</td><td style="font-weight:700;">${avg}</td></tr>
+            <tr><td>Overall Result Status</td><td style="font-weight:700;${passed?'color:#166534;':'color:#b91c1c;'}">${passed?'PASSED':'FAILED'}</td></tr>
+            <tr><td>Optional Subject</td><td style="font-size:7.5pt;">${optionalSubjText}</td></tr>
+            <tr><td>Group Merit Position</td><td style="font-weight:600;color:#1e3a8a;">${ord(meritPos)} out of ${meritTotal}</td></tr>
           </table></div>
           <div class="rc-qr-center">
             <div id="rc-qr-modal" style="border:1px solid #ccc;"></div>
-            <div style="font-size:7.5pt;color:#444;margin-top:4px;text-align:center;font-weight:600;">Scan QR Code</div>
+            <div style="font-size:7pt;color:#444;margin-top:3px;text-align:center;font-weight:600;">Scan QR Code</div>
           </div>
         </div>
-        <div style="margin-top:5px;padding:6px 10px;border:1.5px solid #bbb;font-size:9.5pt;min-height:32px;"><strong>Remark:</strong>&nbsp;</div>
+            <div class="rc-remark-box"><strong>Remark:</strong>&nbsp;</div>
         <div class="rc-sign-row">
           <div class="rc-sign-box"><div class="rc-sign-line"></div><div class="rc-sign-lbl">Class Teacher</div></div>
           <div class="rc-sign-box"><div class="rc-sign-line"></div><div class="rc-sign-lbl">Guardian</div></div>
           <div class="rc-sign-box"><div class="rc-sign-line"></div><div class="rc-sign-lbl">Principal</div></div>
         </div>
-        <div class="rc-gen-note">Generated by Academic Management System — Moinuddin Adarsha Mohila College, Shamimabad, Bagbari, Sylhet.</div>
-        <div style="text-align:center;font-size:7pt;color:#999;margin-top:4px;border-top:1px dashed #ddd;padding-top:4px;">Date &amp; Time of Printing: ${ts}</div>
+        <div class="rc-gen-note">Result Generated by Student Portal — Moinuddin Adarsha Mohila College, Shamimabad, Bagbari, Sylhet.</div>
+        <div style="text-align:center;font-size:6.5pt;color:#999;margin-top:3px;border-top:1px dashed #ddd;padding-top:3px;">Date &amp; Time of Printing: ${ts}</div>
       </div>`;
 
       // QR code
@@ -1395,7 +1438,7 @@
           let tableRows = '';
           const cats = getStudentSubjects(stu, cls);
           cats.forEach((cat, ci) => {
-            if (ci > 0) tableRows += `<tr><td colspan="10" style="background:#e8e8e8;font-weight:700;text-align:center;padding:3px 6px;font-size:8pt;border:1px solid #bbb;">${cat.cat}</td></tr>`;
+            if (ci > 0) tableRows += `<tr><td colspan="9" style="background:#e8e8e8;font-weight:700;text-align:center;padding:2px 5px;font-size:7.5pt;border:1px solid #bbb;">${cat.cat}</td></tr>`;
             cat.items.forEach(sub => {
               const m = marks[sub.code] || {};
               const absent = m.absent === true || ((m.cq === '' || m.cq === undefined) && (m.mcq === '' || m.mcq === undefined));
@@ -1406,22 +1449,22 @@
               const lg = absent ? 'Ab' : (subPassed ? g.l : 'F');
               const gpa = absent ? 0 : (subPassed ? g.g : 0);
               const isSelOpt = isOptionalForFailCount(sub, optionalSelected);
+              const fullMark = (sub.cqMax||70) + (sub.mcqMax||0) + (sub.hasPrac ? 25 : 0);
               
-              mMax += (sub.cqMax||70)+(sub.mcqMax||30)+(sub.hasPrac?25:0);
+              mMax += fullMark;
               if (lg==='F' && !isSelOpt && !absent) { failSubs.push(sub.name); }
               const isOpt = sub.optionalGroup === optionalSelected;
               const highMark = highestMarks[sub.code] || '—';
               tableRows += `<tr style="${lg==='F'&&!absent?'background:#fff8f8;':''}">
-                <td class="sn">${sub.name}${isOpt?' <span style="font-size:7pt;color:#0d2b45;background:#e8f4f8;padding:1px 4px;border-radius:2px;">(Optional)</span>':''} <span style="font-size:7pt;color:#888;">${sub.code}</span></td>
-                <td>100</td>
+                <td class="sn">${sub.name}${isOpt?' <span style="font-size:6.5pt;color:#0d2b45;background:#e8f4f8;padding:1px 3px;border-radius:2px;">(Opt)</span>':''} <span style="font-size:6.5pt;color:#888;">(${sub.code})</span></td>
+                <td>${fullMark}</td>
                 <td>${absent?'A':(cq||'0')}</td>
-                <td>${absent?'A':(mcq||'0')}</td>
+                <td>${sub.mcqMax===0?'—':(absent?'A':(mcq||'0'))}</td>
                 <td>${sub.hasPrac?(absent?'A':(prac||'0')):'—'}</td>
                 <td style="font-weight:600;">${absent?'0':tot}</td>
                 <td style="color:#1e3a8a;font-weight:600;">${highMark}</td>
                 <td>${absent?'0.00':gpa.toFixed(2)}</td>
-                <td style="font-weight:700;${g.l==='F'&&!isOpt?'color:#b91c1c;':''}">${lg}</td>
-                <td></td>
+                <td style="font-weight:700;${lg==='F'&&!isOpt?'color:#b91c1c;':''}">${lg}</td>
               </tr>`;
             });
           });
@@ -1472,36 +1515,36 @@
             </div>
             <div class="rc-exam-hdr">${et} Examination ${ey}</div>
             <table class="rc-marks-tbl">
-              <tr><th class="lft">Subject</th><th>Total</th><th>CQ</th><th>MCQ</th><th>Practical</th><th>Total</th><th>Highest Mark</th><th>GPA</th><th>LG</th><th></th></tr>
+              <tr><th class="lft">Subject</th><th>Full Marks</th><th>CQ</th><th>MCQ</th><th>Practical</th><th>Total</th><th>Highest</th><th>GPA</th><th>LG</th></tr>
               ${tableRows}
               <tfoot>
-                <tr><td style="text-align:left;padding-left:6px;"><strong>Total GPA &amp; Result</strong></td><td></td><td></td><td></td><td></td>
+                <tr><td style="text-align:left;padding-left:5px;"><strong>Summary GPA &amp; Result</strong></td><td></td><td></td><td></td><td></td>
                 <td style="font-weight:600;">${tMark}/${mMax}</td><td></td>
                 <td style="font-weight:700;">${avg}</td>
-                <td style="font-weight:700;">${passed?'<span style="color:#dcfce7;">Pass</span>':'<span style="color:#fecaca;">Fail</span>'}</td><td></td></tr>
+                <td style="font-weight:700;">${passed?'<span style="color:#dcfce7;">Pass</span>':'<span style="color:#fecaca;">Fail</span>'}</td></tr>
               </tfoot>
             </table>
             <div class="rc-bottom">
               <div class="rc-summary-box"><table>
                 <tr><td><strong>Total Marks Obtained</strong></td><td style="font-weight:700;">${tMark} out of ${mMax}</td></tr>
-                <tr><td>GPA</td><td style="font-weight:700;">${avg}</td></tr>
-                <tr><td>Result</td><td style="font-weight:700;${passed?'color:#166534;':'color:#b91c1c;'}">${passed?'PASS':'FAIL'}</td></tr>
-                <tr><td>Optional Subject</td><td style="font-size:8pt;">${optionalSubjText}</td></tr>
-                <tr><td>Merit Position</td><td style="font-weight:600;color:#1e3a8a;">${ord(meritPos)} out of ${meritTotal}</td></tr>
+                <tr><td>Grade Point Average (GPA)</td><td style="font-weight:700;">${avg}</td></tr>
+                <tr><td>Overall Result Status</td><td style="font-weight:700;${passed?'color:#166534;':'color:#b91c1c;'}">${passed?'PASSED':'FAILED'}</td></tr>
+                <tr><td>Optional Subject</td><td style="font-size:7.5pt;">${optionalSubjText}</td></tr>
+                <tr><td>Group Merit Position</td><td style="font-weight:600;color:#1e3a8a;">${ord(meritPos)} out of ${meritTotal}</td></tr>
               </table></div>
               <div class="rc-qr-center">
                 <div id="${qrContainerId}" style="border:1px solid #ccc;"></div>
-                <div style="font-size:7.5pt;color:#444;margin-top:4px;text-align:center;font-weight:600;">Scan QR Code</div>
+                <div style="font-size:7pt;color:#444;margin-top:3px;text-align:center;font-weight:600;">Scan QR Code</div>
               </div>
             </div>
-            <div style="margin-top:5px;padding:6px 10px;border:1.5px solid #bbb;font-size:9.5pt;min-height:32px;"><strong>Remark:</strong>&nbsp;</div>
+                <div class="rc-remark-box"><strong>Remark:</strong>&nbsp;</div>
             <div class="rc-sign-row">
               <div class="rc-sign-box"><div class="rc-sign-line"></div><div class="rc-sign-lbl">Class Teacher</div></div>
               <div class="rc-sign-box"><div class="rc-sign-line"></div><div class="rc-sign-lbl">Guardian</div></div>
               <div class="rc-sign-box"><div class="rc-sign-line"></div><div class="rc-sign-lbl">Principal</div></div>
             </div>
-            <div class="rc-gen-note">Generated by Academic Management System — Moinuddin Adarsha Mohila College, Shamimabad, Bagbari, Sylhet.</div>
-            <div style="text-align:center;font-size:7pt;color:#999;margin-top:4px;border-top:1px dashed #ddd;padding-top:4px;">Date &amp; Time of Printing: ${ts}</div>
+            <div class="rc-gen-note">Result Generated by Student Portal — Moinuddin Adarsha Mohila College, Shamimabad, Bagbari, Sylhet.</div>
+            <div style="text-align:center;font-size:6.5pt;color:#999;margin-top:3px;border-top:1px dashed #ddd;padding-top:3px;">Date &amp; Time of Printing: ${ts}</div>
           </div>`;
         });
 
