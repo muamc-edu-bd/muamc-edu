@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Group-wise Results — Moinuddin Adarsha Mohila College</title>
+  <meta name="description" content="Download complete group-wise results for any class, group, session and exam at Moinuddin Adarsha Mohila College.">
+  <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700;900&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+  <style>
+    :root {
+      --navy:#0d2b45; --navy2:#174070; --navy3:#1f5490;
+      --gold:#a97c28; --gold2:#c9973a; --gold3:#e8b84b;
+      --slate:#f1f4f8; --slate2:#e8ecf2; --white:#fff;
+      --txt:#0f172a; --txt2:#334155; --muted:#64748b;
+      --border:#dde3ed; --border2:#c8d2e0;
+      --red:#b91c1c; --green:#166534; --amber:#92400e; --purple:#6d28d9;
+      --shadow-xs:0 1px 2px rgba(0,0,0,.06);
+      --shadow-sm:0 1px 4px rgba(13,43,69,.08),0 1px 3px rgba(13,43,69,.05);
+      --shadow:0 4px 16px rgba(13,43,69,.09);
+      --r:6px; --r-md:10px; --r-lg:14px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{scroll-behavior:smooth;}
+    body{font-family:'Source Sans 3',sans-serif;background:var(--slate);color:var(--txt);display:flex;flex-direction:column;}
+    .top-nav-bar{position:fixed;top:0;left:0;right:0;height:70px;z-index:201;background:linear-gradient(180deg,#0d2b45 0%,#0a2138 100%);display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid rgba(255,255,255,.08);box-shadow:0 4px 12px rgba(0,0,0,.15);}
+    .top-nav-logo{display:flex;align-items:center;gap:14px;}
+    .top-nav-logo-img{width:48px;height:48px;border-radius:50%;background:#fff;border:2.5px solid var(--gold2);overflow:hidden;display:flex;align-items:center;justify-content:center;}
+    .top-nav-logo-img img{width:100%;height:100%;object-fit:contain;}
+    .top-nav-logo-text h1{font-family:'Merriweather',serif;font-size:.85rem;font-weight:700;color:#fff;}
+    .top-nav-logo-text p{font-size:.58rem;color:rgba(255,255,255,.5);margin-top:2px;}
+    .top-nav-admin{display:flex;align-items:center;gap:16px;}
+    .logout-btn{padding:8px 16px;border-radius:var(--r);border:1px solid rgba(255,255,255,.3);background:transparent;color:#fff;font-size:.78rem;font-family:inherit;cursor:pointer;font-weight:600;transition:all .15s;}
+    .logout-btn:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.6);}
+    .hdr-hamburger{display:none;background:none;border:none;color:#fff;font-size:1.4rem;cursor:pointer;width:32px;height:32px;align-items:center;justify-content:center;border-radius:var(--r);}
+    .hdr-hamburger:hover{background:rgba(255,255,255,.1);}
+    .site-header{background:linear-gradient(180deg,#0d2b45 0%,#0a2138 100%);position:fixed;left:0;top:70px;width:220px;height:calc(100vh - 70px);z-index:200;border-right:1px solid rgba(255,255,255,.06);box-shadow:4px 0 16px rgba(0,0,0,.3);display:flex;flex-direction:column;overflow-y:auto;transition:transform .3s ease;}
+    .nav-strip{display:flex;flex-direction:column;padding:16px 0;background:rgba(0,0,0,.2);flex:1;}
+    .nt{padding:12px 16px;cursor:pointer;font-size:.79rem;font-weight:500;border-left:3px solid transparent;color:rgba(255,255,255,.55);transition:color .15s,border-color .15s,background .15s;display:flex;align-items:center;text-decoration:none;}
+    .nt:hover{color:rgba(255,255,255,.88);background:rgba(255,255,255,.05);}
+    .nt.active{color:var(--gold3);border-left-color:var(--gold2);background:rgba(255,255,255,.08);}
+    .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:190;}
+    .sidebar-overlay.active{display:block;}
+    .main{margin-left:220px;margin-top:70px;padding:28px 24px;flex:1;}
+    .pg-hd{margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--border);}
+    .pg-hd h2{font-family:'Merriweather',serif;font-size:1.2rem;font-weight:700;color:var(--navy);}
+    .pg-hd p{font-size:.78rem;color:var(--muted);margin-top:3px;}
+    .card{background:var(--white);border-radius:var(--r-lg);border:1px solid var(--border);box-shadow:var(--shadow-sm);margin-bottom:20px;overflow:hidden;}
+    .card-head{padding:15px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+    .card-head h3{font-family:'Merriweather',serif;font-size:.92rem;font-weight:700;color:var(--navy);}
+    .card-head .meta{font-size:.72rem;color:var(--muted);}
+    .card-body{padding:20px;}
+    .fg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;}
+    .fg{display:flex;flex-direction:column;gap:5px;}
+    .fg label{font-size:.74rem;font-weight:600;color:var(--navy);}
+    .fg select{padding:8px 11px;border:1.5px solid var(--border2);border-radius:var(--r);font-size:.83rem;font-family:inherit;background:#fafcff;color:var(--txt);transition:border .15s;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2364748b' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;}
+    .fg select:focus{outline:none;border-color:var(--navy3);box-shadow:0 0 0 3px rgba(31,84,144,.1);}
+    .fg select:disabled{background:#f1f4f8;color:var(--muted);cursor:not-allowed;}
+    .btn{padding:8px 18px;border-radius:var(--r);border:none;cursor:pointer;font-family:inherit;font-size:.8rem;font-weight:600;transition:all .14s;display:inline-flex;align-items:center;gap:6px;}
+    .btn-primary{background:var(--navy);color:#fff;}
+    .btn-primary:hover{background:var(--navy2);box-shadow:0 3px 10px rgba(13,43,69,.3);}
+    .btn-success{background:#166534;color:#fff;}
+    .btn-success:hover{background:#15803d;box-shadow:0 3px 10px rgba(22,101,52,.3);}
+    .btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;}
+    .btn:disabled{opacity:.5;cursor:not-allowed;pointer-events:none;}
+    .alert{padding:10px 14px;border-radius:var(--r);font-size:.79rem;margin-bottom:0;border:1px solid;}
+    .alert-err{background:#fef2f2;color:#991b1b;border-color:#fecaca;}
+    .loading-spinner{width:32px;height:32px;border:3px solid var(--slate2);border-top-color:var(--navy);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+    #result-section{display:none;}
+    #table-wrapper{overflow-x:auto;border:1px solid var(--border);border-radius:var(--r-md);}
+    #result-table{border-collapse:collapse;font-size:.77rem;min-width:600px;width:100%;background:#fff;}
+    #result-table th,#result-table td{border:1px solid #bcc8d8;padding:5px 7px;vertical-align:middle;white-space:nowrap;}
+    #result-table thead tr.hdr-row1 th{background:#0d2b45;color:#fff;font-family:'Merriweather',serif;font-size:.72rem;text-align:center;font-weight:700;}
+    #result-table thead tr.hdr-row1 th.col-fixed{text-align:left;background:#0a2138;}
+    #result-table thead tr.hdr-row2 th{background:#174070;color:rgba(255,255,255,.82);font-size:.67rem;text-align:center;font-weight:600;letter-spacing:.2px;}
+    #result-table thead tr.hdr-row2 th.col-fixed2{background:#122e52;text-align:left;}
+    #result-table tbody tr:nth-child(even){background:#f8fafc;}
+    #result-table tbody tr:hover{background:#eef2f8;}
+    #result-table td.absent-cell{color:#991b1b;font-weight:700;text-align:center;}
+    #result-table td.na-cell{color:#94a3b8;text-align:center;}
+    #result-table td.num-cell{text-align:center;}
+    #result-table td.col-fixed{font-weight:600;color:var(--navy);}
+    #result-table td.col-roll{font-weight:700;color:var(--navy2);}
+    .page-loader{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.72);backdrop-filter:blur(2px);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .24s ease,visibility .24s ease;z-index:9999;}
+    .page-loader.visible{opacity:1;visibility:visible;pointer-events:auto;}
+    .page-loader-inner{display:flex;flex-direction:column;align-items:center;gap:12px;padding:16px 20px;background:rgba(255,255,255,.92);border:1px solid rgba(15,23,42,.1);box-shadow:0 12px 32px rgba(15,23,42,.12);}
+    .page-loader-dots{display:flex;gap:8px;}
+    .page-loader-dot{width:12px;height:12px;background:var(--navy);animation:ppl 1s ease-in-out infinite both;}
+    .page-loader-dot:nth-child(2){animation-delay:.16s;}
+    .page-loader-dot:nth-child(3){animation-delay:.32s;}
+    @keyframes ppl{0%,100%{transform:scale(1);opacity:.4;}50%{transform:scale(1.45);opacity:1;}}
+    .page-loader-text{font-size:.92rem;color:var(--navy);font-weight:700;letter-spacing:.02em;}
+    @media(max-width:768px){
+      .hdr-hamburger{display:flex;}
+      .site-header{transform:translateX(-100%);transition:transform .3s ease;}
+      .site-header.active{transform:translateX(0);}
+      .main{margin-left:0;padding:14px 10px;}
+      .top-nav-bar{padding:0 16px;}
+      .top-nav-logo-text h1{font-size:.68rem;}
+    }
+    @media print {
+      .top-nav-bar, .site-header, .sidebar-overlay,
+      .pg-hd, .card:not(#result-section .card),
+      .btn-row, #action-bar, #loading-state, .page-loader { display:none !important; }
+
+      body { margin:0; padding:0; background:#fff; }
+      .main { padding:0; margin:0; }
+      * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+      @page { size:A4 landscape; margin:12mm 10mm; }
+
+      #result-section { display:block !important; }
+      #result-section .card { border:none; box-shadow:none; border-radius:0; overflow:visible; }
+      #result-section .card-head {
+        border-bottom: 2px solid #000 !important;
+        padding: 0 0 10px 0 !important;
+        margin-bottom: 15px !important;
+      }
+      #result-heading {
+        font-size: 14pt !important;
+        color: #000 !important;
+      }
+      #result-meta {
+        font-size: 10pt !important;
+        color: #333 !important;
+      }
+      #table-wrapper { border:none; box-shadow:none; border-radius:0; overflow:visible; }
+      #result-table { font-size: 7pt; width:100%; min-width:unset; }
+      #result-table th, #result-table td { padding: 3px 4px; border: 1px solid #000; }
+      #result-table thead tr.hdr-row1 th,
+      #result-table thead tr.hdr-row2 th {
+        background: #f1f5f9 !important;
+        color: #000 !important;
+        font-weight: 700 !important;
+      }
+      #result-table thead { display:table-header-group; }
+      #result-table tbody tr { page-break-inside:avoid; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="page-loader" class="page-loader" aria-hidden="true">
+  <div class="page-loader-inner">
+    <div class="page-loader-dots">
+      <span class="page-loader-dot"></span>
+      <span class="page-loader-dot"></span>
+      <span class="page-loader-dot"></span>
+    </div>
+    <div class="page-loader-text">Loading...</div>
+  </div>
+</div>
+
+<div class="top-nav-bar">
+  <div class="top-nav-logo">
+    <div class="top-nav-logo-img">
+      <img src="https://www.muamc.edu.bd/wp-content/uploads/2025/01/logo-muam-scaled.jpeg" alt="Logo">
+    </div>
+    <div class="top-nav-logo-text">
+      <h1>Moinuddin Adarsha Mohila College</h1>
+      <p>Student Database System</p>
+    </div>
+  </div>
+  <div class="top-nav-admin">
+    <button class="hdr-hamburger" id="hdr-hamburger" onclick="toggleSidebar()">Menu</button>
+    <button class="logout-btn" onclick="doLogout()">Logout</button>
+  </div>
+</div>
+
+<header class="site-header" id="site-header">
+  <nav class="nav-strip" id="nav-strip">
+    <a class="nt" href="/">Dashboard</a>
+    <a class="nt" href="/student-list.html">Student Management</a>
+    <a class="nt" href="/marks-entry.html">Mark Entry</a>
+    <a class="nt" href="/Teachers.html">Teachers</a>
+    <a class="nt" href="/Result-card.html">Result Card</a>
+    <a class="nt" href="/Admit-card.html">Admit Card</a>
+    <a class="nt" href="/bulk-photo.html">Bulk Photo Upload</a>
+    <a class="nt" href="/analytics.html" style="border-top:1px solid rgba(255,255,255,.08);margin-top:8px;padding-top:16px;">Analytics</a>
+    <a class="nt" href="/result_analytics.html">Result Analytics</a>
+    <a class="nt active" href="/group-results.html">Group-wise Results</a>
+  </nav>
+</header>
+
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+<main class="main" id="main-content">
+
+  <div class="pg-hd">
+    <h2>Group-wise Results</h2>
+    <p>Generate and export complete results for all students in a group across all subjects.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>Select Filters</h3>
+    </div>
+    <div class="card-body">
+      <div class="fg-grid">
+        <div class="fg">
+          <label for="sel-cls">Class</label>
+          <select id="sel-cls" onchange="onClsGroupChange()">
+            <option value="">Select Class</option>
+            <option value="Class-XI">Class XI</option>
+            <option value="Class-XII">Class XII</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label for="sel-group">Group</label>
+          <select id="sel-group" onchange="onClsGroupChange()">
+            <option value="">Select Group</option>
+            <option value="Science">Science</option>
+            <option value="Humanities">Humanities</option>
+            <option value="Business">Business</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label for="sel-session">Session</label>
+          <select id="sel-session" disabled>
+            <option value="">Select Session</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label for="sel-examtype">Exam Type</label>
+          <select id="sel-examtype" disabled>
+            <option value="">Select Exam Type</option>
+          </select>
+        </div>
+      </div>
+      <div id="filter-alert" style="margin-top:12px;display:none;"></div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="btn-generate" onclick="generateResults()">Generate Results</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="loading-state" style="display:none;text-align:center;padding:40px;">
+    <div class="loading-spinner"></div>
+    <p style="margin-top:10px;font-size:.85rem;color:var(--muted);">Loading results...</p>
+  </div>
+
+  <div id="result-section">
+    <div class="card">
+      <div class="card-head">
+        <h3 id="result-heading">Results</h3>
+        <span class="meta" id="result-meta"></span>
+      </div>
+      <div class="card-body" style="padding-bottom:12px;">
+        <div class="btn-row" style="margin-top:0;margin-bottom:16px;">
+          <button class="btn btn-success" id="btn-export" onclick="exportExcel()">Export to Excel</button>
+          <button class="btn btn-primary" id="btn-print" onclick="window.print()">Print Results</button>
+        </div>
+        <div id="table-wrapper">
+          <table id="result-table">
+            <thead id="result-thead"></thead>
+            <tbody id="result-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+var _lastData = null;
+
+(async function init() {
+  var res  = await fetch('/api/auth-status');
+  var auth = await res.json();
+  if (!auth.authenticated) { window.location.href = '/login'; }
+})();
+
+function toggleSidebar() {
+  document.getElementById('site-header').classList.toggle('active');
+  document.getElementById('sidebar-overlay').classList.toggle('active');
+}
+function closeSidebar() {
+  document.getElementById('site-header').classList.remove('active');
+  document.getElementById('sidebar-overlay').classList.remove('active');
+}
+async function doLogout() {
+  if (!confirm('Are you sure you want to logout?')) return;
+  try { await fetch('/api/logout', { method: 'POST' }); } catch(e) {}
+  window.location.href = '/login';
+}
+
+async function onClsGroupChange() {
+  var cls   = document.getElementById('sel-cls').value;
+  var group = document.getElementById('sel-group').value;
+  var sesEl = document.getElementById('sel-session');
+  var exEl  = document.getElementById('sel-examtype');
+  sesEl.innerHTML = '<option value="">Select Session</option>';
+  exEl.innerHTML  = '<option value="">Select Exam Type</option>';
+  sesEl.disabled  = true;
+  exEl.disabled   = true;
+  hideAlert();
+  if (!cls || !group) return;
+  try {
+    var r    = await fetch('/api/group-results/filters?cls=' + encodeURIComponent(cls) + '&group=' + encodeURIComponent(group));
+    var data = await r.json();
+    if (!data.ok) { showAlert(data.message || 'Failed to load filters.', 'err'); return; }
+    data.sessions.forEach(function(s) {
+      var opt = document.createElement('option');
+      opt.value = s; opt.textContent = s;
+      sesEl.appendChild(opt);
+    });
+    data.exam_types.forEach(function(e) {
+      var opt = document.createElement('option');
+      opt.value = e; opt.textContent = e;
+      exEl.appendChild(opt);
+    });
+    sesEl.disabled = data.sessions.length === 0;
+    exEl.disabled  = data.exam_types.length === 0;
+  } catch(err) {
+    showAlert('Network error loading filters.', 'err');
+  }
+}
+
+async function generateResults() {
+  var cls      = document.getElementById('sel-cls').value;
+  var group    = document.getElementById('sel-group').value;
+  var session  = document.getElementById('sel-session').value;
+  var examType = document.getElementById('sel-examtype').value;
+  hideAlert();
+  document.getElementById('result-section').style.display = 'none';
+  if (!cls || !group || !session || !examType) {
+    showAlert('Please select Class, Group, Session and Exam Type.', 'err');
+    return;
+  }
+  document.getElementById('loading-state').style.display = 'block';
+  document.getElementById('btn-generate').disabled = true;
+  try {
+    var url = '/api/group-results?cls=' + encodeURIComponent(cls) +
+              '&group=' + encodeURIComponent(group) +
+              '&session=' + encodeURIComponent(session) +
+              '&exam_type=' + encodeURIComponent(examType);
+    var r    = await fetch(url);
+    var data = await r.json();
+    document.getElementById('loading-state').style.display = 'none';
+    document.getElementById('btn-generate').disabled = false;
+    if (!data.ok) { showAlert(data.message || 'Failed to load results.', 'err'); return; }
+    _lastData = data;
+    renderTable(data);
+    document.getElementById('result-section').style.display = 'block';
+  } catch(err) {
+    document.getElementById('loading-state').style.display = 'none';
+    document.getElementById('btn-generate').disabled = false;
+    showAlert('Network error loading results.', 'err');
+  }
+}
+
+function getSubCols(sub) {
+  if (sub.hasPrac) return ['CQ', 'MCQ', 'Practical'];
+  return ['CQ', 'MCQ'];
+}
+
+function isApplicable(stu, sub, group) {
+  if (group === 'Humanities') {
+    var app = (stu.humanities_applicable || {})[sub.code];
+    if (app === false) return false;
+    return true;
+  }
+  if (group === 'Business' && sub.optional) {
+    var optCodes = (stu.optional_subjects || '').split('/').map(function(c){ return c.trim(); }).filter(Boolean);
+    return optCodes.indexOf(sub.code) !== -1;
+  }
+  return true;
+}
+
+function renderTable(data) {
+  var subjects  = data.subjects;
+  var students  = data.students;
+  var marks_map = data.marks_map;
+  var cls       = data.cls;
+  var group     = data.group;
+  var session   = data.session;
+  var exam_type = data.exam_type;
+
+  document.getElementById('result-heading').textContent =
+    group + ' Group — ' + cls.replace('Class-', 'Class ') + ' — ' + exam_type;
+  document.getElementById('result-meta').textContent =
+    'Session: ' + session + '  |  ' + students.length + ' student(s)';
+
+  var thead = document.getElementById('result-thead');
+  var tbody = document.getElementById('result-tbody');
+  thead.innerHTML = '';
+  tbody.innerHTML = '';
+
+  // Header row 1
+  var row1 = document.createElement('tr');
+  row1.className = 'hdr-row1';
+  ['Roll','Name','Registration No.'].forEach(function(txt) {
+    var th = document.createElement('th');
+    th.className = 'col-fixed';
+    th.textContent = txt;
+    th.rowSpan = 2;
+    row1.appendChild(th);
+  });
+  subjects.forEach(function(sub) {
+    var subCols = getSubCols(sub);
+    var th = document.createElement('th');
+    th.colSpan = subCols.length;
+    th.textContent = sub.name;
+    row1.appendChild(th);
+  });
+  ['Total Mark','GPA','Grade'].forEach(function(txt) {
+    var th = document.createElement('th');
+    th.className = 'col-fixed';
+    th.textContent = txt;
+    th.rowSpan = 2;
+    row1.appendChild(th);
+  });
+  thead.appendChild(row1);
+
+  // Header row 2
+  var row2 = document.createElement('tr');
+  row2.className = 'hdr-row2';
+  subjects.forEach(function(sub) {
+    getSubCols(sub).forEach(function(col) {
+      var th = document.createElement('th');
+      th.textContent = col;
+      row2.appendChild(th);
+    });
+  });
+  thead.appendChild(row2);
+
+  // Body
+  if (students.length === 0) {
+    var tr = document.createElement('tr');
+    var td = document.createElement('td');
+    var totalCols = 6 + subjects.reduce(function(acc,sub){ return acc + getSubCols(sub).length; }, 0);
+    td.colSpan = totalCols;
+    td.style.cssText = 'text-align:center;padding:24px;color:var(--muted);';
+    td.textContent = 'No students found for this selection.';
+    tr.appendChild(td); tbody.appendChild(tr);
+    return;
+  }
+
+  students.forEach(function(stu) {
+    var tr = document.createElement('tr');
+    appendTd(tr, stu.roll,        'col-roll');
+    appendTd(tr, stu.name,        'col-fixed');
+    appendTd(tr, stu.reg || '—',  '');
+
+    var stuMarks = marks_map[stu.id] || {};
+    subjects.forEach(function(sub) {
+      var applicable = isApplicable(stu, sub, group);
+      var subData    = stuMarks[sub.code];
+      var subCols    = getSubCols(sub);
+
+      if (!applicable) {
+        subCols.forEach(function() { appendTd(tr, '—', 'na-cell'); });
+        return;
+      }
+      if (!subData || subData.absent) {
+        subCols.forEach(function() { appendTd(tr, 'Ab', 'absent-cell'); });
+        return;
+      }
+      subCols.forEach(function(col) {
+        var val;
+        if (col === 'CQ')       val = (subData.cq   !== null && subData.cq   !== undefined) ? subData.cq   : '—';
+        else if (col === 'MCQ') val = (subData.mcq  !== null && subData.mcq  !== undefined) ? subData.mcq  : '—';
+        else                    val = (subData.prac  !== null && subData.prac !== undefined) ? subData.prac : '—';
+        appendTd(tr, val, 'num-cell');
+      });
+    });
+    appendTd(tr, stu.total_mark !== undefined ? stu.total_mark : '—', 'num-cell');
+    appendTd(tr, stu.gpa !== undefined ? stu.gpa.toFixed(2) : '—', 'num-cell');
+    appendTd(tr, stu.grade || '—', 'num-cell');
+    tbody.appendChild(tr);
+  });
+}
+
+function appendTd(tr, text, cls) {
+  var td = document.createElement('td');
+  if (cls) td.className = cls;
+  td.textContent = text;
+  tr.appendChild(td);
+}
+
+function showAlert(msg, type) {
+  var el = document.getElementById('filter-alert');
+  el.className = 'alert alert-' + (type === 'err' ? 'err' : 'ok');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+function hideAlert() {
+  document.getElementById('filter-alert').style.display = 'none';
+}
+
+function exportExcel() {
+  if (!_lastData) return;
+  var subjects  = _lastData.subjects;
+  var students  = _lastData.students;
+  var marks_map = _lastData.marks_map;
+  var cls       = _lastData.cls;
+  var group     = _lastData.group;
+  var session   = _lastData.session;
+  var exam_type = _lastData.exam_type;
+
+  var hdr1 = ['Roll', 'Name', 'Registration No.'];
+  var hdr2 = ['', '', ''];
+  var merges = [
+    { s:{r:0,c:0}, e:{r:1,c:0} },
+    { s:{r:0,c:1}, e:{r:1,c:1} },
+    { s:{r:0,c:2}, e:{r:1,c:2} }
+  ];
+
+  var colIdx = 3;
+  subjects.forEach(function(sub) {
+    var subCols = getSubCols(sub);
+    hdr1.push(sub.name);
+    for (var i = 1; i < subCols.length; i++) hdr1.push('');
+    subCols.forEach(function(c) { hdr2.push(c); });
+    if (subCols.length > 1) {
+      merges.push({ s:{r:0,c:colIdx}, e:{r:0,c:colIdx+subCols.length-1} });
+    } else {
+      merges.push({ s:{r:0,c:colIdx}, e:{r:1,c:colIdx} });
+    }
+    colIdx += subCols.length;
+  });
+
+  hdr1.push('Total Mark');
+  hdr1.push('GPA');
+  hdr1.push('Grade');
+  hdr2.push('');
+  hdr2.push('');
+  hdr2.push('');
+
+  merges.push({ s:{r:0,c:colIdx}, e:{r:1,c:colIdx} });
+  merges.push({ s:{r:0,c:colIdx+1}, e:{r:1,c:colIdx+1} });
+  merges.push({ s:{r:0,c:colIdx+2}, e:{r:1,c:colIdx+2} });
+
+  var wsData = [hdr1, hdr2];
+  students.forEach(function(stu) {
+    var row = [stu.roll, stu.name, stu.reg || ''];
+    var stuMarks = marks_map[stu.id] || {};
+    subjects.forEach(function(sub) {
+      var applicable = isApplicable(stu, sub, group);
+      var subData    = stuMarks[sub.code];
+      var subCols    = getSubCols(sub);
+      if (!applicable) { subCols.forEach(function(){ row.push('N/A'); }); return; }
+      if (!subData || subData.absent) { subCols.forEach(function(){ row.push('Ab'); }); return; }
+      subCols.forEach(function(col) {
+        if (col === 'CQ')       row.push((subData.cq   !== null && subData.cq   !== undefined) ? subData.cq   : '');
+        else if (col === 'MCQ') row.push((subData.mcq  !== null && subData.mcq  !== undefined) ? subData.mcq  : '');
+        else                    row.push((subData.prac  !== null && subData.prac !== undefined) ? subData.prac : '');
+      });
+    });
+    row.push(stu.total_mark !== undefined ? stu.total_mark : '');
+    row.push(stu.gpa !== undefined ? stu.gpa.toFixed(2) : '');
+    row.push(stu.grade || '');
+    wsData.push(row);
+  });
+
+  var wb = XLSX.utils.book_new();
+  var ws = XLSX.utils.aoa_to_sheet(wsData);
+  ws['!merges'] = merges;
+
+  var colWidths = [{wch:8},{wch:30},{wch:20}];
+  subjects.forEach(function(sub) {
+    getSubCols(sub).forEach(function(){ colWidths.push({wch:9}); });
+  });
+  colWidths.push({wch:12});
+  colWidths.push({wch:8});
+  colWidths.push({wch:8});
+  ws['!cols'] = colWidths;
+
+  var sheetName = (group + ' ' + cls.replace('Class-','')).substring(0,31);
+  XLSX.utils.book_append_sheet(wb, ws, sheetName);
+
+  var filename = 'GroupResults_' + group + '_' + cls.replace('Class-','Class') +
+                 '_' + exam_type.replace(/\s+/g,'_') + '_' + session + '.xlsx';
+  XLSX.writeFile(wb, filename);
+}
+
+(function(){
+  var loader = document.getElementById('page-loader');
+  if (!loader) return;
+  var show = function(){ loader.classList.add('visible'); };
+  var hide = function(){ loader.classList.remove('visible'); };
+  document.addEventListener('click', function(event){
+    var anchor = event.target.closest('a');
+    if (!anchor || !anchor.href) return;
+    var target = anchor.getAttribute('target');
+    var href   = anchor.getAttribute('href');
+    if (target === '_blank' || target === '_top' || target === '_parent') return;
+    if (!href || href.trim().indexOf('javascript:') === 0 || href.trim().indexOf('#') === 0) return;
+    var url = new URL(anchor.href, location.href);
+    if (url.origin !== location.origin) return;
+    if (url.pathname === location.pathname && url.search === location.search) return;
+    event.preventDefault();
+    show();
+    setTimeout(function(){ window.location.href = url.href; }, 180);
+  }, true);
+  window.addEventListener('beforeunload', show);
+  window.addEventListener('pageshow', hide);
+})();
+</script>
+</body>
+</html>

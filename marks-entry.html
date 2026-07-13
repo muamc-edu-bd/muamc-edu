@@ -1181,10 +1181,8 @@ async function loadBatchStudents(){
 
     if(foundSub.optionalGroup){
       students = students.filter(s => {
-        const og = foundSub.optionalGroup;
-        if (s.group === 'Science' && (og === 'scienceBio' || og === 'scienceMath')) return true;
-        if (s.group === 'Humanities' && (og === 'humLogic' || og === 'humHome')) return true;
-        if (s.group === 'Business' && (og === 'busEcon' || og === 'busHome')) return true;
+        // Only include students who have chosen this specific optional subject code.
+        // The unchosen optional pair should be excluded from the marks-entry list.
         const optStr = String(s.optionalSubjects || s.optional_subjects || '').trim();
         return optStr.includes(code);
       });

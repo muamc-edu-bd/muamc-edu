@@ -395,6 +395,7 @@
       <a class="nt" href="/bulk-photo.html">Bulk Photo Upload</a>
       <a class="nt" href="/analytics.html" style="border-top:1px solid rgba(255,255,255,.08);margin-top:8px;padding-top:16px;">Analytics</a>
       <a class="nt" href="/result_analytics.html">Result Analytics</a>
+      <a class="nt" href="/group-results.html">Group-wise Results</a>
     </nav>
   </header>
 
@@ -769,6 +770,26 @@
 
     function getStudentSubjects(stu, cls) {
       const baseCats = getFilteredCats(stu.group, cls);
+
+      // ── Business optional subject filtering ──
+      // A Business student selects ONE of the two optional pairs (Economics or Home Science).
+      // Only the chosen pair appears on the result card; the unchosen pair is excluded entirely.
+      if (stu.group === 'Business') {
+        const optStr = String(stu.optionalSubjects || stu.optional_subjects || '').trim();
+        if (optStr) {
+          const chosenCodes = new Set(optStr.split('/').map(c => c.trim()).filter(Boolean));
+          return baseCats.map(cat => ({
+            ...cat,
+            items: cat.items
+              .filter(sub => !sub.optionalGroup || chosenCodes.has(sub.code))
+              .map(sub => Object.assign({}, sub, {
+                isSelOpt: !!sub.optionalGroup && chosenCodes.has(sub.code)
+              }))
+          })).filter(cat => cat.items.length > 0);
+        }
+        return baseCats;
+      }
+
       if (stu.group !== 'Humanities') return baseCats;
 
       const mainStr = String(stu.humanitiesMainSubjects || '').trim();
@@ -820,6 +841,7 @@
       });
       return res;
     }
+
 
     function flatStudentSubs(stu, cls) {
       return getStudentSubjects(stu, cls).flatMap(c => c.items);

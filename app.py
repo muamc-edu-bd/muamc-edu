@@ -630,6 +630,279 @@ def get_tabulation_sheet():
 
 
 # ─────────────────────────────────────────────
+# GROUP-WISE RESULTS API
+# ─────────────────────────────────────────────
+
+@app.route('/group-results.html')
+def group_results_page():
+    """Group-wise Results — full class/group result matrix page."""
+    if not session.get('authenticated'):
+        return redirect('/login')
+    return _serve_html('group-results.html')
+
+
+@app.route('/api/group-results/filters', methods=['GET'])
+@require_auth
+def group_results_filters():
+    """
+    Return distinct sessions, exam_types and subject list for a cls + group.
+    Used to populate cascading filter dropdowns on the Group-wise Results page.
+    Query params: cls, group
+    """
+    import copy as _copy
+
+    cls_val   = (request.args.get('cls')   or '').strip()
+    group_val = (request.args.get('group') or '').strip()
+
+    if not cls_val or not group_val:
+        return jsonify({'ok': False, 'message': 'cls and group are required'}), 400
+
+    students = Student.query.filter_by(cls=cls_val, group=group_val).all()
+    sessions_set = set()
+    for s in students:
+        val = (s.session or s.year or '').strip()
+        if val:
+            sessions_set.add(val)
+    sessions = sorted(sessions_set, reverse=True)
+
+    student_ids = [s.id for s in students]
+    exam_types_set = set()
+    if student_ids:
+        marks_rows = Mark.query.filter(Mark.student_id.in_(student_ids)).all()
+        for m in marks_rows:
+            if m.exam_type:
+                exam_types_set.add(m.exam_type)
+    exam_types = sorted(exam_types_set)
+
+    # Build subject list filtered by class (1st/2nd paper)
+    raw_subs = _copy.deepcopy(SUBJECT_LIST.get(group_val, []))
+    if cls_val == 'Class-XI':
+        raw_subs = [s for s in raw_subs if not ('2nd' in s['name'] or '2nd Paper' in s['name'] or s['name'].endswith(' 2nd'))]
+    elif cls_val == 'Class-XII':
+        raw_subs = [s for s in raw_subs if not ('1st' in s['name'] or '1st Paper' in s['name'] or s['name'].endswith(' 1st'))]
+    temp = []
+    for sub in raw_subs:
+        s = _copy.deepcopy(sub)
+        if s['code'] in ['116', '267']:
+            suffix = ' 1st Paper' if cls_val == 'Class-XI' else ' 2nd Paper'
+            s['name'] = s['name'].replace(' 1st Paper', '').replace(' 2nd Paper', '') + suffix
+        temp.append(s)
+
+    return jsonify({
+        'ok': True,
+        'sessions':   sessions,
+        'exam_types': exam_types,
+        'subjects':   [{'name': s['name'], 'code': s['code'], 'hasPrac': s.get('hasPrac', False), 'optional': s.get('optional', False)} for s in temp],
+    })
+
+
+@app.route('/api/group-results', methods=['GET'])
+@require_auth
+def get_group_results():
+    """
+    Return the full marks matrix for all students in a class/group/session/exam_type.
+
+    Query params:
+        cls        — e.g. 'Class-XI'
+        group      — 'Science' | 'Humanities' | 'Business'
+        session    — e.g. '2024-2025'
+        exam_type  — e.g. 'First Terminal'
+
+    Response:
+        subjects  — ordered list of subjects with hasPrac flag
+        students  — list of {roll, name, reg, id}
+        marks_map — {student_id: {subject_code: {cq, mcq, prac, absent}}}
+    """
+    import copy as _copy
+
+    cls_val     = (request.args.get('cls')       or '').strip()
+    group_val   = (request.args.get('group')     or '').strip()
+    session_val = (request.args.get('session')   or '').strip().replace('\u2013', '-').replace('\u2014', '-')
+    exam_type   = (request.args.get('exam_type') or '').strip()
+
+    if not all([cls_val, group_val, session_val, exam_type]):
+        return jsonify({'ok': False, 'message': 'cls, group, session and exam_type are all required'}), 400
+
+    # Build canonical subject list
+    raw_subs = _copy.deepcopy(SUBJECT_LIST.get(group_val, []))
+    if cls_val == 'Class-XI':
+        raw_subs = [s for s in raw_subs if not ('2nd' in s['name'] or '2nd Paper' in s['name'] or s['name'].endswith(' 2nd'))]
+    elif cls_val == 'Class-XII':
+        raw_subs = [s for s in raw_subs if not ('1st' in s['name'] or '1st Paper' in s['name'] or s['name'].endswith(' 1st'))]
+    subjects = []
+    for sub in raw_subs:
+        s = _copy.deepcopy(sub)
+        if s['code'] in ['116', '267']:
+            suffix = ' 1st Paper' if cls_val == 'Class-XI' else ' 2nd Paper'
+            s['name'] = s['name'].replace(' 1st Paper', '').replace(' 2nd Paper', '') + suffix
+        subjects.append(s)
+
+    # Fetch students sorted by roll
+    students = Student.query.filter_by(cls=cls_val, group=group_val).filter(
+        (Student.session == session_val) | (Student.year == session_val)
+    ).all()
+
+    def _roll_key(st):
+        try:
+            return (0, int(st.roll))
+        except (ValueError, TypeError):
+            return (1, st.roll or '')
+
+    students = sorted(students, key=_roll_key)
+
+    if not students:
+        return jsonify({'ok': True, 'subjects': subjects, 'students': [], 'marks_map': {}})
+
+    student_ids = [s.id for s in students]
+
+    # Fetch all marks for this exam_type in a single query
+    all_codes = [sub['code'] for sub in subjects]
+    mark_rows = Mark.query.filter(
+        Mark.student_id.in_(student_ids),
+        Mark.exam_type == exam_type,
+        Mark.subject_code.in_(all_codes),
+    ).all()
+
+    # Build a nested map: marks_map[student_id][subject_code] = {cq, mcq, prac, absent}
+    marks_map = {}
+    for m in mark_rows:
+        marks_map.setdefault(m.student_id, {})[m.subject_code] = {
+            'cq':     m.cq   if m.cq   is not None else None,
+            'mcq':    m.mcq  if m.mcq  is not None else None,
+            'prac':   m.prac if m.prac is not None else None,
+            'absent': bool(m.absent),
+        }
+
+    # For Humanities: annotate each student with the subject codes applicable to them
+    humanities_applicable = {}
+    if group_val == 'Humanities':
+        for stu in students:
+            applicable = {}
+            for sub in subjects:
+                res = _is_humanities_subject_applicable(stu, sub['code'])
+                applicable[sub['code']] = res  # True / False / None
+            humanities_applicable[stu.id] = applicable
+
+    students_out = []
+    for stu in students:
+        entry = {
+            'id':   stu.id,
+            'roll': stu.roll,
+            'name': stu.name,
+            'reg':  stu.reg or '',
+        }
+        if group_val == 'Humanities':
+            entry['humanities_applicable'] = humanities_applicable.get(stu.id, {})
+        elif group_val == 'Business':
+            entry['optional_subjects'] = getattr(stu, 'optional_subjects', '') or ''
+
+        # Calculate overall marks, gpa, grade
+        stu_marks = marks_map.get(stu.id, {})
+        optional_subject = getattr(stu, 'optional_subjects', '') or ''
+        opt_codes = [c.strip() for c in (optional_subject or '').split('/') if c.strip()]
+
+        total_gpa = 0.0
+        cnt = 0
+        fail_cnt = 0
+        total_mark = 0
+        has_absent = False
+        has_fail = False
+
+        for sub in subjects:
+            if group_val == 'Humanities':
+                applicable = humanities_applicable.get(stu.id, {}).get(sub['code'])
+                if applicable is False:
+                    continue
+                is_optional = sub.get('optional', False)
+            else:
+                is_optional = sub.get('optional', False) and (sub['code'] in opt_codes)
+                if sub.get('optional', False) and not (sub['code'] in opt_codes):
+                    continue
+
+            m = stu_marks.get(sub['code'])
+            absent = (not m) or m.get('absent', False) or \
+                     (str(m.get('cq', '')) == '' and str(m.get('mcq', '')) == '')
+
+            if absent:
+                if not is_optional:
+                    has_absent = True
+                continue
+
+            cq   = min(int(m.get('cq')  or 0), sub.get('cqMax', 70))
+            mcq  = min(int(m.get('mcq') or 0), sub.get('mcqMax', 30))
+            prac = min(int(m.get('prac') or 0), 25) if sub.get('hasPrac') else 0
+            tot  = cq + mcq + prac
+
+            lg, gp = _grade_letter(tot)
+            sub_passed = _subject_passed(
+                cq, mcq, prac,
+                bool(sub.get('hasPrac')),
+                sub.get('cqMax', 70),
+                sub.get('mcqMax', 30),
+            )
+            if not sub_passed:
+                lg = 'F'
+                gp = 0.0
+
+            if not is_optional:
+                if lg == 'F':
+                    has_fail = True
+
+            if is_optional:
+                if gp > 2.0:
+                    total_gpa += (gp - 2.0)
+            else:
+                total_gpa += gp
+                cnt += 1
+                if lg == 'F':
+                    fail_cnt += 1
+
+            total_mark += tot
+
+        if fail_cnt > 0 or has_absent or has_fail:
+            avg = 0.0
+        else:
+            avg = min(round(total_gpa / cnt, 2), 5.0) if cnt else 0.0
+
+        if avg >= 5.0:
+            g_letter = 'A+'
+        elif avg >= 4.0:
+            g_letter = 'A'
+        elif avg >= 3.5:
+            g_letter = 'A-'
+        elif avg >= 3.0:
+            g_letter = 'B'
+        elif avg >= 2.0:
+            g_letter = 'C'
+        elif avg >= 1.0:
+            g_letter = 'D'
+        else:
+            g_letter = 'F'
+
+        entry['total_mark'] = total_mark
+        entry['gpa'] = avg
+        entry['grade'] = g_letter
+
+        students_out.append(entry)
+
+    college_setting = Setting.query.filter_by(key='collegeName').first()
+    college_name = (college_setting.value if college_setting else '') or \
+                   'Moinuddin Adarsha Mohila College, Sylhet'
+
+    return jsonify({
+        'ok':           True,
+        'college_name': college_name,
+        'cls':          cls_val,
+        'group':        group_val,
+        'session':      session_val,
+        'exam_type':    exam_type,
+        'subjects':     subjects,
+        'students':     students_out,
+        'marks_map':    marks_map,
+    })
+
+
+# ─────────────────────────────────────────────
 # HEALTH CHECK  (no auth — for deployment diagnosis)
 # ─────────────────────────────────────────────
 @app.route('/api/health', methods=['GET'])
