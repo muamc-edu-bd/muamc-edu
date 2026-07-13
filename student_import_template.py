@@ -27,7 +27,7 @@ try:
     for col, header in enumerate(headers, 1):
         cell = ws.cell(row=1, column=col)
         cell.value = header
-        cell.font = Font(name='Kalpurush', bold=True, color="FFFFFF")
+        cell.font = Font(name='Arial', bold=True, color="FFFFFF")
         cell.fill = PatternFill(start_color="0D2B45", end_color="0D2B45", fill_type="solid")
         cell.alignment = Alignment(horizontal="center", vertical="center")
         cell.border = thin_border
@@ -45,7 +45,7 @@ try:
         for col_idx, value in enumerate(row_data, 1):
             cell = ws.cell(row=row_idx, column=col_idx)
             cell.value = value
-            cell.font = Font(name='Kalpurush')
+            cell.font = Font(name='Arial')
             cell.border = thin_border
             cell.alignment = Alignment(horizontal="left", vertical="center")
 
@@ -55,7 +55,7 @@ try:
     # ── Instructions sheet ──
     ws_inst = wb.create_sheet("Instructions")
     ws_inst['A1'] = "Student Bulk Import — Instructions"
-    ws_inst['A1'].font = Font(name='Kalpurush', bold=True, size=14, color="0D2B45")
+    ws_inst['A1'].font = Font(name='Arial', bold=True, size=14, color="0D2B45")
 
     instructions = [
         "",
@@ -97,7 +97,7 @@ try:
 
     for row_idx, line in enumerate(instructions, 2):
         ws_inst[f'A{row_idx}'] = line
-        ws_inst[f'A{row_idx}'].font = Font(name='Kalpurush')
+        ws_inst[f'A{row_idx}'].font = Font(name='Arial')
         if line.strip().startswith('•'):
             ws_inst[f'A{row_idx}'].alignment = Alignment(wrap_text=True, indent=2)
 

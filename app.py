@@ -288,10 +288,9 @@ def _serve_html(name, inject_api=True):
     with open(html_path, 'r', encoding='utf-8') as f:
         html = f.read()
 
-    # Inject Kalpurush Font globally for all served HTML pages
+    # Inject Arial font globally for all served HTML pages
     font_inject = (
-        '<link href="https://fonts.maateen.me/kalpurush/font.css" rel="stylesheet">\n'
-        '<style> * { font-family: "Kalpurush", sans-serif !important; } </style>\n'
+        '<style> * { font-family: Arial, sans-serif !important; } </style>\n'
     )
     html = html.replace('</head>', font_inject + '</head>', 1)
 

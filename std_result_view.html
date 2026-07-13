@@ -2,760 +2,285 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Search & View Academic Result — Moinuddin Adarsha Mohila College</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Search &amp; View Academic Result &#8212; Moinuddin Adarsha Mohila College</title>
   <meta name="description" content="Search, view, print, and download academic transcript results for Moinuddin Adarsha Mohila College.">
   <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
+    /* DESIGN TOKENS */
     :root {
-      --navy: #0d2b45;
-      --navy-light: #174070;
-      --navy-deep: #0a1f33;
-      --gold: #a97c28;
-      --gold-light: #c9973a;
-      --gold-dark: #8c641f;
-      --slate: #f1f4f8;
-      --slate-light: #f8fafc;
+      --navy:         #0d2b45;
+      --navy-light:   #174070;
+      --navy-deep:    #0a1f33;
+      --gold:         #a97c28;
+      --gold-light:   #c9973a;
+      --gold-dark:    #8c641f;
+      --slate:        #f1f4f8;
+      --slate-light:  #f8fafc;
       --slate-border: #cbd5e1;
-      --white: #white;
-      --white: #ffffff;
-      --text: #0f172a;
-      --text-muted: #64748b;
-      --red: #b91c1c;
-      --red-light: #fef2f2;
-      --red-border: #fecaca;
-      --green: #166534;
-      --green-light: #f0fdf4;
+      --white:        #ffffff;
+      --text:         #0f172a;
+      --text-muted:   #64748b;
+      --red:          #b91c1c;
+      --red-light:    #fef2f2;
+      --red-border:   #fecaca;
+      --green:        #166534;
+      --green-light:  #f0fdf4;
       --green-border: #bbf7d0;
-      --r: 8px;
-      --r-lg: 16px;
-      --shadow: 0 10px 30px rgba(13, 43, 69, 0.15);
-      --shadow-lg: 0 20px 50px rgba(13, 43, 69, 0.25);
+      --r:            8px;
+      --r-lg:         16px;
+      --shadow:       0 10px 30px rgba(13,43,69,.15);
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: 'Inter', sans-serif;
       background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 50%, var(--navy-deep) 100%);
+      background-attachment: fixed;
       color: var(--text);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 30px 16px 60px;
+      padding: 24px 12px 60px;
     }
 
-    /* Header styling */
-    .page-header {
-      text-align: center;
-      margin-bottom: 30px;
-      color: var(--white);
-      max-width: 600px;
-      width: 100%;
-    }
-
+    /* PAGE HEADER */
+    .page-header { text-align: center; margin-bottom: 24px; color: var(--white); max-width: 600px; width: 100%; }
     .page-header img {
-      width: 70px;
-      height: 70px;
-      border-radius: 50%;
-      background: var(--white);
-      border: 3px solid var(--gold-light);
-      object-fit: contain;
-      margin-bottom: 12px;
+      width: 70px; height: 70px; border-radius: 50%;
+      background: var(--white); border: 3px solid var(--gold-light);
+      object-fit: contain; margin-bottom: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
     }
-
     .page-header h1 {
       font-family: 'Merriweather', serif;
-      font-size: 1.4rem;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      line-height: 1.3;
-      margin-bottom: 6px;
+      font-size: clamp(1rem, 4vw, 1.4rem);
+      font-weight: 700; letter-spacing: 0.5px; line-height: 1.3; margin-bottom: 6px;
     }
+    .page-header p { font-size: 0.82rem; color: rgba(255,255,255,.7); line-height: 1.5; }
 
-    .page-header p {
-      font-size: 0.85rem;
-      color: rgba(255, 255, 255, 0.7);
-      line-height: 1.4;
-    }
+    /* APP CONTAINER */
+    .app-container { width: 100%; max-width: 860px; display: flex; flex-direction: column; gap: 20px; }
 
-    /* Container wraps both search and result output */
-    .app-container {
-      width: 100%;
-      max-width: 840px;
-      display: flex;
-      flex-direction: column;
-      gap: 24px;
-    }
+    /* CARD */
+    .card { background: var(--white); border-radius: var(--r-lg); box-shadow: var(--shadow); padding: 20px; overflow: hidden; }
 
-    /* Card Layouts */
-    .card {
-      background: var(--white);
-      border-radius: var(--r-lg);
-      box-shadow: var(--shadow);
-      padding: 24px;
-      overflow: hidden;
-    }
-
+    /* SEARCH FORM */
     .search-card-title {
-      font-family: 'Merriweather', serif;
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: var(--navy);
-      margin-bottom: 16px;
-      padding-bottom: 10px;
-      border-bottom: 1px solid var(--slate);
+      font-family: 'Merriweather', serif; font-size: 1.05rem; font-weight: 700; color: var(--navy);
+      margin-bottom: 16px; padding-bottom: 10px; border-bottom: 2px solid var(--slate);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .search-card-title::before { content: none; }
+
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 18px; }
+    .field-group { display: flex; flex-direction: column; gap: 5px; }
+    .field-group label { font-size: 0.72rem; font-weight: 600; color: var(--navy); text-transform: uppercase; letter-spacing: 0.5px; }
+    .field-group select, .field-group input {
+      padding: 10px 12px; border: 1.5px solid var(--slate-border); border-radius: var(--r);
+      font-size: 0.88rem; font-family: inherit; color: var(--text); background: var(--slate-light);
+      outline: none; transition: all 0.2s ease; width: 100%; -webkit-appearance: none; appearance: none;
+    }
+    .field-group select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%230d2b45' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 10px center; padding-right: 32px;
+    }
+    .field-group select:focus, .field-group input:focus {
+      border-color: var(--navy-light); background: var(--white); box-shadow: 0 0 0 3px rgba(23,64,112,.1);
     }
 
-    /* Form Fields Grid */
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 14px;
-      margin-bottom: 20px;
-    }
-
-    .field-group {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-    }
-
-    .field-group label {
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: var(--navy);
-    }
-
-    .field-group select,
-    .field-group input {
-      padding: 10px 12px;
-      border: 1.5px solid var(--slate-border);
-      border-radius: var(--r);
-      font-size: 0.85rem;
-      font-family: inherit;
-      color: var(--text);
-      background: var(--slate-light);
-      outline: none;
-      transition: all 0.15s ease-in-out;
-      width: 100%;
-    }
-
-    .field-group select:focus,
-    .field-group input:focus {
-      border-color: var(--navy-light);
-      background: var(--white);
-      box-shadow: 0 0 0 3px rgba(23, 64, 112, 0.1);
-    }
-
-    /* Action Buttons */
+    /* BUTTONS */
     .btn {
-      padding: 10px 20px;
-      font-size: 0.82rem;
-      font-weight: 600;
-      font-family: inherit;
-      border: none;
-      border-radius: var(--r);
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      text-decoration: none;
-      transition: all 0.15s ease-in-out;
+      padding: 10px 20px; font-size: 0.84rem; font-weight: 600; font-family: inherit;
+      border: none; border-radius: var(--r); cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+      text-decoration: none; transition: all 0.18s ease; white-space: nowrap;
+      -webkit-tap-highlight-color: transparent;
     }
-
+    .btn:active { transform: scale(0.97); }
     .btn-search {
-      background: var(--gold);
-      color: var(--white);
-      width: 100%;
-      padding: 12px;
-      font-size: 0.9rem;
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+      color: var(--white); width: 100%; padding: 13px; font-size: 0.95rem;
+      box-shadow: 0 4px 14px rgba(169,124,40,.35);
     }
+    .btn-search:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(169,124,40,.45); }
+    .btn-print { background: var(--navy); color: var(--white); }
+    .btn-print:hover { background: var(--navy-light); }
+    .btn-pdf { background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%); color: var(--white); }
 
-    .btn-search:hover {
-      background: var(--gold-light);
-      transform: translateY(-1px);
-    }
-
-    .btn-search:active {
-      transform: none;
-    }
-
-    /* Toolbar for print/pdf */
+    /* PRINT TOOLBAR */
     .print-toolbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-bottom: 12px;
-      border-bottom: 1.5px solid var(--border);
-      padding-bottom: 16px;
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 12px; flex-wrap: wrap; margin-bottom: 14px;
+      border-bottom: 1.5px solid var(--slate); padding-bottom: 14px;
     }
-
-    .toolbar-actions {
-      display: flex;
-      gap: 10px;
-    }
-
-    .btn-print {
-      background: var(--navy);
-      color: var(--white);
-    }
-
-    .btn-print:hover {
-      background: var(--navy-light);
-    }
-
-    .btn-pdf {
-      background: var(--gold);
-      color: var(--white);
-    }
-
-    .btn-pdf:hover {
-      background: var(--gold-light);
-    }
-
+    .toolbar-actions { display: flex; gap: 10px; flex-wrap: wrap; }
     .status-badge {
-      font-size: 0.8rem;
-      font-weight: 600;
-      padding: 6px 14px;
-      border-radius: 20px;
-      display: inline-flex;
-      align-items: center;
+      font-size: 0.78rem; font-weight: 700; padding: 6px 16px; border-radius: 20px;
+      display: inline-flex; align-items: center; gap: 6px;
     }
+    .status-pass { background: var(--green-light); color: var(--green); border: 1px solid var(--green-border); }
+    .status-fail { background: var(--red-light); color: var(--red); border: 1px solid var(--red-border); }
 
-    .status-pass {
-      background: var(--green-light);
-      color: var(--green);
-      border: 1px solid var(--green-border);
-    }
+    /* ALERTS & LOADER */
+    .alert { padding: 12px 16px; border-radius: var(--r); font-size: 0.85rem; line-height: 1.5; display: none; }
+    .alert-danger { background: var(--red-light); color: var(--red); border: 1px solid var(--red-border); }
+    .state-loading { display: none; flex-direction: column; align-items: center; justify-content: center; padding: 36px; gap: 14px; }
+    .spinner { width: 44px; height: 44px; border: 3.5px solid var(--slate); border-top-color: var(--gold-light); border-radius: 50%; animation: spin 0.9s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .state-text { font-size: 0.85rem; font-weight: 500; color: var(--text-muted); }
 
-    .status-fail {
-      background: var(--red-light);
-      color: var(--red);
-      border: 1px solid var(--red-border);
-    }
+    /* RESULT VIEW */
+    .result-view-container { display: none; }
 
-    /* Alerts and Loading states */
-    .alert {
-      padding: 12px 16px;
-      border-radius: var(--r);
-      font-size: 0.85rem;
-      line-height: 1.5;
-      display: none;
-    }
+    .rc-page { background: var(--white); padding: 16px 14px; font-family: 'Times New Roman', serif; font-size: 11pt; color: #000; border: 1px solid #ccc; border-radius: 4px; }
 
-    .alert-danger {
-      background: var(--red-light);
-      color: var(--red);
-      border: 1px solid var(--red-border);
-    }
+    /* ── Header ── */
+    .rc-college-hdr { display: grid; grid-template-columns: 100px 1fr 130px; align-items: center; gap: 10px; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 2.5px solid #000; }
+    .rc-col-left { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+    .rc-stu-photo { width: 80px; height: 100px; object-fit: cover; border: 2px solid #444; display: block; }
+    .rc-stu-photo-ph { width: 80px; height: 100px; border: 2px solid #ccc; background: #f5f5f5; display: flex; align-items: center; justify-content: center; font-size: 8pt; color: #888; text-align: center; line-height: 1.4; }
+    .rc-stu-photo-lbl { font-size: 7pt; color: #666; text-align: center; margin-top: 2px; }
+    .rc-col-mid { text-align: center; }
+    .rc-col-mid h1 { font-size: clamp(10pt, 2.5vw, 13pt); font-weight: 700; color: #000; letter-spacing: 0.3px; margin-bottom: 2px; line-height: 1.25; }
+    .rc-college-logo { width: 64px; height: 64px; border-radius: 50%; object-fit: contain; border: 1.5px solid #ccc; display: block; margin: 4px auto; }
+    .rc-col-mid p { font-size: 9.5pt; color: #000; margin-bottom: 1px; }
+    .transcript-lbl { font-size: 11pt; font-weight: 700; margin-top: 4px; display: block; }
+    .rc-col-right table { width: 100%; border-collapse: collapse; font-size: 7.5pt; }
+    .rc-col-right th, .rc-col-right td { border: 1px solid #777; padding: 2px 3px; text-align: center; }
+    .rc-col-right th { background: #f0f0f0; font-weight: 700; }
 
-    .state-loading {
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 30px;
-      gap: 14px;
-    }
+    /* ── Student Info ── */
+    .rc-stu-block { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 14px; font-size: 9.5pt; border: 1.5px solid #000; padding: 6px 10px; margin-bottom: 6px; background: #fafafa; }
+    .rc-stu-row { display: flex; gap: 4px; padding: 2px 0; align-items: flex-start; }
+    .rc-stu-lbl { font-weight: 700; min-width: 105px; flex-shrink: 0; }
 
-    .spinner {
-      width: 40px;
-      height: 40px;
-      border: 3.5px solid var(--slate);
-      border-top-color: var(--gold-light);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
+    /* ── Exam Header Bar ── */
+    .rc-exam-hdr { text-align: center; font-size: 10.5pt; font-weight: 700; background: #000; color: #fff; padding: 5px 4px; margin-bottom: 4px; }
 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
+    /* ── Desktop Marks Table ── */
+    .rc-table-scroll { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-bottom: 6px; }
+    .rc-marks-tbl { width: 100%; min-width: 560px; border-collapse: collapse; font-size: 8.5pt; }
+    .rc-marks-tbl th { background: #111; color: #fff; padding: 5px 4px; text-align: center; border: 1px solid #444; font-weight: 700; font-size: 7.5pt; white-space: nowrap; }
+    .rc-marks-tbl th.lft { text-align: left; padding-left: 6px; }
+    .rc-marks-tbl td { padding: 4px; border: 1px solid #888; text-align: center; vertical-align: middle; white-space: nowrap; }
+    .rc-marks-tbl td.sn { text-align: left !important; padding-left: 6px !important; font-weight: 500; white-space: normal; min-width: 130px; }
+    .rc-marks-tbl tbody tr:nth-child(even) { background: #fdfdfd; }
+    .rc-marks-tbl tfoot td { background: #222; color: #fff; font-weight: 700; border: 1px solid #444; padding: 5px 4px; }
+    .cat-row td { background: #e0e0e0 !important; font-weight: 700; text-align: center; font-size: 8.5pt; color: #000; }
 
-    .state-text {
-      font-size: 0.85rem;
-      font-weight: 500;
-      color: var(--text-muted);
-    }
+    /* ── Mobile Cards (hidden by default) ── */
+    .mobile-result-cards { display: none; }
+    .mrc-category-hdr { background: #e0e0e0; font-weight: 700; font-size: 8pt; padding: 5px 8px; border: 1px solid #ccc; margin-top: 6px; text-align: center; font-family: 'Times New Roman', serif; }
+    .mrc-subject-card { border: 1px solid #ccc; border-top: none; background: #fff; padding: 8px 10px; font-family: 'Times New Roman', serif; }
+    .mrc-subject-card.even { background: #fdfdfd; }
+    .mrc-subject-card.failed { background: #fff3f3; }
+    .mrc-sub-name { font-size: 9.5pt; font-weight: 600; color: #0d2b45; margin-bottom: 6px; border-bottom: 1px dashed #ddd; padding-bottom: 4px; display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; }
+    .mrc-sub-name .sub-code { font-size: 7.5pt; color: #555; font-family: 'Inter', sans-serif; flex-shrink: 0; }
+    .mrc-lg-badge { display: inline-block; padding: 1px 7px; border-radius: 10px; font-size: 8pt; font-weight: 700; background: #1a1a1a; color: #fff; }
+    .mrc-lg-badge.fail { background: #b91c1c; }
+    .mrc-marks-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+    .mrc-mark-item { display: flex; flex-direction: column; align-items: center; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; padding: 4px 2px; }
+    .mrc-mark-item .lbl { font-size: 6.5pt; color: #64748b; font-family: 'Inter', sans-serif; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+    .mrc-mark-item .val { font-size: 9.5pt; font-weight: 700; color: #0f172a; margin-top: 1px; }
+    .mrc-mark-item.total-item { background: #0d2b45; border-color: #0d2b45; }
+    .mrc-mark-item.total-item .lbl { color: rgba(255,255,255,.7); }
+    .mrc-mark-item.total-item .val { color: #fff; }
+    .mrc-footer-row { background: #222; color: #fff; border: 1px solid #333; border-top: none; padding: 8px 10px; display: flex; justify-content: space-between; align-items: center; font-family: 'Times New Roman', serif; font-size: 9pt; font-weight: 700; }
 
-    /* Transcript Card View (A4 dimensions style) */
-    .result-view-container {
-      display: none;
-    }
+    /* ── Summary & QR ── */
+    .rc-bottom { display: grid; grid-template-columns: 1fr auto; gap: 12px; margin-top: 6px; align-items: start; }
+    .rc-summary-box { border: 1.5px solid #000; font-size: 8.5pt; }
+    .rc-summary-box table { width: 100%; border-collapse: collapse; }
+    .rc-summary-box td { padding: 5px 8px; border-bottom: 1px solid #ddd; vertical-align: top; }
+    .rc-summary-box td:first-child { font-weight: 700; width: 145px; }
+    .rc-summary-box tr:last-child td { border-bottom: none; }
+    .rc-qr-center { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 4px; padding: 6px; border: 1.5px solid #000; background: #fafafa; width: 100px; }
+    .qr-target { width: 80px; height: 80px; }
+    .qr-lbl { font-size: 7pt; color: #333; font-weight: 700; text-align: center; font-family: 'Inter', sans-serif; }
 
-    .rc-page {
-      background: var(--white);
-      padding: 8mm 10mm;
-      font-family: 'Times New Roman', serif;
-      font-size: 11pt;
-      color: #000;
-      border: 1px solid #ccc;
-    }
+    /* ── Remark ── */
+    .rc-remark { margin-top: 8px; padding: 6px 10px; border: 1.5px solid #000; font-size: 9.5pt; min-height: 32px; }
 
-    .rc-college-hdr {
-      display: grid;
-      grid-template-columns: 110px 1fr 130px;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 8px;
-      padding-bottom: 8px;
-      border-bottom: 2.5px solid #000;
-    }
+    /* ── Signatures ── */
+    .rc-sign-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-top: 22px; padding-top: 6px; }
+    .rc-sign-box { text-align: center; }
+    .rc-sign-line { height: 26px; border-bottom: 1px solid #444; margin-bottom: 4px; }
+    .rc-sign-lbl { font-size: 8.5pt; font-weight: 700; color: #222; }
 
-    .rc-col-left {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 3px;
-    }
+    /* ── Footers ── */
+    .rc-gen-note { font-size: 7pt; color: #555; text-align: center; margin-top: 8px; padding-top: 5px; border-top: 1px dashed #888; }
+    .rc-ts-note { text-align: center; font-size: 7pt; color: #666; margin-top: 4px; border-top: 1px dashed #aaa; padding-top: 4px; }
 
-    .rc-stu-photo {
-      width: 90px;
-      height: 112px;
-      object-fit: cover;
-      border: 2px solid #444;
-      display: block;
-    }
+    /* NOT PUBLISHED */
+    .not-published-card { display: none; background: #fff; border-radius: 16px; box-shadow: var(--shadow); padding: 40px 28px; text-align: center; max-width: 480px; width: 100%; margin: 0 auto; }
+    .np-icon { font-size: 3.5rem; margin-bottom: 16px; line-height: 1; }
+    .not-published-card h2 { font-family: 'Merriweather', serif; font-size: 1.2rem; font-weight: 700; color: var(--navy); margin-bottom: 10px; }
+    .not-published-card p { font-size: 0.88rem; color: var(--text-muted); line-height: 1.65; margin-bottom: 20px; }
+    .np-badge { display: inline-flex; align-items: center; gap: 8px; background: var(--red-light); color: #991b1b; border: 1px solid var(--red-border); border-radius: 20px; padding: 7px 18px; font-size: 0.83rem; font-weight: 600; }
+    .np-dot { width: 9px; height: 9px; border-radius: 50%; background: #dc2626; animation: np-pulse 1.5s ease-in-out infinite; }
+    @keyframes np-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-    .rc-stu-photo-ph {
-      width: 90px;
-      height: 112px;
-      border: 2px solid #ccc;
-      background: #f5f5f5;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 8pt;
-      color: #888;
-      text-align: center;
-      line-height: 1.4;
-    }
-
-    .rc-stu-photo-lbl {
-      font-size: 7pt;
-      color: #666;
-      text-align: center;
-      margin-top: 2px;
-    }
-
-    .rc-col-mid {
-      text-align: center;
-    }
-
-    .rc-col-mid h1 {
-      font-size: 13pt;
-      font-weight: 700;
-      color: #000;
-      letter-spacing: 0.3px;
-      margin-bottom: 2px;
-      line-height: 1.2;
-    }
-
-    .rc-college-logo {
-      width: 72px;
-      height: 72px;
-      border-radius: 50%;
-      object-fit: contain;
-      border: 1.5px solid #ccc;
-      display: block;
-      margin: 4px auto;
-    }
-
-    .rc-col-mid p {
-      font-size: 9.5pt;
-      color: #000;
-      margin-bottom: 1px;
-    }
-
-    .transcript-lbl {
-      font-size: 11.5pt;
-      font-weight: 700;
-      margin-top: 4px;
-      display: block;
-    }
-
-    .rc-col-right table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 8pt;
-    }
-
-    .rc-col-right th, .rc-col-right td {
-      border: 1px solid #777;
-      padding: 2px 4px;
-      text-align: center;
-    }
-
-    .rc-col-right th {
-      background: #f0f0f0;
-      font-weight: 700;
-    }
-
-    /* Student info block */
-    .rc-stu-block {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 2px 14px;
-      font-size: 9.5pt;
-      border: 1.5px solid #000;
-      padding: 6px 10px;
-      margin-bottom: 6px;
-      background: #fafafa;
-    }
-
-    .rc-stu-row {
-      display: flex;
-      gap: 4px;
-      padding: 1px 0;
-    }
-
-    .rc-stu-lbl {
-      font-weight: 700;
-      min-width: 110px;
-      flex-shrink: 0;
-    }
-
-    /* Exam header */
-    .rc-exam-hdr {
-      text-align: center;
-      font-size: 10.5pt;
-      font-weight: 700;
-      background: #000;
-      color: #fff;
-      padding: 4px;
-      margin-bottom: 4px;
-    }
-
-    /* Marks table */
-    .rc-marks-tbl {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 8.5pt;
-      margin-bottom: 6px;
-    }
-
-    .rc-marks-tbl th {
-      background: #111;
-      color: #fff;
-      padding: 5px 4px;
-      text-align: center;
-      border: 1px solid #444;
-      font-weight: 700;
-      font-size: 8pt;
-    }
-
-    .rc-marks-tbl th.lft {
-      text-align: left;
-      padding-left: 6px;
-    }
-
-    .rc-marks-tbl td {
-      padding: 4px;
-      border: 1px solid #888;
-      text-align: center;
-      vertical-align: middle;
-    }
-
-    .rc-marks-tbl tbody tr:nth-child(even) {
-      background: #fdfdfd;
-    }
-
-    .sn {
-      text-align: left !important;
-      padding-left: 6px !important;
-      font-weight: 500;
-    }
-
-    .rc-marks-tbl tfoot td {
-      background: #222;
-      color: #fff;
-      font-weight: 700;
-      border: 1px solid #444;
-      padding: 5px;
-    }
-
-    .cat-row td {
-      background: #e8e8e8 !important;
-      font-weight: 700;
-      text-align: center;
-      font-size: 8.5pt;
-    }
-
-    /* Bottom summary blocks */
-    .rc-bottom {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 12px;
-      margin-top: 6px;
-      align-items: start;
-    }
-
-    .rc-summary-box {
-      border: 1.5px solid #000;
-      font-size: 8.5pt;
-    }
-
-    .rc-summary-box table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    .rc-summary-box td {
-      padding: 5px 8px;
-      border-bottom: 1px solid #ddd;
-      vertical-align: top;
-    }
-
-    .rc-summary-box td:first-child {
-      font-weight: 700;
-      width: 150px;
-    }
-
-    .rc-summary-box tr:last-child td {
-      border-bottom: none;
-    }
-
-    .rc-qr-center {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      gap: 4px;
-      padding: 6px;
-      border: 1.5px solid #000;
-      background: #fafafa;
-      width: 105px;
-    }
-
-    .qr-target {
-      width: 80px;
-      height: 80px;
-    }
-
-    .qr-lbl {
-      font-size: 7.5pt;
-      color: #333;
-      font-weight: 700;
-      text-align: center;
-      font-family: 'Inter', sans-serif;
-    }
-
-    /* Remark block */
-    .rc-remark {
-      margin-top: 6px;
-      padding: 6px 10px;
-      border: 1.5px solid #000;
-      font-size: 9.5pt;
-      min-height: 32px;
-    }
-
-    /* Signatures row */
-    .rc-sign-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 15px;
-      margin-top: 20px;
-      padding-top: 6px;
-    }
-
-    .rc-sign-box {
-      text-align: center;
-    }
-
-    .rc-sign-line {
-      height: 25px;
-      border-bottom: 1px solid #444;
-      margin-bottom: 4px;
-    }
-
-    .rc-sign-lbl {
-      font-size: 8.5pt;
-      font-weight: 700;
-      color: #222;
-    }
-
-    /* Footer Notes */
-    .rc-gen-note {
-      font-size: 7pt;
-      color: #555;
-      text-align: center;
-      margin-top: 8px;
-      padding-top: 5px;
-      border-top: 1px dashed #888;
-    }
-
-    .rc-ts-note {
-      text-align: center;
-      font-size: 7pt;
-      color: #666;
-      margin-top: 4px;
-      border-top: 1px dashed #aaa;
-      padding-top: 4px;
-    }
-
-    /* Responsive adjustments */
+    /* MOBILE <= 600px */
     @media (max-width: 600px) {
-      body {
-        padding: 15px 8px;
-      }
-      .form-grid {
-        grid-template-columns: 1fr;
-      }
-      .rc-college-hdr {
-        grid-template-columns: 1fr;
-        text-align: center;
-        gap: 8px;
-      }
-      .rc-col-right table {
-        max-width: 200px;
-        margin: 6px auto 0;
-      }
-      .rc-stu-block {
-        grid-template-columns: 1fr;
-      }
-      .rc-bottom {
-        grid-template-columns: 1fr;
-      }
-      .rc-qr-center {
-        margin: 0 auto;
-      }
-      .rc-sign-row {
-        grid-template-columns: 1fr;
-        gap: 20px;
-      }
-      .print-toolbar {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      .toolbar-actions {
-        width: 100%;
-      }
-      .toolbar-actions .btn {
-        flex: 1;
-      }
-      .status-badge {
-        width: 100%;
-        justify-content: center;
-      }
+      body { padding: 16px 8px 50px; }
+      .card { padding: 16px 14px; }
+      .form-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .print-toolbar { flex-direction: column; align-items: stretch; gap: 10px; }
+      .toolbar-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+      .toolbar-actions .btn { width: 100%; }
+      .status-badge { width: 100%; justify-content: center; font-size: 0.82rem; padding: 8px 12px; }
+      .rc-page { padding: 12px 10px; }
+      .rc-college-hdr { grid-template-columns: 1fr; text-align: center; gap: 10px; }
+      .rc-col-left { flex-direction: row; justify-content: center; gap: 12px; }
+      .rc-stu-photo, .rc-stu-photo-ph { width: 72px; height: 90px; }
+      .rc-col-right { order: 3; }
+      .rc-col-right table { max-width: 220px; margin: 0 auto; }
+      .rc-stu-block { grid-template-columns: 1fr; gap: 0; }
+      .rc-stu-row { border-bottom: 1px solid #eee; padding: 4px 0; }
+      .rc-stu-row:last-child { border-bottom: none; }
+      .rc-table-scroll { display: none !important; }
+      .mobile-result-cards { display: block !important; }
+      .rc-bottom { grid-template-columns: 1fr; gap: 10px; }
+      .rc-qr-center { width: auto; flex-direction: row; gap: 12px; padding: 8px 12px; justify-content: center; }
+      .rc-sign-row { gap: 8px; margin-top: 16px; }
+      .rc-sign-lbl { font-size: 7.5pt; }
+    }
+    @media (max-width: 380px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .rc-sign-row { grid-template-columns: 1fr; gap: 16px; }
     }
 
-    /* Printing rules */
+    /* PRINT */
     @media print {
-      body {
-        background: #fff !important;
-        padding: 0 !important;
-        margin: 0 !important;
-      }
-
-      /* Preserve exact colors — prevent browser from inverting/stripping backgrounds */
-      * {
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-        color-adjust: exact !important;
-      }
-
-      @page {
-        size: A4 portrait;
-        margin: 10mm;
-      }
-
-      .page-header,
-      .search-card,
-      .print-toolbar,
-      .alert,
-      .state-loading,
-      .btn {
-        display: none !important;
-      }
-      .app-container {
-        max-width: 100% !important;
-        gap: 0 !important;
-      }
-      .card {
-        padding: 0 !important;
-        box-shadow: none !important;
-        border-radius: 0 !important;
-      }
-      .result-view-container {
-        display: block !important;
-      }
+      body { background: #fff !important; padding: 0 !important; margin: 0 !important; }
+      html, body { width: 210mm; }
+      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+      @page { size: A4 portrait; margin: 0; }
+      .page-header, .search-card, .print-toolbar, .alert, .state-loading, .btn { display: none !important; }
+      .app-container { max-width: 100% !important; width: 100% !important; padding: 0 !important; gap: 0 !important; }
+      .card { padding: 0 !important; box-shadow: none !important; border-radius: 0 !important; border: none !important; }
+      .result-view-container { display: block !important; }
       .rc-page {
         border: none !important;
         box-shadow: none !important;
         margin: 0 !important;
-        padding: 5mm 6mm !important;
-        width: 210mm;
-        min-height: 297mm;
+        padding: 8mm 10mm !important;
+        width: 210mm !important;
+        box-sizing: border-box !important;
       }
-    }
-
-    /* ═══ NOT PUBLISHED SCREEN ═══ */
-    .not-published-card {
-      display: none;
-      background: #fff;
-      border-radius: 16px;
-      box-shadow: 0 10px 30px rgba(13,43,69,.15);
-      padding: 48px 32px;
-      text-align: center;
-      max-width: 500px;
-      width: 100%;
-      margin: 0 auto;
-    }
-    .np-icon {
-      font-size: 3.5rem;
-      margin-bottom: 16px;
-      line-height: 1;
-    }
-    .not-published-card h2 {
-      font-family: 'Merriweather', serif;
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: #0d2b45;
-      margin-bottom: 10px;
-    }
-    .not-published-card p {
-      font-size: 0.88rem;
-      color: #64748b;
-      line-height: 1.65;
-      margin-bottom: 20px;
-    }
-    .np-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: #fef2f2;
-      color: #991b1b;
-      border: 1px solid #fecaca;
-      border-radius: 20px;
-      padding: 7px 18px;
-      font-size: 0.83rem;
-      font-weight: 600;
-    }
-    .np-dot {
-      width: 9px; height: 9px;
-      border-radius: 50%;
-      background: #dc2626;
-      animation: np-pulse 1.5s ease-in-out infinite;
-    }
-    @keyframes np-pulse {
-      0%,100% { opacity: 1; }
-      50%      { opacity: 0.3; }
+      .rc-table-scroll { display: block !important; overflow: visible !important; }
+      .mobile-result-cards { display: none !important; }
+      .rc-marks-tbl { min-width: unset !important; width: 100% !important; }
+      .rc-college-hdr { grid-template-columns: 90px 1fr 120px !important; }
     }
   </style>
 </head>
 <body>
-
-  <!-- College Header (Visual branding, hidden on print) -->
   <div class="page-header">
     <img src="https://www.muamc.edu.bd/wp-content/uploads/2025/01/logo-muam-scaled.jpeg" alt="College Logo">
     <h1>MOINUDDIN ADARSHA MOHILA COLLEGE</h1>
@@ -764,49 +289,38 @@
 
   <div class="app-container">
 
-    <!-- Not-Published Screen (shown when result_published=false) -->
     <div class="not-published-card" id="not-published-card">
-      <div class="np-icon">⏳</div>
+
       <h2>Results Not Published Yet</h2>
-      <p>
-        The examination results have not been published yet.<br>
-        Please check back later or contact the college office for updates.
-      </p>
-      <div class="np-badge">
-        <div class="np-dot"></div>
-        <span>Awaiting Publication</span>
-      </div>
+      <p>The examination results have not been published yet.<br>Please check back later or contact the college office for updates.</p>
+      <div class="np-badge"><div class="np-dot"></div><span>Awaiting Publication</span></div>
     </div>
 
-    <!-- Search Form Card (Hidden on print) -->
     <div class="card search-card" id="search-card">
       <div class="search-card-title">Search Exam Results</div>
       <form id="result-search-form" onsubmit="handleSearch(event)">
         <div class="form-grid">
-          
           <div class="field-group">
             <label for="s-class">Class</label>
             <select id="s-class" required>
-              <option value="">-- Select Class --</option>
+              <option value="">-- Select --</option>
               <option value="Class-XI">Class XI</option>
               <option value="Class-XII">Class XII</option>
             </select>
           </div>
-
           <div class="field-group">
             <label for="s-group">Group</label>
             <select id="s-group" required>
-              <option value="">-- Select Group --</option>
+              <option value="">-- Select --</option>
               <option value="Science">Science</option>
               <option value="Humanities">Humanities</option>
               <option value="Business">Business Studies</option>
             </select>
           </div>
-
           <div class="field-group">
             <label for="s-session">Session</label>
             <select id="s-session" required>
-              <option value="">-- Select Session --</option>
+              <option value="">-- Select --</option>
               <option value="2024-2025">2024-2025</option>
               <option value="2025-2026">2025-2026</option>
               <option value="2026-2027">2026-2027</option>
@@ -815,12 +329,10 @@
               <option value="2029-2030">2029-2030</option>
             </select>
           </div>
-
           <div class="field-group">
             <label for="s-roll">Roll Number</label>
-            <input type="text" id="s-roll" placeholder="Enter roll number" required autocomplete="off">
+            <input type="text" id="s-roll" placeholder="Enter roll no." required autocomplete="off" inputmode="text">
           </div>
-
           <div class="field-group">
             <label for="s-exam">Exam Type</label>
             <select id="s-exam">
@@ -832,39 +344,27 @@
               <option value="HSC">HSC</option>
             </select>
           </div>
-
         </div>
-
-        <button type="submit" class="btn btn-search">Search Result</button>
+        <button type="submit" class="btn btn-search" id="search-btn">Search Result</button>
       </form>
     </div>
 
-    <!-- Alert / Message Boxes -->
     <div id="alert-box" class="alert alert-danger"></div>
 
-    <!-- Loading Spinner State -->
     <div id="loader" class="state-loading">
       <div class="spinner"></div>
-      <div class="state-text">Searching result records...</div>
+      <div class="state-text">Searching result records&#8230;</div>
     </div>
 
-    <!-- Result Transcript Output Card -->
     <div id="result-view-card" class="card result-view-container">
-      
-      <!-- Toolbar at top of results (Hidden on print) -->
       <div class="print-toolbar">
         <div class="toolbar-actions">
-          <button class="btn btn-print" onclick="window.print()">Print Transcript</button>
-          <button class="btn btn-pdf" onclick="downloadPDF()">Download PDF</button>
+          <button class="btn btn-print" id="btn-print" onclick="window.print()">Print</button>
+          <button class="btn btn-pdf"   id="btn-pdf"   onclick="downloadPDF()">Download PDF</button>
         </div>
         <div id="result-status-badge" class="status-badge"></div>
       </div>
-
-      <!-- A4 Transcript sheet (Only element printed) -->
-      <div class="rc-page" id="rc-printable">
-        <!-- Rendered dynamically by Javascript -->
-      </div>
-
+      <div class="rc-page" id="rc-printable"></div>
     </div>
 
   </div>
@@ -872,180 +372,143 @@
   <script>
     const API_BASE = window.location.origin;
     let currentStudentSid = '';
-    let currentExamType = '';
+    let currentExamType   = '';
 
-    // ════════════════════════════════════════
-    // PUBLISH GATE — check on page load
-    // ════════════════════════════════════════
     (async function checkPublishGate() {
       try {
         const r = await fetch(API_BASE + '/api/result-publish-status');
         const d = await r.json();
         if (d.ok && !d.published) {
-          // Results are NOT published — hide search, show not-published screen
-          const searchCard      = document.getElementById('search-card');
-          const notPublished    = document.getElementById('not-published-card');
-          if (searchCard)   searchCard.style.display   = 'none';
-          if (notPublished) notPublished.style.display = 'block';
+          document.getElementById('search-card').style.display      = 'none';
+          document.getElementById('not-published-card').style.display = 'block';
         }
-        // If published === true, the search form stays visible (default)
-      } catch (_) {
-        // On network error: show search form as normal (fail-open for resilience)
-      }
+      } catch (_) {}
     })();
 
-    function showAlert(msg) {
-      const box = document.getElementById('alert-box');
-      box.textContent = msg;
-      box.style.display = 'block';
-    }
+    function showAlert(msg) { const b = document.getElementById('alert-box'); b.textContent = msg; b.style.display = 'block'; }
+    function hideAlert()    { document.getElementById('alert-box').style.display = 'none'; }
+    function showLoader(v)  { document.getElementById('loader').style.display = v ? 'flex' : 'none'; }
+    function ord(n)         { return n + (n===1?'st':n===2?'nd':n===3?'rd':'th'); }
 
-    function hideAlert() {
-      document.getElementById('alert-box').style.display = 'none';
-    }
-
-    function showLoader(visible) {
-      document.getElementById('loader').style.display = visible ? 'flex' : 'none';
-    }
-
-    function ord(n) {
-      return n + (n === 1 ? 'st' : n === 2 ? 'nd' : n === 3 ? 'rd' : 'th');
-    }
-
-    async function handleSearch(event) {
-      event.preventDefault();
+    async function handleSearch(e) {
+      e.preventDefault();
       hideAlert();
       document.getElementById('result-view-card').style.display = 'none';
       showLoader(true);
 
-      const cls = document.getElementById('s-class').value;
-      const group = document.getElementById('s-group').value;
+      const cls     = document.getElementById('s-class').value;
+      const group   = document.getElementById('s-group').value;
       const session = document.getElementById('s-session').value;
-      const roll = document.getElementById('s-roll').value.trim();
-      const exam = document.getElementById('s-exam').value;
+      const roll    = document.getElementById('s-roll').value.trim();
+      const exam    = document.getElementById('s-exam').value;
 
       try {
-        // Step 1: Lookup student SID
-        const lookupUrl = `${API_BASE}/api/student-portal/lookup?cls=${encodeURIComponent(cls)}&group=${encodeURIComponent(group)}&session=${encodeURIComponent(session)}&roll=${encodeURIComponent(roll)}`;
-        const lookupRes = await fetch(lookupUrl);
+        const lookupUrl  = `${API_BASE}/api/student-portal/lookup?cls=${encodeURIComponent(cls)}&group=${encodeURIComponent(group)}&session=${encodeURIComponent(session)}&roll=${encodeURIComponent(roll)}`;
+        const lookupRes  = await fetch(lookupUrl);
         const lookupData = await lookupRes.json();
-
-        if (!lookupRes.ok || !lookupData.ok) {
-          showLoader(false);
-          showAlert(lookupData.message || 'No student found with matching search parameters.');
-          return;
-        }
+        if (!lookupRes.ok || !lookupData.ok) { showLoader(false); showAlert(lookupData.message || 'No student found.'); return; }
 
         const sid = lookupData.id;
         currentStudentSid = sid;
 
-        // Step 2: Fetch result details for the student
-        const resultUrl = `${API_BASE}/api/public/result-summary?sid=${encodeURIComponent(sid)}&exam=${encodeURIComponent(exam)}`;
-        const resultRes = await fetch(resultUrl);
+        const resultUrl  = `${API_BASE}/api/public/result-summary?sid=${encodeURIComponent(sid)}&exam=${encodeURIComponent(exam)}`;
+        const resultRes  = await fetch(resultUrl);
         const resultData = await resultRes.json();
-
         showLoader(false);
 
-        if (!resultRes.ok || !resultData.ok) {
-          showAlert(resultData.message || 'Result records not published yet for the selected exam.');
-          return;
-        }
-
+        if (!resultRes.ok || !resultData.ok) { showAlert(resultData.message || 'Result not published yet.'); return; }
         renderResult(resultData);
-
       } catch (err) {
         showLoader(false);
-        showAlert('An error occurred while fetching the results. Please check your internet connection and try again.');
+        showAlert('An error occurred. Please check your internet connection and try again.');
         console.error(err);
       }
     }
 
     function renderResult(data) {
-      const stu = data.student;
-      const rows = data.subject_rows;
-      const passed = data.passed;
-      const avg = typeof data.gpa === 'number' ? data.gpa.toFixed(2) : data.gpa;
+      const stu      = data.student;
+      const rows     = data.subject_rows;
+      const passed   = data.passed;
+      const avg      = typeof data.gpa === 'number' ? data.gpa.toFixed(2) : data.gpa;
       const grpLabel = stu.group === 'Business' ? 'Business Studies' : stu.group;
-      const ey = data.exam_year || stu.session || stu.year || '';
+      const ey       = data.exam_year || stu.session || stu.year || '';
       currentExamType = data.exam_type;
 
-      // Timestamp of rendering
-      const ts = new Date().toLocaleString('en-GB', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: true
-      });
+      const ts = new Date().toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:true });
 
-      // Photo block
       const photoBlock = stu.photo
         ? `<img src="${stu.photo}" class="rc-stu-photo" alt="Photo" onerror="this.style.display='none'">`
         : `<div class="rc-stu-photo-ph">Photo<br>Not<br>Available</div>`;
 
-      // Subject Marks Table Rows
-      let tableRows = '';
-      let inGroupSubs = false;
+      let tableRows = '', mobileCards = '', inGroupSubs = false, evenIdx = 0;
 
       rows.forEach(row => {
-        const isGroupSub = !['101', '102', '107', '108', '275'].includes(row.code);
+        const isGroupSub = !['101','102','107','108','275'].includes(row.code);
         if (isGroupSub && !inGroupSubs) {
-          tableRows += `<tr class="cat-row"><td colspan="9">Group Subjects</td></tr>`;
-          inGroupSubs = true;
+          tableRows   += `<tr class="cat-row"><td colspan="9">Group Subjects</td></tr>`;
+          mobileCards += `<div class="mrc-category-hdr">Group Subjects</div>`;
+          inGroupSubs = true; evenIdx = 0;
         }
-        
-        const absent = row.absent;
-        const subFailed = !row.absent && (row.lg === 'F' || row.sub_passed === false);
+
+        const absent    = row.absent;
+        const subFailed = !absent && (row.lg === 'F' || row.sub_passed === false);
         const failStyle = subFailed && !row.is_optional ? 'background:#fff3f3; color:#b91c1c;' : '';
-        const lgStyle = subFailed && !row.is_optional ? 'color:#b91c1c; font-weight:700;' : 'font-weight:700;';
-        
-        const optBadge = row.is_optional ? ' <span style="font-size:7pt; color:#0d2b45; background:#e8f4f8; padding:1px 4px; border-radius:2px; font-weight:600;">(Optional)</span>' : '';
-        const pracCell = row.has_prac
-          ? (absent ? 'A' : (row.prac !== null ? row.prac : '0'))
-          : '&mdash;';
-        const highCell = absent ? '&mdash;' : (row.highest > 0 ? row.highest : '&mdash;');
+        const lgStyle   = subFailed && !row.is_optional ? 'color:#b91c1c; font-weight:700;' : 'font-weight:700;';
+        const optBadge  = row.is_optional ? ` <span style="font-size:7pt;color:#0d2b45;background:#e8f4f8;padding:1px 4px;border-radius:2px;font-weight:600;">(Opt)</span>` : '';
+        const pracCell  = row.has_prac ? (absent ? 'A' : (row.prac !== null ? row.prac : '0')) : '&mdash;';
+        const highCell  = absent ? '&mdash;' : (row.highest > 0 ? row.highest : '&mdash;');
 
         tableRows += `<tr style="${failStyle}">
-          <td class="sn">${row.name}${optBadge} <span style="font-size:7pt; color:#555; font-family:'Inter',sans-serif;">[${row.code}]</span></td>
+          <td class="sn">${row.name}${optBadge} <span style="font-size:7pt;color:#555;font-family:'Inter',sans-serif;">[${row.code}]</span></td>
           <td>100</td>
           <td>${absent ? 'A' : (row.cq !== '' ? row.cq : '0')}</td>
           <td>${absent ? 'A' : (row.mcq !== '' ? row.mcq : '0')}</td>
           <td>${pracCell}</td>
           <td style="font-weight:600;">${absent ? '0' : row.total}</td>
-          <td style="color:#0f172a; font-weight:600;">${highCell}</td>
+          <td style="color:#0f172a;font-weight:600;">${highCell}</td>
           <td>${absent ? '0.00' : row.gpa.toFixed(2)}</td>
           <td style="${lgStyle}">${row.lg}</td>
         </tr>`;
+
+        const cardCls = ['mrc-subject-card', evenIdx%2===1?'even':'', subFailed&&!row.is_optional?'failed':''].filter(Boolean).join(' ');
+        const lgBadgeCls = subFailed && !row.is_optional ? 'mrc-lg-badge fail' : 'mrc-lg-badge';
+        mobileCards += `<div class="${cardCls}">
+          <div class="mrc-sub-name">
+            <span>${row.name}${row.is_optional ? ' <small style="font-size:7pt;color:#0d2b45;">(Optional)</small>' : ''}</span>
+            <span class="sub-code">[${row.code}]</span>
+          </div>
+          <div class="mrc-marks-grid">
+            <div class="mrc-mark-item"><span class="lbl">CQ</span><span class="val">${absent ? 'A' : (row.cq !== '' ? row.cq : '0')}</span></div>
+            <div class="mrc-mark-item"><span class="lbl">MCQ</span><span class="val">${absent ? 'A' : (row.mcq !== '' ? row.mcq : '0')}</span></div>
+            <div class="mrc-mark-item"><span class="lbl">Practical</span><span class="val">${pracCell}</span></div>
+            <div class="mrc-mark-item total-item"><span class="lbl">Total</span><span class="val">${absent ? '0' : row.total}</span></div>
+            <div class="mrc-mark-item"><span class="lbl">Highest</span><span class="val">${highCell}</span></div>
+            <div class="mrc-mark-item"><span class="lbl">GPA</span><span class="val" style="${subFailed&&!row.is_optional?'color:#b91c1c;':''}">${absent ? '0.00' : row.gpa.toFixed(2)}</span></div>
+          </div>
+          <div style="text-align:right;margin-top:5px;"><span class="${lgBadgeCls}">${row.lg}</span></div>
+        </div>`;
+        evenIdx++;
       });
 
-      // Summary details HTML
-      const summaryHtml = `
-      <div class="rc-summary-box">
-        <table>
-          <tr><td>Total Marks Obtained</td><td style="font-weight:700;">${data.total_mark} out of ${data.max_mark}</td></tr>
-          <tr><td>Grade Point Average (GPA)</td><td style="font-weight:700;">${avg}</td></tr>
-          <tr><td>Overall Result Status</td><td style="font-weight:700; ${passed ? 'color:#166534;' : 'color:#b91c1c;'}">${passed ? 'PASSED' : 'FAILED'}</td></tr>
-          <tr><td>Optional Subject</td><td style="font-size:8.5pt;">${data.optional_label || 'N/A'}</td></tr>
-          <tr><td>Group Merit Position</td><td style="font-weight:700; color:#174070;">${data.merit_position ? ord(data.merit_position) + ' out of ' + data.merit_total : 'N/A'}</td></tr>
-        </table>
+      const mobileSummaryFooter = `<div class="mrc-footer-row">
+        <span>Total: ${data.total_mark}/${data.max_mark}</span>
+        <span>GPA: ${avg}</span>
+        <span>${passed ? '<span style="color:#a7f3d0;">PASS</span>' : '<span style="color:#fecaca;">FAIL</span>'}</span>
       </div>`;
 
-      // QR Code Box Placeholder
-      const qrBoxHtml = `
-      <div class="rc-qr-center">
-        <div id="qrcode-target" class="qr-target"></div>
-        <div class="qr-lbl">Scan QR Code</div>
-      </div>`;
+      const summaryHtml = `<div class="rc-summary-box"><table>
+        <tr><td>Total Marks Obtained</td><td style="font-weight:700;">${data.total_mark} out of ${data.max_mark}</td></tr>
+        <tr><td>Grade Point Average (GPA)</td><td style="font-weight:700;">${avg}</td></tr>
+        <tr><td>Overall Result Status</td><td style="font-weight:700;${passed?'color:#166534;':'color:#b91c1c;'}">${passed?'PASSED':'FAILED'}</td></tr>
+        <tr><td>Optional Subject</td><td style="font-size:8.5pt;">${data.optional_label || 'N/A'}</td></tr>
+        <tr><td>Group Merit Position</td><td style="font-weight:700;color:#174070;">${data.merit_position ? ord(data.merit_position)+' out of '+data.merit_total : 'N/A'}</td></tr>
+      </table></div>`;
 
-      // Set internal printable HTML
+      const qrBoxHtml = `<div class="rc-qr-center"><div id="qrcode-target" class="qr-target"></div><div class="qr-lbl">Scan QR Code</div></div>`;
+
       document.getElementById('rc-printable').innerHTML = `
         <div class="rc-college-hdr">
-          <div class="rc-col-left">
-            ${photoBlock}
-            <div class="rc-stu-photo-lbl">Candidate's Photo</div>
-          </div>
+          <div class="rc-col-left">${photoBlock}<div class="rc-stu-photo-lbl">Candidate's Photo</div></div>
           <div class="rc-col-mid">
             <h1>MOINUDDIN ADARSHA MOHILA COLLEGE</h1>
             <img src="https://www.muamc.edu.bd/wp-content/uploads/2025/01/logo-muam-scaled.jpeg" class="rc-college-logo" alt="Logo">
@@ -1054,9 +517,7 @@
           </div>
           <div class="rc-col-right">
             <table>
-              <thead>
-                <tr><th>Range</th><th>LG</th><th>GPA</th></tr>
-              </thead>
+              <thead><tr><th>Marks</th><th>LG</th><th>GPA</th></tr></thead>
               <tbody>
                 <tr><td>80-100</td><td>A+</td><td>5.0</td></tr>
                 <tr><td>70-79</td><td>A</td><td>4.0</td></tr>
@@ -1082,34 +543,29 @@
         </div>
 
         <div class="rc-exam-hdr">${data.exam_type} Examination &mdash; ${ey}</div>
-        
-        <table class="rc-marks-tbl">
-          <thead>
-            <tr>
+
+        <div class="rc-table-scroll">
+          <table class="rc-marks-tbl">
+            <thead><tr>
               <th class="lft">Subject</th>
-              <th>Total</th><th>CQ</th><th>MCQ</th><th>Practical</th>
-              <th>Total</th><th>Highest Mark</th><th>GPA</th><th>LG</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${tableRows}
-          </tbody>
-          <tfoot>
-            <tr>
-              <td style="text-align:left; padding-left:6px;"><strong>Summary GPA &amp; Result</strong></td>
+              <th>Full<br>Marks</th><th>CQ</th><th>MCQ</th><th>Practical</th>
+              <th>Total</th><th>Highest</th><th>GPA</th><th>LG</th>
+            </tr></thead>
+            <tbody>${tableRows}</tbody>
+            <tfoot><tr>
+              <td style="text-align:left;padding-left:6px;"><strong>Summary GPA &amp; Result</strong></td>
               <td></td><td></td><td></td><td></td>
               <td style="font-weight:700;">${data.total_mark}/${data.max_mark}</td>
               <td></td>
               <td style="font-weight:700;">${avg}</td>
               <td style="font-weight:700;">${passed ? '<span style="color:#a7f3d0;">PASS</span>' : '<span style="color:#fecaca;">FAIL</span>'}</td>
-            </tr>
-          </tfoot>
-        </table>
-
-        <div class="rc-bottom">
-          ${summaryHtml}
-          ${qrBoxHtml}
+            </tr></tfoot>
+          </table>
         </div>
+
+        <div class="mobile-result-cards">${mobileCards}${mobileSummaryFooter}</div>
+
+        <div class="rc-bottom">${summaryHtml}${qrBoxHtml}</div>
 
         <div class="rc-remark"><strong>Remark:</strong>&nbsp;</div>
 
@@ -1123,44 +579,36 @@
         <div class="rc-ts-note">Date &amp; Time of Printing: ${ts}</div>
       `;
 
-      // Generate Verification QR Code
       const verifyUrl = `${API_BASE}/result_summery.html?sid=${encodeURIComponent(stu.id)}&exam=${encodeURIComponent(data.exam_type)}`;
-      new QRCode(document.getElementById('qrcode-target'), {
-        text: verifyUrl,
-        width: 80,
-        height: 80,
-        colorDark: '#000000',
-        colorLight: '#ffffff',
-        correctLevel: QRCode.CorrectLevel.M
-      });
+      new QRCode(document.getElementById('qrcode-target'), { text: verifyUrl, width: 80, height: 80, colorDark: '#000000', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
 
-      // Update Toolbar Status Badge
-      const statusBadge = document.getElementById('result-status-badge');
-      if (passed) {
-        statusBadge.textContent = 'Result Status: PASS';
-        statusBadge.className = 'status-badge status-pass';
-      } else {
-        statusBadge.textContent = 'Result Status: FAIL';
-        statusBadge.className = 'status-badge status-fail';
-      }
+      const badge = document.getElementById('result-status-badge');
+      if (passed) { badge.innerHTML = 'Result: PASS'; badge.className = 'status-badge status-pass'; }
+      else        { badge.innerHTML = 'Result: FAIL'; badge.className = 'status-badge status-fail'; }
 
-      // Show result view card
-      document.getElementById('result-view-card').style.display = 'block';
+      const viewCard = document.getElementById('result-view-card');
+      viewCard.style.display = 'block';
+      setTimeout(() => viewCard.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
     }
 
     function downloadPDF() {
       const el = document.getElementById('rc-printable');
       if (!el) return;
-      
+      const tableScroll = el.querySelector('.rc-table-scroll');
+      const mobileCards = el.querySelector('.mobile-result-cards');
+      if (tableScroll) tableScroll.style.display = 'block';
+      if (mobileCards) mobileCards.style.display  = 'none';
       const opt = {
-        margin: [0, 0, 0, 0],
-        filename: `Result_Transcript_${currentStudentSid || 'Student'}_${currentExamType || 'Exam'}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2.5, useCORS: true, letterRendering: true, logging: false, windowWidth: 794 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        margin: [0,0,0,0],
+        filename: `Result_Transcript_${currentStudentSid||'Student'}_${currentExamType||'Exam'}.pdf`,
+        image: { type:'jpeg', quality:0.98 },
+        html2canvas: { scale:2.5, useCORS:true, letterRendering:true, logging:false, windowWidth:794 },
+        jsPDF: { unit:'mm', format:'a4', orientation:'portrait' }
       };
-      
-      html2pdf().set(opt).from(el).save();
+      html2pdf().set(opt).from(el).save().then(() => {
+        if (tableScroll) tableScroll.style.display = '';
+        if (mobileCards) mobileCards.style.display  = '';
+      });
     }
   </script>
 </body>
