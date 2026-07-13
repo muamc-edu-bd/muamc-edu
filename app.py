@@ -521,6 +521,13 @@ def get_tabulation_sheet():
     if group_val == 'Humanities':
         students = [s for s in students if _is_humanities_subject_applicable(s, subject_code) is True]
 
+    # For Business, filter optional subjects to only students who chose that optional pair
+    if group_val == 'Business' and subject_meta.get('optional'):
+        students = [
+            s for s in students
+            if subject_code in [c.strip() for c in (getattr(s, 'optional_subjects', '') or '').split('/') if c.strip()]
+        ]
+
     if not students:
         college_setting = Setting.query.filter_by(key='collegeName').first()
         return jsonify({
@@ -918,8 +925,11 @@ def _resolve_optional_subjects(group: str, optional_subject: str) -> list:
         if not sub.get('optional'):
             resolved.append(sub)
             continue
-        # All groups take both optional subjects (one compulsory elective, one optional).
-        resolved.append({**sub, 'name': OPT_NAMES.get(sub['code'], sub['name'])})
+        # Only include optional subjects whose code is in the student's chosen pair.
+        # The unchosen optional pair is dropped entirely from the subject list.
+        if sub['code'] in opt_codes:
+            resolved.append({**sub, 'name': OPT_NAMES.get(sub['code'], sub['name'])})
+        # else: unchosen optional — silently excluded from the student's subject list
     return resolved
 
 
@@ -2285,7 +2295,8 @@ def get_result_details():
         return jsonify({
             'ok': True,
             'passed_all': [], 'failed_1': [], 'failed_2': [], 'failed_3': [],
-            'failed_all': [], 'top10': [],
+            'failed_4': [], 'failed_5': [], 'failed_6': [],
+            'failed_all': [], 'absent': [], 'top10': [],
             'summary': {'total': 0, 'passed': 0, 'failed': 0, 'absent': 0},
         })
 
@@ -2310,7 +2321,11 @@ def get_result_details():
     failed_1   = []
     failed_2   = []
     failed_3   = []
+    failed_4   = []
+    failed_5   = []
+    failed_6   = []
     failed_all = []
+    absent_list = []
     absent_cnt = 0
 
     for stu in students:
@@ -2320,6 +2335,7 @@ def get_result_details():
         # If student has no marks for this exam, treat as absent
         if not stu_marks:
             absent_cnt += 1
+            absent_list.append({'roll': stu.roll, 'name': stu.name})
             continue
 
         # Resolve subject list
@@ -2427,8 +2443,14 @@ def get_result_details():
             failed_2.append(entry)
         elif fail_cnt == 3:
             failed_3.append(entry)
+        elif fail_cnt == 4:
+            failed_4.append(entry)
+        elif fail_cnt == 5:
+            failed_5.append(entry)
+        elif fail_cnt == 6:
+            failed_6.append(entry)
         else:
-            # fail_cnt >= 4, or has_absent with gpa=0:
+            # fail_cnt >= 7, or has_absent with gpa=0:
             # "Failed all" = overall GPA is 0 (result is F)
             failed_all.append(entry)
 
@@ -2446,7 +2468,7 @@ def get_result_details():
 
     total_count = len(students)
     passed_count = len(passed_all)
-    failed_count = len(failed_1) + len(failed_2) + len(failed_3) + len(failed_all)
+    failed_count = len(failed_1) + len(failed_2) + len(failed_3) + len(failed_4) + len(failed_5) + len(failed_6) + len(failed_all)
 
     return jsonify({
         'ok': True,
@@ -2454,7 +2476,11 @@ def get_result_details():
         'failed_1': failed_1,
         'failed_2': failed_2,
         'failed_3': failed_3,
+        'failed_4': failed_4,
+        'failed_5': failed_5,
+        'failed_6': failed_6,
         'failed_all': failed_all,
+        'absent': absent_list,
         'top10': top10,
         'summary': {
             'total': total_count,
