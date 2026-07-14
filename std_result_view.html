@@ -413,14 +413,22 @@
 
         const resultUrl  = `${API_BASE}/api/public/result-summary?sid=${encodeURIComponent(sid)}&exam=${encodeURIComponent(exam)}`;
         const resultRes  = await fetch(resultUrl);
-        const resultData = await resultRes.json();
+
+        let resultData;
+        try {
+          resultData = await resultRes.json();
+        } catch (_) {
+          showLoader(false);
+          showAlert('The server returned an unexpected response. Please try again in a few seconds.');
+          return;
+        }
         showLoader(false);
 
         if (!resultRes.ok || !resultData.ok) { showAlert(resultData.message || 'Result not published yet.'); return; }
         renderResult(resultData);
       } catch (err) {
         showLoader(false);
-        showAlert('An error occurred. Please check your internet connection and try again.');
+        showAlert('A network error occurred. Please check your connection and try again.');
         console.error(err);
       }
     }

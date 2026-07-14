@@ -1858,7 +1858,18 @@ def public_result_summary():
     """
     Public endpoint — no auth required. Called by result_summery.html (QR code page).
     Returns full result data for a student given sid + exam type.
+    Wrapped in a global try/except so unexpected errors return clean JSON (not HTML 500).
     """
+    try:
+        return _public_result_summary_inner()
+    except Exception as _ex:
+        import traceback
+        print(f'[result-summary] Unexpected error: {_ex}')
+        traceback.print_exc()
+        return jsonify({'ok': False, 'message': f'Server error: {str(_ex)}'}), 500
+
+
+def _public_result_summary_inner():
     sid       = (request.args.get('sid') or '').strip()
     exam_type = (request.args.get('exam') or '').strip()
 
@@ -1924,23 +1935,27 @@ def public_result_summary():
     has_absent = False
     has_fail = False
 
-    # Compute highest marks across all peers in same class+group
+    # Compute highest marks across all peers in same class+group.
+    # Fetch all peer marks in a SINGLE query to avoid N+1 DB hits.
     peers = Student.query.filter_by(cls=cls, group=group).all()
     peer_ids = [p.id for p in peers]
     all_peer_marks = _get_marks_dict(peer_ids)
     highest_marks = {}
-    for sub in subs:
-        max_mark = 0
-        for p in peers:
-            pm = (all_peer_marks.get(p.id) or {}).get(resolved_exam, {})
-            mm = pm.get(sub['code'], {})
-            pcq  = min(int(mm.get('cq')  or 0), sub.get('cqMax', 70))
-            pmcq = min(int(mm.get('mcq') or 0), sub.get('mcqMax', 30))
-            pprac = min(int(mm.get('prac') or 0), 25) if sub.get('hasPrac') else 0
-            ptot = pcq + pmcq + pprac
-            if ptot > max_mark:
-                max_mark = ptot
-        highest_marks[sub['code']] = max_mark
+    try:
+        for sub in subs:
+            max_mark = 0
+            for p in peers:
+                pm = (all_peer_marks.get(p.id) or {}).get(resolved_exam, {})
+                mm = pm.get(sub['code'], {})
+                pcq  = min(int(mm.get('cq')  or 0), sub.get('cqMax', 70))
+                pmcq = min(int(mm.get('mcq') or 0), sub.get('mcqMax', 30))
+                pprac = min(int(mm.get('prac') or 0), 25) if sub.get('hasPrac') else 0
+                ptot = pcq + pmcq + pprac
+                if ptot > max_mark:
+                    max_mark = ptot
+            highest_marks[sub['code']] = max_mark
+    except Exception:
+        highest_marks = {}
 
     for sub in subs:
         if group == 'Humanities':
@@ -2023,14 +2038,28 @@ def public_result_summary():
     if mMax == 0:  # fallback for display if all absent
         mMax = sum((s.get('cqMax', 70) + s.get('mcqMax', 30) + (25 if s.get('hasPrac') else 0)) for s in subs)
 
-    # Merit position
-    peer_scores = []
-    for p in peers:
-        pt, pg, _ = _compute_student_result(p.id, all_peer_marks, p.group, getattr(p, 'optional_subjects', '') or '', p.cls)
-        peer_scores.append((p.id, pg, pt))
-    peer_scores.sort(key=lambda x: (-x[1], -x[2]))
-    merit_pos   = next((i + 1 for i, ps in enumerate(peer_scores) if ps[0] == student.id), None)
-    merit_total = len(peer_scores)
+    # Merit position — computed using a fast in-memory aggregation of already-fetched
+    # peer marks (avoids calling _compute_student_result per-peer which fires extra DB
+    # queries for Humanities students and causes timeouts on Render).
+    merit_pos   = None
+    merit_total = len(peers)
+    try:
+        peer_scores = []
+        for p in peers:
+            pm_all = (all_peer_marks.get(p.id) or {}).get(resolved_exam, {})
+            p_total = 0
+            for _code, _m in pm_all.items():
+                if _code == 'selectedOptional' or not isinstance(_m, dict):
+                    continue
+                if _m.get('absent', False):
+                    continue
+                p_total += int(_m.get('cq') or 0) + int(_m.get('mcq') or 0) + int(_m.get('prac') or 0)
+            peer_scores.append((p.id, p_total))
+        peer_scores.sort(key=lambda x: -x[1])
+        merit_pos = next((i + 1 for i, ps in enumerate(peer_scores) if ps[0] == student.id), None)
+    except Exception:
+        merit_pos   = None
+        merit_total = None
 
     # Resolve optional subject label
     OPTIONAL_SUBJECTS_LABELS = {
