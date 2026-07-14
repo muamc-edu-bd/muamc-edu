@@ -1175,6 +1175,12 @@ def _resolve_optional_subjects(group: str, optional_subject: str) -> list:
     'optional' placeholder entries with the student's specific chosen codes.
 
     optional_subject format: "CODE1/CODE2"  e.g. "178/179" or "265/266"
+
+    Science vs Business distinction:
+    - Science:   student picks ONE pair as the 4th/optional subject; the OTHER pair
+                 stays in the list as a COMPULSORY main subject (both pairs always present).
+    - Business:  student picks ONE pair to study; the OTHER pair is dropped entirely
+                 from the subject list (student does not study it at all).
     """
     import copy
     opt_codes = [c.strip() for c in (optional_subject or '').split('/') if c.strip()]
@@ -1193,16 +1199,22 @@ def _resolve_optional_subjects(group: str, optional_subject: str) -> list:
         '109': 'Economics 1st Paper',         '110': 'Economics 2nd Paper',
     }
 
+    # For Business: the unchosen optional pair is completely excluded.
+    # For Science (and others): the unchosen optional pair becomes a compulsory main subject.
+    business_exclusive = (group == 'Business')
+
     resolved = []
     for sub in base:
         if not sub.get('optional'):
             resolved.append(sub)
             continue
-        # Only include optional subjects whose code is in the student's chosen pair.
-        # The unchosen optional pair is dropped entirely from the subject list.
         if sub['code'] in opt_codes:
+            # Chosen optional: include as the 4th/optional subject
             resolved.append({**sub, 'name': OPT_NAMES.get(sub['code'], sub['name'])})
-        # else: unchosen optional — silently excluded from the student's subject list
+        elif not business_exclusive:
+            # Science: unchosen optional pair is kept as a compulsory main subject
+            resolved.append({**sub, 'name': OPT_NAMES.get(sub['code'], sub['name']), 'optional': False})
+        # else (Business): unchosen optional pair is silently dropped
     return resolved
 
 

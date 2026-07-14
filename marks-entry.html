@@ -1181,8 +1181,15 @@ async function loadBatchStudents(){
 
     if(foundSub.optionalGroup){
       students = students.filter(s => {
-        // Only include students who have chosen this specific optional subject code.
-        // The unchosen optional pair should be excluded from the marks-entry list.
+        const og = foundSub.optionalGroup;
+        // Science: ALL students take both optional pairs — one as the 4th/optional subject
+        // and the other as a compulsory main subject. Show all Science students.
+        if (s.group === 'Science' && (og === 'scienceBio' || og === 'scienceMath')) return true;
+        // Humanities: pass all Humanities students through here; the Humanities-specific
+        // filter below (isHumanitiesSubjectApplicable) handles the per-student narrowing.
+        if (s.group === 'Humanities' && (og === 'humLogic' || og === 'humHome')) return true;
+        // Business: only students who chose this specific optional subject appear.
+        // The unchosen optional pair is completely dropped from a Business student's subjects.
         const optStr = String(s.optionalSubjects || s.optional_subjects || '').trim();
         return optStr.includes(code);
       });
