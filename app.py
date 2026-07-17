@@ -641,6 +641,14 @@ def group_results_page():
     return _serve_html('group-results.html')
 
 
+@app.route('/seat-plan.html')
+def seat_plan_page():
+    """Seat Plan Generator — exam hall seat assignment, sticker printing, room sheets, and center summary."""
+    if not session.get('authenticated'):
+        return redirect('/login')
+    return _serve_html('seat-plan.html')
+
+
 @app.route('/api/group-results/filters', methods=['GET'])
 @require_auth
 def group_results_filters():

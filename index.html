@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Moinuddin Adarsha Mohila College — Dashboard</title>
   <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700;900&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/all.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     /* ═══════════════ DESIGN TOKENS ═══════════════ */
@@ -49,7 +50,9 @@
     /* ═══ SIDEBAR ═══ */
     .site-header { background: linear-gradient(180deg,#0d2b45 0%,#0a2138 100%); position: fixed; left: 0; top: 70px; width: 220px; height: calc(100vh - 70px); z-index: 200; border-right: 1px solid rgba(255,255,255,.06); box-shadow: 4px 0 16px rgba(0,0,0,.3); display: flex; flex-direction: column; overflow-y: auto; transition: transform .3s ease; }
     .nav-strip { display: flex; flex-direction: column; padding: 16px 0; background: rgba(0,0,0,.2); flex: 1; }
-    .nt { padding: 12px 16px; cursor: pointer; font-size: .79rem; font-weight: 500; border-left: 3px solid transparent; color: rgba(255,255,255,.55); transition: color .15s, border-color .15s, background .15s; display: flex; align-items: center; text-decoration: none; }
+    .nt { padding: 12px 16px; cursor: pointer; font-size: .79rem; font-weight: 500; border-left: 3px solid transparent; color: rgba(255,255,255,.55); transition: color .15s, border-color .15s, background .15s; display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .nt .nav-icon { width: 16px; text-align: center; font-size: .82rem; flex-shrink: 0; opacity: .75; }
+    .nt:hover .nav-icon, .nt.active .nav-icon { opacity: 1; }
     .nt:hover { color: rgba(255,255,255,.88); background: rgba(255,255,255,.05); }
     .nt.active { color: var(--gold3); border-left-color: var(--gold2); background: rgba(255,255,255,.08); }
     .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 190; }
@@ -346,7 +349,73 @@
       transform: translateX(4px);
       color: var(--gold);
     }
-    </style>
+    
+    /* Standardized Mobile Navigation Overrides */
+    @media (max-width: 768px) {
+      .top-nav-bar {
+        padding: 0 16px !important;
+        height: 70px !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+      }
+      .top-nav-logo-text {
+        display: none !important;
+      }
+      .top-nav-logo {
+        gap: 8px !important;
+      }
+      .top-nav-logo-img {
+        width: 40px !important;
+        height: 40px !important;
+      }
+      .top-nav-admin-info {
+        display: none !important;
+      }
+      .top-nav-admin {
+        display: flex !important;
+        align-items: center !important;
+        gap: 12px !important;
+      }
+      .logout-btn {
+        padding: 6px 12px !important;
+        font-size: 0.72rem !important;
+      }
+      .hdr-hamburger {
+        display: flex !important;
+      }
+      .site-header {
+        width: 220px !important;
+        transform: translateX(-100%) !important;
+        top: 70px !important;
+        height: calc(100vh - 70px) !important;
+        position: fixed !important;
+        z-index: 200 !important;
+        transition: transform .3s ease !important;
+      }
+      .site-header.active {
+        transform: translateX(0) !important;
+      }
+      .site-header.open {
+        transform: translateX(0) !important;
+      }
+      .nav-strip {
+        position: static !important;
+        transform: none !important;
+        width: 100% !important;
+        height: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+      }
+      .sidebar-overlay.active {
+        display: block !important;
+      }
+      .main {
+        margin-left: 0 !important;
+        padding: 14px 10px !important;
+      }
+    }
+</style>
 
 
   <!-- PAGE TRANSITION LOADER -->
@@ -388,7 +457,7 @@
       </div>
     </div>
     <div class="top-nav-admin">
-      <button class="hdr-hamburger" id="hdr-hamburger" onclick="toggleSidebar()">☰</button>
+      <button class="hdr-hamburger" id="hdr-hamburger" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
       <button class="logout-btn" onclick="doLogout()">Logout</button>
     </div>
   </div>
@@ -396,16 +465,17 @@
   <!-- ═══ SIDEBAR ═══ -->
   <header class="site-header" id="site-header">
     <nav class="nav-strip" id="nav-strip">
-      <a class="nt active" href="/">Dashboard</a>
-      <a class="nt" href="/student-list.html">Student Management</a>
-      <a class="nt" href="/marks-entry.html">Mark Entry</a>
-      <a class="nt" href="/Teachers.html">Teachers</a>
-      <a class="nt" href="/Result-card.html">Result Card</a>
-      <a class="nt" href="/Admit-card.html">Admit Card</a>
-      <a class="nt" href="/bulk-photo.html">Bulk Photo Upload</a>
-      <a class="nt" href="/analytics.html" style="border-top:1px solid rgba(255,255,255,.08);margin-top:8px;padding-top:16px;">Analytics</a>
-      <a class="nt" href="/result_analytics.html">Result Analytics</a>
-      <a class="nt" href="/group-results.html">Group-wise Results</a>
+      <a class="nt active" href="/"><i class="fas fa-home nav-icon"></i> Dashboard</a>
+      <a class="nt" href="/student-list.html"><i class="fas fa-users nav-icon"></i> Student Management</a>
+      <a class="nt" href="/marks-entry.html"><i class="fas fa-edit nav-icon"></i> Mark Entry</a>
+      <a class="nt" href="/Teachers.html"><i class="fas fa-chalkboard-teacher nav-icon"></i> Teachers</a>
+      <a class="nt" href="/Result-card.html"><i class="fas fa-file-invoice nav-icon"></i> Result Card</a>
+      <a class="nt" href="/Admit-card.html"><i class="fas fa-id-card nav-icon"></i> Admit Card</a>
+      <a class="nt" href="/bulk-photo.html"><i class="fas fa-images nav-icon"></i> Bulk Photo Upload</a>
+      <a class="nt" href="/analytics.html" style="border-top:1px solid rgba(255,255,255,.08);margin-top:8px;padding-top:16px;"><i class="fas fa-chart-line nav-icon"></i> Analytics</a>
+      <a class="nt" href="/result_analytics.html"><i class="fas fa-chart-bar nav-icon"></i> Result Analytics</a>
+      <a class="nt" href="/group-results.html"><i class="fas fa-table nav-icon"></i> Group-wise Results</a>
+      <a class="nt" href="/seat-plan.html"><i class="fas fa-th nav-icon"></i> Seat Plan</a>
     </nav>
   </header>
 
@@ -502,6 +572,18 @@
             <div class="qa-info">
               <h4>Result Analytics</h4>
               <p>Explore detailed result performance charts</p>
+            </div>
+            <div class="qa-arrow">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+          </a>
+          <a href="/seat-plan.html" class="qa-card">
+            <div class="qa-icon-wrapper" style="background:rgba(13,43,69,.1);color:#0d2b45;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+            </div>
+            <div class="qa-info">
+              <h4>Seat Plan</h4>
+              <p>Generate exam hall seat plans, stickers, room sheets</p>
             </div>
             <div class="qa-arrow">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>

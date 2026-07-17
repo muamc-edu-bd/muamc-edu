@@ -8,6 +8,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700;900&family=Source+Sans+3:wght@300;400;500;600;700&display=swap"
     rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/all.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     /* ═══════════════ DESIGN TOKENS ═══════════════ */
@@ -348,7 +349,11 @@
       white-space: nowrap;
       display: flex;
       align-items: center;
+      gap: 10px;
+      text-decoration: none;
     }
+    .nt .nav-icon { width: 16px; text-align: center; font-size: .82rem; flex-shrink: 0; opacity: .75; }
+    .nt:hover .nav-icon, .nt.active .nav-icon { opacity: 1; }
 
     .nt:hover {
       color: rgba(255, 255, 255, .88);
@@ -1003,7 +1008,73 @@
       border-top: 1px solid var(--border);
       margin-top: 40px;
     }
-  </style>
+  
+    /* Standardized Mobile Navigation Overrides */
+    @media (max-width: 768px) {
+      .top-nav-bar {
+        padding: 0 16px !important;
+        height: 70px !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+      }
+      .top-nav-logo-text {
+        display: none !important;
+      }
+      .top-nav-logo {
+        gap: 8px !important;
+      }
+      .top-nav-logo-img {
+        width: 40px !important;
+        height: 40px !important;
+      }
+      .top-nav-admin-info {
+        display: none !important;
+      }
+      .top-nav-admin {
+        display: flex !important;
+        align-items: center !important;
+        gap: 12px !important;
+      }
+      .logout-btn {
+        padding: 6px 12px !important;
+        font-size: 0.72rem !important;
+      }
+      .hdr-hamburger {
+        display: flex !important;
+      }
+      .site-header {
+        width: 220px !important;
+        transform: translateX(-100%) !important;
+        top: 70px !important;
+        height: calc(100vh - 70px) !important;
+        position: fixed !important;
+        z-index: 200 !important;
+        transition: transform .3s ease !important;
+      }
+      .site-header.active {
+        transform: translateX(0) !important;
+      }
+      .site-header.open {
+        transform: translateX(0) !important;
+      }
+      .nav-strip {
+        position: static !important;
+        transform: none !important;
+        width: 100% !important;
+        height: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+      }
+      .sidebar-overlay.active {
+        display: block !important;
+      }
+      .main {
+        margin-left: 0 !important;
+        padding: 14px 10px !important;
+      }
+    }
+</style>
 
 
 
@@ -1047,31 +1118,31 @@
     </div>
     <div class="top-nav-admin">
       <div class="top-nav-admin-info">
-        <div class="top-nav-avatar">A</div>
+        <div class="top-nav-avatar" id="nav-avatar">A</div>
         <div>
-          <div class="top-nav-name">Admin</div>
-          <div class="top-nav-role">System Admin</div>
+          <div class="top-nav-name" id="nav-name">Admin</div>
+          <div class="top-nav-role" id="nav-role">System Admin</div>
         </div>
       </div>
+      <button class="hdr-hamburger" id="hdr-hamburger" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
       <button class="logout-btn" onclick="doLogout()">Logout</button>
-      <button class="hdr-hamburger" id="hdr-hamburger" onclick="toggleSidebar()">☰</button>
     </div>
   </div>
 
   <!-- ═══════════ SIDEBAR HEADER ═══════════ -->
   <header class="site-header">
     <nav class="nav-strip" id="nav-strip">
-      <div class="nt" onclick="window.location.href='index.html'; closeSidebar();">Dashboard</div>
-      <div class="nt active" onclick="window.location.href='student-list.html'; closeSidebar();">Student Management</div>
-      <div class="nt" onclick="window.location.href='marks-entry.html'; closeSidebar();">Mark Entry</div>
-      <div class="nt" onclick="localStorage.setItem('currentTab', 'teachers'); window.location.href='Teachers.html'; closeSidebar();">Teachers</div>
-      <div class="nt" onclick="localStorage.setItem('currentTab', 'result'); window.location.href='Result-card.html'; closeSidebar();">Result Card</div>
-      <div class="nt" onclick="localStorage.setItem('currentTab', 'admit'); window.location.href='Admit-card.html'; closeSidebar();">Admit Card</div>
-      <div class="nt" onclick="window.location.href='bulk-photo.html'; closeSidebar();">Bulk Photo Upload</div>
-      <div class="nt" onclick="window.location.href='analytics.html'; closeSidebar();"
-        style="border-top:1px solid rgba(255,255,255,.08);margin-top:8px;padding-top:16px;">Analytics</div>
-      <div class="nt" onclick="window.location.href='result_analytics.html'; closeSidebar();">Result Analytics</div>
-      <div class="nt" onclick="window.location.href='group-results.html'; closeSidebar();">Group-wise Results</div>
+      <a class="nt" href="/"><i class="fas fa-home nav-icon"></i> Dashboard</a>
+      <a class="nt active" href="/student-list.html"><i class="fas fa-users nav-icon"></i> Student Management</a>
+      <a class="nt" href="/marks-entry.html"><i class="fas fa-edit nav-icon"></i> Mark Entry</a>
+      <a class="nt" href="/Teachers.html"><i class="fas fa-chalkboard-teacher nav-icon"></i> Teachers</a>
+      <a class="nt" href="/Result-card.html"><i class="fas fa-file-invoice nav-icon"></i> Result Card</a>
+      <a class="nt" href="/Admit-card.html"><i class="fas fa-id-card nav-icon"></i> Admit Card</a>
+      <a class="nt" href="/bulk-photo.html"><i class="fas fa-images nav-icon"></i> Bulk Photo Upload</a>
+      <a class="nt" href="/analytics.html" style="border-top:1px solid rgba(255,255,255,.08);margin-top:8px;padding-top:16px;"><i class="fas fa-chart-line nav-icon"></i> Analytics</a>
+      <a class="nt" href="/result_analytics.html"><i class="fas fa-chart-bar nav-icon"></i> Result Analytics</a>
+      <a class="nt" href="/group-results.html"><i class="fas fa-table nav-icon"></i> Group-wise Results</a>
+      <a class="nt" href="/seat-plan.html"><i class="fas fa-th nav-icon"></i> Seat Plan</a>
     </nav>
   </header>
 

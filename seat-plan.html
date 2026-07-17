@@ -1,0 +1,1376 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seat Plan Generator — Moinuddin Adarsha Mohila College</title>
+  <meta name="description" content="Generate exam hall seat plans, print seat stickers (9 per A4), room sheets, and center summary for HSC examinations.">
+  <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700;900&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/all.min.css">
+  <!-- JsBarcode for roll number barcode on stickers -->
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+  <style>
+    /* ═══════════════ DESIGN TOKENS ═══════════════ */
+    :root {
+      --navy: #0d2b45; --navy2: #174070; --navy3: #1f5490;
+      --gold: #a97c28; --gold2: #c9973a; --gold3: #e8b84b;
+      --slate: #f1f4f8; --slate2: #e8ecf2; --white: #fff;
+      --txt: #0f172a; --txt2: #334155; --muted: #64748b;
+      --border: #dde3ed; --border2: #c8d2e0;
+      --red: #b91c1c; --green: #166534; --amber: #92400e;
+      --shadow-xs: 0 1px 2px rgba(0,0,0,.06);
+      --shadow-sm: 0 1px 4px rgba(13,43,69,.08), 0 1px 3px rgba(13,43,69,.05);
+      --shadow: 0 4px 16px rgba(13,43,69,.09);
+      --shadow-lg: 0 8px 32px rgba(13,43,69,.14);
+      --r: 6px; --r-md: 10px; --r-lg: 14px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Source Sans 3', sans-serif; background: var(--slate); color: var(--txt); display: flex; flex-direction: column; }
+
+    /* ═══ TOP NAV ═══ */
+    .top-nav-bar { position: fixed; top: 0; left: 0; right: 0; height: 70px; z-index: 201; background: linear-gradient(180deg,#0d2b45 0%,#0a2138 100%); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; border-bottom: 1px solid rgba(255,255,255,.08); box-shadow: 0 4px 12px rgba(0,0,0,.15); }
+    .top-nav-logo { display: flex; align-items: center; gap: 14px; }
+    .top-nav-logo-img { width: 48px; height: 48px; border-radius: 50%; background: #fff; border: 2.5px solid var(--gold2); overflow: hidden; display: flex; align-items: center; justify-content: center; }
+    .top-nav-logo-img img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .top-nav-logo-text h1 { font-family: 'Merriweather', serif; font-size: .85rem; font-weight: 700; color: #fff; }
+    .top-nav-logo-text p { font-size: .58rem; color: rgba(255,255,255,.5); margin-top: 2px; }
+    .top-nav-admin { display: flex; align-items: center; gap: 16px; }
+    .logout-btn { padding: 8px 16px; border-radius: var(--r); border: 1px solid rgba(255,255,255,.3); background: transparent; color: #fff; font-size: .78rem; font-family: inherit; cursor: pointer; font-weight: 600; transition: all .15s; }
+    .logout-btn:hover { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.6); }
+    .hdr-hamburger { display: none; background: none; border: none; color: #fff; font-size: 1.4rem; cursor: pointer; width: 32px; height: 32px; align-items: center; justify-content: center; transition: all .15s; border-radius: var(--r); }
+    .hdr-hamburger:hover { background: rgba(255,255,255,.1); }
+
+    /* ═══ SIDEBAR ═══ */
+    .site-header { background: linear-gradient(180deg,#0d2b45 0%,#0a2138 100%); position: fixed; left: 0; top: 70px; width: 220px; height: calc(100vh - 70px); z-index: 200; border-right: 1px solid rgba(255,255,255,.06); box-shadow: 4px 0 16px rgba(0,0,0,.3); display: flex; flex-direction: column; overflow-y: auto; transition: transform .3s ease; }
+    .nav-strip { display: flex; flex-direction: column; padding: 16px 0; background: rgba(0,0,0,.2); flex: 1; }
+    .nt { padding: 12px 16px; cursor: pointer; font-size: .79rem; font-weight: 500; border-left: 3px solid transparent; color: rgba(255,255,255,.55); transition: color .15s, border-color .15s, background .15s; display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .nt .nav-icon { width: 16px; text-align: center; font-size: .82rem; flex-shrink: 0; opacity: .75; }
+    .nt:hover .nav-icon, .nt.active .nav-icon { opacity: 1; }
+    .nt:hover { color: rgba(255,255,255,.88); background: rgba(255,255,255,.05); }
+    .nt.active { color: var(--gold3); border-left-color: var(--gold2); background: rgba(255,255,255,.08); }
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 190; }
+    .sidebar-overlay.active { display: block; }
+
+    /* ═══ MAIN ═══ */
+    .main { margin-left: 220px; margin-top: 70px; padding: 28px 24px; flex: 1; }
+
+    /* ═══ PAGE HEADER ═══ */
+    .pg-hd { margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+    .pg-hd h2 { font-family: 'Merriweather', serif; font-size: 1.2rem; font-weight: 700; color: var(--navy); }
+    .pg-hd p { font-size: .78rem; color: var(--muted); margin-top: 3px; }
+
+    /* ═══ INTERNAL TAB BAR ═══ */
+    .sp-tab-bar { display: flex; gap: 0; border-bottom: 2px solid var(--border2); margin-bottom: 24px; overflow-x: auto; }
+    .sp-tab { padding: 10px 22px; font-size: .82rem; font-weight: 600; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; white-space: nowrap; transition: color .15s, border-color .15s; background: none; border-top: none; border-left: none; border-right: none; font-family: inherit; letter-spacing: .02em; }
+    .sp-tab:hover { color: var(--navy2); }
+    .sp-tab.active { color: var(--navy); border-bottom-color: var(--gold2); }
+    .sp-panel { display: none; }
+    .sp-panel.active { display: block; }
+
+    /* ═══ CARDS ═══ */
+    .card { background: var(--white); border-radius: var(--r-lg); border: 1px solid var(--border); box-shadow: var(--shadow-sm); margin-bottom: 20px; overflow: hidden; }
+    .card-head { padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+    .card-head h3 { font-family: 'Merriweather', serif; font-size: .92rem; font-weight: 700; color: var(--navy); }
+    .card-head .meta { font-size: .72rem; color: var(--muted); }
+    .card-body { padding: 20px; }
+
+    /* ═══ FORMS ═══ */
+    .fg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
+    .fg { display: flex; flex-direction: column; gap: 5px; }
+    .fg label { font-size: .74rem; font-weight: 600; color: var(--navy); }
+    .fg input, .fg select, .fg textarea { padding: 8px 11px; border: 1.5px solid var(--border2); border-radius: var(--r); font-size: .83rem; font-family: inherit; background: #fafcff; color: var(--txt); transition: border .15s, box-shadow .15s; }
+    .fg input:focus, .fg select:focus { outline: none; border-color: var(--navy3); box-shadow: 0 0 0 3px rgba(31,84,144,.1); }
+
+    /* ═══ BUTTONS ═══ */
+    .btn { padding: 8px 18px; border-radius: var(--r); border: none; cursor: pointer; font-family: inherit; font-size: .8rem; font-weight: 600; transition: all .14s; display: inline-flex; align-items: center; gap: 5px; text-decoration: none; }
+    .btn-primary { background: var(--navy); color: #fff; }
+    .btn-primary:hover { background: var(--navy2); box-shadow: 0 3px 10px rgba(13,43,69,.3); }
+    .btn-gold { background: var(--gold); color: #fff; }
+    .btn-gold:hover { background: var(--gold2); }
+    .btn-success { background: var(--green); color: #fff; }
+    .btn-success:hover { background: #15803d; }
+    .btn-outline { background: transparent; border: 1.5px solid var(--navy); color: var(--navy); }
+    .btn-outline:hover { background: var(--navy); color: #fff; }
+    .btn-sm { padding: 5px 12px; font-size: .74rem; }
+    .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+
+    /* ═══ ALERTS ═══ */
+    .alert { padding: 10px 14px; border-radius: var(--r); font-size: .79rem; margin-bottom: 12px; border: 1px solid; }
+    .alert-ok { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
+    .alert-err { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
+    .alert-info { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+
+    /* ═══ ROOM CARDS SUMMARY ═══ */
+    .rooms-overview { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-top: 16px; }
+    .room-tile { background: var(--slate); border: 1px solid var(--border); border-radius: var(--r-md); padding: 14px 16px; text-align: center; }
+    .room-tile .rt-name { font-family: 'Merriweather', serif; font-size: .9rem; font-weight: 700; color: var(--navy); }
+    .room-tile .rt-count { font-size: .75rem; color: var(--muted); margin-top: 4px; }
+
+    /* ═══ SELECT ROOM DROPDOWN AREA ═══ */
+    .room-select-row { display: flex; gap: 12px; align-items: flex-end; margin-bottom: 20px; flex-wrap: wrap; }
+    .room-select-row .fg { min-width: 180px; }
+
+    /* ═══ TABLE ═══ */
+    .data-tbl { width: 100%; border-collapse: collapse; font-size: .79rem; }
+    .data-tbl thead tr { background: var(--navy); }
+    .data-tbl th { padding: 10px 12px; text-align: left; font-weight: 600; color: #fff; font-size: .73rem; white-space: nowrap; }
+    .data-tbl td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; color: var(--txt2); }
+    .data-tbl tbody tr:last-child td { border-bottom: none; }
+    .data-tbl tbody tr:hover { background: #f8fafc; }
+    .data-tbl.compact td, .data-tbl.compact th { padding: 6px 10px; font-size: .76rem; }
+
+    /* ═══ EMPTY STATE ═══ */
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--muted); }
+    .empty-state p { font-size: .82rem; line-height: 1.6; }
+
+    /* ═══ LOADING ═══ */
+    .loading-container { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 40px 20px; }
+    .loading-spinner { width: 36px; height: 36px; border: 3px solid var(--slate2); border-top-color: var(--navy); border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ═══ RESPONSIVE ═══ */
+    @media (max-width: 768px) {
+      .hdr-hamburger { display: flex; }
+      .site-header { width: 220px; transform: translateX(-100%); }
+      .site-header.active { transform: translateX(0); }
+      .main { margin-left: 0; padding: 14px 10px; }
+      .fg-grid { grid-template-columns: 1fr; }
+    }
+    @media (min-width: 1280px) {
+      .main { padding: 32px 40px; }
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       PRINT STYLES — shared @media print rules
+       All screen UI is hidden; only the print-target is shown.
+    ══════════════════════════════════════════════════════════ */
+    @media print {
+      /* Hide everything by default */
+      body > * { display: none !important; }
+      /* Show only whichever print target is active */
+      .print-target { display: block !important; }
+      .no-print { display: none !important; }
+
+      /* Reset body */
+      body { background: #fff; margin: 0; padding: 0; }
+      * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       STICKER SHEET — 3×3 per A4 page
+    ══════════════════════════════════════════════════════════ */
+    .sticker-sheet-wrap { display: none; } /* hidden on screen; visible in print via .print-target */
+
+    /* Screen preview of stickers */
+    .sticker-preview-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    /* One sticker card */
+    .sticker-card {
+      border: 1.5px solid #333;
+      border-radius: 4px;
+      overflow: hidden;
+      background: #fff;
+      font-size: 10pt;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+    .sticker-header {
+      background: var(--navy);
+      color: #fff;
+      padding: 5px 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .sticker-header .sh-college {
+      font-size: 7pt;
+      font-weight: 700;
+      line-height: 1.2;
+      flex: 1;
+    }
+    .sticker-header .sh-exam {
+      font-size: 6pt;
+      opacity: .8;
+      margin-top: 1px;
+    }
+    .sticker-body {
+      display: flex;
+      gap: 0;
+    }
+    .sticker-info {
+      flex: 1;
+      padding: 7px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .sticker-info .si-name {
+      font-size: 8.5pt;
+      font-weight: 700;
+      color: #0d2b45;
+      line-height: 1.2;
+    }
+    .sticker-info .si-row {
+      font-size: 7pt;
+      color: #334155;
+      display: flex;
+      gap: 4px;
+    }
+    .sticker-info .si-row span.label {
+      font-weight: 600;
+      color: #64748b;
+    }
+    .sticker-photo-col {
+      width: 68px;
+      min-width: 68px;
+      padding: 6px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+    }
+    .sticker-photo {
+      width: 56px;
+      height: 68px;
+      object-fit: cover;
+      border: 1px solid #c8d2e0;
+      border-radius: 2px;
+      background: #e8ecf2;
+    }
+    .sticker-photo-placeholder {
+      width: 56px;
+      height: 68px;
+      background: #e8ecf2;
+      border: 1px solid #c8d2e0;
+      border-radius: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 6pt;
+      color: #94a3b8;
+      text-align: center;
+    }
+    .sticker-footer {
+      background: var(--slate);
+      border-top: 1px solid var(--border);
+      padding: 5px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .sticker-footer .sf-room {
+      font-size: 7.5pt;
+      font-weight: 700;
+      color: var(--navy);
+    }
+    .sticker-footer .sf-seat {
+      font-size: 7.5pt;
+      font-weight: 700;
+      color: var(--gold);
+    }
+    .sticker-barcode-row {
+      padding: 4px 8px 5px;
+      text-align: center;
+      border-top: 1px solid var(--border);
+    }
+    .sticker-barcode-row svg { max-width: 100%; height: 28px; }
+
+    /* ══════════════════════════════════════════════════════════
+       PRINT — A4 STICKER LAYOUT
+       Each printed page = exactly 9 stickers (3 cols × 3 rows)
+    ══════════════════════════════════════════════════════════ */
+    @media print {
+      .sticker-sheet-wrap {
+        display: block !important;
+      }
+      .sp-print-page {
+        width: 210mm;
+        height: 297mm;
+        page-break-after: always;
+        break-after: page;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+        gap: 3mm;
+        padding: 8mm;
+        box-sizing: border-box;
+      }
+      .sp-print-page:last-child {
+        page-break-after: auto;
+        break-after: auto;
+      }
+      /* Sticker on printed page */
+      .sp-print-page .sticker-card {
+        border: 1px solid #555;
+        font-size: 9pt;
+      }
+      .sp-print-page .sticker-card .sticker-header { padding: 4px 7px; }
+      .sp-print-page .sticker-card .sticker-info { padding: 6px 7px; }
+      .sp-print-page .sticker-card .sticker-info .si-name { font-size: 8pt; }
+      .sp-print-page .sticker-card .sticker-info .si-row { font-size: 6.5pt; }
+      .sp-print-page .sticker-card .sticker-footer { padding: 4px 7px; }
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       ROOM SHEET — printable tabulation per room
+    ══════════════════════════════════════════════════════════ */
+    .room-sheet-print {
+      display: none;
+    }
+    @media print {
+      .room-sheet-print {
+        display: block !important;
+        font-family: 'Source Sans 3', Arial, sans-serif;
+        font-size: 10pt;
+        color: #000;
+      }
+      .rsp-header { text-align: center; margin-bottom: 10px; }
+      .rsp-college { font-size: 14pt; font-weight: 700; }
+      .rsp-exam { font-size: 11pt; margin-top: 2px; }
+      .rsp-room { font-size: 12pt; font-weight: 700; margin-top: 6px; border-bottom: 2px solid #333; padding-bottom: 4px; }
+      .rsp-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 9pt; }
+      .rsp-table th { border: 1px solid #333; padding: 5px 8px; background: #0d2b45; color: #fff; font-weight: 700; text-align: center; }
+      .rsp-table td { border: 1px solid #666; padding: 4px 8px; }
+      .rsp-table tr:nth-child(even) td { background: #f5f5f5; }
+      .rsp-footer { margin-top: 20px; display: flex; justify-content: space-between; font-size: 8.5pt; }
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       CENTER SUMMARY — printable full center overview
+    ══════════════════════════════════════════════════════════ */
+    .center-summary-print {
+      display: none;
+    }
+    @media print {
+      .center-summary-print {
+        display: block !important;
+        font-family: 'Source Sans 3', Arial, sans-serif;
+        font-size: 9.5pt;
+        color: #000;
+      }
+      .csp-header { text-align: center; margin-bottom: 12px; border-bottom: 2px solid #333; padding-bottom: 8px; }
+      .csp-college { font-size: 15pt; font-weight: 700; }
+      .csp-title { font-size: 12pt; font-weight: 600; margin-top: 3px; }
+      .csp-meta { font-size: 9pt; color: #555; margin-top: 2px; }
+      .csp-room-block { margin-bottom: 14px; page-break-inside: avoid; break-inside: avoid; }
+      .csp-room-title { font-size: 10pt; font-weight: 700; background: #0d2b45; color: #fff; padding: 4px 8px; margin-bottom: 4px; }
+      .csp-table { width: 100%; border-collapse: collapse; font-size: 8.5pt; }
+      .csp-table th { border: 1px solid #333; padding: 4px 6px; background: #e8ecf2; font-weight: 700; text-align: center; }
+      .csp-table td { border: 1px solid #aaa; padding: 3px 6px; }
+      .csp-table tr:nth-child(even) td { background: #f9f9f9; }
+    }
+  
+    /* Standardized Mobile Navigation Overrides */
+    @media (max-width: 768px) {
+      .top-nav-bar {
+        padding: 0 16px !important;
+        height: 70px !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+      }
+      .top-nav-logo-text {
+        display: none !important;
+      }
+      .top-nav-logo {
+        gap: 8px !important;
+      }
+      .top-nav-logo-img {
+        width: 40px !important;
+        height: 40px !important;
+      }
+      .top-nav-admin-info {
+        display: none !important;
+      }
+      .top-nav-admin {
+        display: flex !important;
+        align-items: center !important;
+        gap: 12px !important;
+      }
+      .logout-btn {
+        padding: 6px 12px !important;
+        font-size: 0.72rem !important;
+      }
+      .hdr-hamburger {
+        display: flex !important;
+      }
+      .site-header {
+        width: 220px !important;
+        transform: translateX(-100%) !important;
+        top: 70px !important;
+        height: calc(100vh - 70px) !important;
+        position: fixed !important;
+        z-index: 200 !important;
+        transition: transform .3s ease !important;
+      }
+      .site-header.active {
+        transform: translateX(0) !important;
+      }
+      .site-header.open {
+        transform: translateX(0) !important;
+      }
+      .nav-strip {
+        position: static !important;
+        transform: none !important;
+        width: 100% !important;
+        height: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+      }
+      .sidebar-overlay.active {
+        display: block !important;
+      }
+      .main {
+        margin-left: 0 !important;
+        padding: 14px 10px !important;
+      }
+    }
+</style>
+</head>
+
+<body>
+
+  <!-- ═══ TOP NAV ═══ -->
+  <div class="top-nav-bar">
+    <div class="top-nav-logo">
+      <div class="top-nav-logo-img">
+        <img src="https://www.muamc.edu.bd/wp-content/uploads/2025/01/logo-muam-scaled.jpeg" alt="College Logo">
+      </div>
+      <div class="top-nav-logo-text">
+        <h1>Moinuddin Adarsha Mohila College</h1>
+        <p>Student Database System</p>
+      </div>
+    </div>
+    <div class="top-nav-admin">
+      <button class="hdr-hamburger" id="hdr-hamburger" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+      <button class="logout-btn" onclick="doLogout()">Logout</button>
+    </div>
+  </div>
+
+  <!-- ═══ SIDEBAR ═══ -->
+  <header class="site-header" id="site-header">
+    <nav class="nav-strip" id="nav-strip">
+      <a class="nt" href="/"><i class="fas fa-home nav-icon"></i> Dashboard</a>
+      <a class="nt" href="/student-list.html"><i class="fas fa-users nav-icon"></i> Student Management</a>
+      <a class="nt" href="/marks-entry.html"><i class="fas fa-edit nav-icon"></i> Mark Entry</a>
+      <a class="nt" href="/Teachers.html"><i class="fas fa-chalkboard-teacher nav-icon"></i> Teachers</a>
+      <a class="nt" href="/Result-card.html"><i class="fas fa-file-invoice nav-icon"></i> Result Card</a>
+      <a class="nt" href="/Admit-card.html"><i class="fas fa-id-card nav-icon"></i> Admit Card</a>
+      <a class="nt" href="/bulk-photo.html"><i class="fas fa-images nav-icon"></i> Bulk Photo Upload</a>
+      <a class="nt" href="/analytics.html" style="border-top:1px solid rgba(255,255,255,.08);margin-top:8px;padding-top:16px;"><i class="fas fa-chart-line nav-icon"></i> Analytics</a>
+      <a class="nt" href="/result_analytics.html"><i class="fas fa-chart-bar nav-icon"></i> Result Analytics</a>
+      <a class="nt" href="/group-results.html"><i class="fas fa-table nav-icon"></i> Group-wise Results</a>
+      <a class="nt active" href="/seat-plan.html"><i class="fas fa-th nav-icon"></i> Seat Plan</a>
+    </nav>
+  </header>
+
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+  <!-- ═══ MAIN CONTENT ═══ -->
+  <main class="main" id="main-content">
+
+    <div class="pg-hd">
+      <h2>Seat Plan Generator</h2>
+      <p>Configure exam rooms, assign student seats, print seat stickers (9 per A4), room sheets, and center summary.</p>
+    </div>
+
+    <!-- ─── INTERNAL TAB BAR ─── -->
+    <div class="sp-tab-bar" id="sp-tab-bar">
+      <button class="sp-tab active" id="tab-configure"   onclick="switchTab('configure')">Configure</button>
+      <button class="sp-tab"        id="tab-stickers"    onclick="switchTab('stickers')">Seat Stickers</button>
+      <button class="sp-tab"        id="tab-roomsheet"   onclick="switchTab('roomsheet')">Room Sheet</button>
+      <button class="sp-tab"        id="tab-summary"     onclick="switchTab('summary')">Center Summary</button>
+    </div>
+
+    <!-- ════════════════════════════════════════
+         TAB 1 — CONFIGURE
+    ════════════════════════════════════════ -->
+    <div class="sp-panel active" id="panel-configure">
+
+      <div id="configure-alert"></div>
+
+      <div class="card">
+        <div class="card-head"><h3>Exam Information</h3></div>
+        <div class="card-body">
+          <div class="fg-grid">
+            <div class="fg">
+              <label for="cfg-exam-name">Exam Name</label>
+              <input type="text" id="cfg-exam-name" placeholder="e.g. HSC Final Examination 2025">
+            </div>
+            <div class="fg">
+              <label for="cfg-exam-date">Exam Date</label>
+              <input type="date" id="cfg-exam-date">
+            </div>
+            <div class="fg">
+              <label for="cfg-center-name">Center / Hall Name</label>
+              <input type="text" id="cfg-center-name" placeholder="Loading from settings…" id="cfg-center-name">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>Student Selection</h3><span class="meta">Choose which students to include in the seat plan</span></div>
+        <div class="card-body">
+          <div class="fg-grid">
+            <div class="fg">
+              <label for="cfg-cls">Class</label>
+              <select id="cfg-cls" onchange="loadSessions()">
+                <option value="">-- Select Class --</option>
+                <option value="Class-XI">Class XI</option>
+                <option value="Class-XII">Class XII</option>
+                <option value="all">All Classes</option>
+              </select>
+            </div>
+            <div class="fg">
+              <label for="cfg-group">Group</label>
+              <select id="cfg-group" onchange="loadSessions()">
+                <option value="">-- Select Group --</option>
+                <option value="Science">Science</option>
+                <option value="Humanities">Humanities</option>
+                <option value="Business">Business</option>
+                <option value="all">All Groups</option>
+              </select>
+            </div>
+            <div class="fg">
+              <label for="cfg-session">Session</label>
+              <select id="cfg-session">
+                <option value="">-- Select Session --</option>
+              </select>
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="loadStudents()">Load Students</button>
+          </div>
+          <div id="student-load-status" style="margin-top:10px;font-size:.8rem;color:var(--muted);"></div>
+        </div>
+      </div>
+
+      <div class="card" id="room-config-card" style="display:none;">
+        <div class="card-head"><h3>Room Configuration</h3><span class="meta" id="total-students-badge"></span></div>
+        <div class="card-body">
+          <div class="fg-grid">
+            <div class="fg">
+              <label for="cfg-num-rooms">Number of Rooms</label>
+              <input type="number" id="cfg-num-rooms" min="1" max="50" value="1" onchange="renderRoomNames()">
+            </div>
+            <div class="fg">
+              <label for="cfg-seats-per-room">Seats Per Room</label>
+              <input type="number" id="cfg-seats-per-room" min="1" max="200" value="30" onchange="renderRoomNames()">
+            </div>
+          </div>
+
+          <div id="room-names-area" style="margin-top:18px;">
+            <p style="font-size:.78rem;font-weight:600;color:var(--navy);margin-bottom:10px;">Room Names <span style="font-weight:400;color:var(--muted);">(edit as needed)</span></p>
+            <div id="room-names-grid" class="fg-grid"></div>
+          </div>
+
+          <div class="btn-row">
+            <button class="btn btn-success" onclick="generateSeatPlan()">Generate Seat Plan</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROOMS OVERVIEW after generation -->
+      <div id="rooms-overview-section" style="display:none;">
+        <div class="card">
+          <div class="card-head">
+            <h3>Generated Seat Plan</h3>
+            <span class="meta" id="plan-summary-badge"></span>
+          </div>
+          <div class="card-body">
+            <div class="rooms-overview" id="rooms-overview-tiles"></div>
+            <div class="btn-row" style="margin-top:20px;">
+              <button class="btn btn-outline btn-sm" onclick="switchTab('stickers')">View Seat Stickers</button>
+              <button class="btn btn-outline btn-sm" onclick="switchTab('roomsheet')">View Room Sheet</button>
+              <button class="btn btn-outline btn-sm" onclick="switchTab('summary')">View Center Summary</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /panel-configure -->
+
+
+    <!-- ════════════════════════════════════════
+         TAB 2 — SEAT STICKERS
+    ════════════════════════════════════════ -->
+    <div class="sp-panel" id="panel-stickers">
+      <div id="stickers-alert"></div>
+
+      <div class="card no-print" style="margin-bottom:16px;">
+        <div class="card-body" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+          <div>
+            <p style="font-size:.84rem;font-weight:600;color:var(--navy);">Seat Sticker Sheets</p>
+            <p style="font-size:.76rem;color:var(--muted);margin-top:2px;">9 stickers per A4 page (3 × 3). Each sticker shows student photo, name, roll, reg, class, group, father's name, room and seat number with barcode.</p>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-primary" onclick="printStickers()">Print Stickers</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Screen preview grid -->
+      <div id="stickers-container">
+        <div class="empty-state">
+          <p>Generate a seat plan first (Configure tab) to see seat stickers here.</p>
+        </div>
+      </div>
+
+      <!-- Print-only sticker pages — rendered into this div -->
+      <div class="sticker-sheet-wrap print-target" id="sticker-print-area"></div>
+
+    </div><!-- /panel-stickers -->
+
+
+    <!-- ════════════════════════════════════════
+         TAB 3 — ROOM SHEET
+    ════════════════════════════════════════ -->
+    <div class="sp-panel" id="panel-roomsheet">
+      <div id="roomsheet-alert"></div>
+
+      <div class="card no-print" style="margin-bottom:16px;">
+        <div class="card-body">
+          <div class="room-select-row">
+            <div class="fg">
+              <label for="rs-room-select">Select Room</label>
+              <select id="rs-room-select" onchange="renderRoomSheet()">
+                <option value="">-- Select a Room --</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" onclick="printRoomSheet()" style="align-self:flex-end;">Print Room Sheet</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Screen view of room sheet -->
+      <div id="room-sheet-screen">
+        <div class="empty-state">
+          <p>Generate a seat plan first (Configure tab), then select a room to preview its sheet.</p>
+        </div>
+      </div>
+
+      <!-- Print-only room sheet -->
+      <div class="room-sheet-print print-target" id="room-sheet-print"></div>
+
+    </div><!-- /panel-roomsheet -->
+
+
+    <!-- ════════════════════════════════════════
+         TAB 4 — CENTER SUMMARY
+    ════════════════════════════════════════ -->
+    <div class="sp-panel" id="panel-summary">
+      <div id="summary-alert"></div>
+
+      <div class="card no-print" style="margin-bottom:16px;">
+        <div class="card-body" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+          <div>
+            <p style="font-size:.84rem;font-weight:600;color:var(--navy);">Center Summary Sheet</p>
+            <p style="font-size:.76rem;color:var(--muted);margin-top:2px;">Full overview of all rooms and students. Print and post on the notice board.</p>
+          </div>
+          <button class="btn btn-primary" onclick="printCenterSummary()">Print Summary</button>
+        </div>
+      </div>
+
+      <!-- Screen view -->
+      <div id="summary-screen">
+        <div class="empty-state">
+          <p>Generate a seat plan first (Configure tab) to see the center summary here.</p>
+        </div>
+      </div>
+
+      <!-- Print-only center summary -->
+      <div class="center-summary-print print-target" id="center-summary-print"></div>
+
+    </div><!-- /panel-summary -->
+
+  </main>
+
+
+  <script>
+    // ══════════════════════════════════════════════════
+    // API WRAPPER
+    // ══════════════════════════════════════════════════
+    (function () {
+      const base = window.API_BASE !== undefined ? window.API_BASE : window.location.origin;
+      window.API_BASE = base;
+      const orig = window.fetch;
+      window.fetch = function () {
+        const args = Array.prototype.slice.call(arguments);
+        if (typeof args[0] === 'string' && args[0].startsWith('/api')) args[0] = base + args[0];
+        args[1] = Object.assign({ credentials: 'include' }, args[1] || {});
+        return orig.apply(window, args);
+      };
+    })();
+
+    // ══════════════════════════════════════════════════
+    // STATE
+    // ══════════════════════════════════════════════════
+    let allStudents    = [];   // loaded from DB
+    let seatPlan       = [];   // [{roomName, students:[{student, seatNo}]}]
+    let collegeName    = '';   // from settings
+    let examName       = '';
+    let examDate       = '';
+    let centerName     = '';
+
+    // ══════════════════════════════════════════════════
+    // UTILS
+    // ══════════════════════════════════════════════════
+    function $(id) { return document.getElementById(id); }
+
+    function setAlert(elId, type, msg) {
+      const el = $(elId);
+      if (!el) return;
+      if (!type || !msg) { el.innerHTML = ''; return; }
+      const cls = type === 'ok' ? 'alert-ok' : type === 'err' ? 'alert-err' : 'alert-info';
+      el.innerHTML = `<div class="alert ${cls}">${msg}</div>`;
+      if (type !== 'info') setTimeout(() => { if (el) el.innerHTML = ''; }, 6000);
+    }
+
+    function fmtDate(d) {
+      if (!d) return '';
+      try {
+        const dt = new Date(d);
+        return dt.toLocaleDateString('en-BD', { year: 'numeric', month: 'long', day: 'numeric' });
+      } catch(e) { return d; }
+    }
+
+    // ══════════════════════════════════════════════════
+    // SIDEBAR
+    // ══════════════════════════════════════════════════
+    function toggleSidebar() {
+      const h = $('site-header'), o = $('sidebar-overlay');
+      h.classList.toggle('active');
+      o.classList.toggle('active');
+    }
+    function closeSidebar() {
+      $('site-header').classList.remove('active');
+      $('sidebar-overlay').classList.remove('active');
+    }
+
+    async function doLogout() {
+      await fetch('/api/logout', { method: 'POST' });
+      window.location.href = '/login';
+    }
+
+    // ══════════════════════════════════════════════════
+    // INTERNAL TABS
+    // ══════════════════════════════════════════════════
+    function switchTab(name) {
+      document.querySelectorAll('.sp-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.sp-panel').forEach(p => p.classList.remove('active'));
+      $('tab-' + name).classList.add('active');
+      $('panel-' + name).classList.add('active');
+      // Refresh views when switching
+      if (name === 'stickers' && seatPlan.length) renderStickersPreview();
+      if (name === 'roomsheet' && seatPlan.length) populateRoomSelect();
+      if (name === 'summary' && seatPlan.length) renderSummaryScreen();
+    }
+
+    // ══════════════════════════════════════════════════
+    // LOAD COLLEGE NAME FROM SETTINGS
+    // ══════════════════════════════════════════════════
+    async function loadSettings() {
+      try {
+        const r = await fetch('/api/settings');
+        if (!r.ok) return;
+        const data = await r.json();
+        if (data.ok && data.data) {
+          collegeName = data.data.collegeName || 'Moinuddin Adarsha Mohila College, Sylhet';
+          centerName  = data.data.collegeName || 'Moinuddin Adarsha Mohila College, Sylhet';
+          $('cfg-center-name').value = centerName;
+        }
+      } catch(e) {
+        collegeName = 'Moinuddin Adarsha Mohila College, Sylhet';
+      }
+    }
+
+    // ══════════════════════════════════════════════════
+    // SESSION DROPDOWN
+    // ══════════════════════════════════════════════════
+    async function loadSessions() {
+      const cls   = $('cfg-cls').value;
+      const group = $('cfg-group').value;
+      if (!cls || !group) return;
+
+      // Fetch students to get unique sessions
+      let url = '/api/students?';
+      if (cls !== 'all')   url += `cls=${encodeURIComponent(cls)}&`;
+      if (group !== 'all') url += `group=${encodeURIComponent(group)}&`;
+
+      try {
+        const r    = await fetch(url);
+        const data = await r.json();
+        if (!data.ok) return;
+        const sessions = [...new Set(data.data.map(s => s.session || s.year || '').filter(Boolean))].sort().reverse();
+        const sel = $('cfg-session');
+        sel.innerHTML = '<option value="">-- Select Session --</option>';
+        sessions.forEach(s => {
+          const opt = document.createElement('option');
+          opt.value = s; opt.textContent = s;
+          sel.appendChild(opt);
+        });
+        if (sessions.length === 1) sel.value = sessions[0];
+      } catch(e) {}
+    }
+
+    // ══════════════════════════════════════════════════
+    // LOAD STUDENTS
+    // ══════════════════════════════════════════════════
+    async function loadStudents() {
+      const cls     = $('cfg-cls').value;
+      const group   = $('cfg-group').value;
+      const session = $('cfg-session').value;
+
+      if (!cls || !group) {
+        setAlert('configure-alert', 'err', 'Please select Class and Group.');
+        return;
+      }
+
+      $('student-load-status').textContent = 'Loading students…';
+      $('room-config-card').style.display = 'none';
+      $('rooms-overview-section').style.display = 'none';
+      seatPlan = [];
+      allStudents = [];
+
+      let url = '/api/students?';
+      if (cls !== 'all')     url += `cls=${encodeURIComponent(cls)}&`;
+      if (group !== 'all')   url += `group=${encodeURIComponent(group)}&`;
+      if (session)           url += `session=${encodeURIComponent(session)}&`;
+
+      try {
+        const r    = await fetch(url);
+        const data = await r.json();
+        if (!data.ok) {
+          $('student-load-status').textContent = 'Error loading students.';
+          setAlert('configure-alert', 'err', data.message || 'Failed to load students.');
+          return;
+        }
+
+        // Sort by roll number (numeric then alpha)
+        allStudents = data.data.sort((a, b) => {
+          const na = parseInt(a.roll), nb = parseInt(b.roll);
+          if (!isNaN(na) && !isNaN(nb)) return na - nb;
+          return (a.roll || '').localeCompare(b.roll || '');
+        });
+
+        const count = allStudents.length;
+        $('student-load-status').textContent = '';
+
+        if (count === 0) {
+          setAlert('configure-alert', 'err', 'No students found with the selected filters. Please adjust your selection.');
+          return;
+        }
+
+        setAlert('configure-alert', 'ok', `${count} student${count !== 1 ? 's' : ''} loaded successfully.`);
+        $('total-students-badge').textContent = `${count} students`;
+        $('room-config-card').style.display = 'block';
+
+        // Auto-suggest number of rooms
+        const seats = parseInt($('cfg-seats-per-room').value) || 30;
+        const rooms = Math.ceil(count / seats);
+        $('cfg-num-rooms').value = rooms;
+        renderRoomNames();
+
+      } catch(e) {
+        $('student-load-status').textContent = '';
+        setAlert('configure-alert', 'err', 'Network error loading students.');
+      }
+    }
+
+    // ══════════════════════════════════════════════════
+    // ROOM NAME INPUTS
+    // ══════════════════════════════════════════════════
+    function renderRoomNames() {
+      const n   = parseInt($('cfg-num-rooms').value) || 1;
+      const grid = $('room-names-grid');
+      // Preserve existing values
+      const existing = [];
+      grid.querySelectorAll('input').forEach(inp => existing.push(inp.value));
+      grid.innerHTML = '';
+      for (let i = 0; i < n; i++) {
+        const fg = document.createElement('div');
+        fg.className = 'fg';
+        fg.innerHTML = `<label>Room ${i + 1} Name</label><input type="text" id="room-name-${i}" value="${existing[i] || ('Room ' + (i + 1))}" placeholder="Room ${i + 1}">`;
+        grid.appendChild(fg);
+      }
+    }
+
+    // ══════════════════════════════════════════════════
+    // GENERATE SEAT PLAN
+    // ══════════════════════════════════════════════════
+    function generateSeatPlan() {
+      if (!allStudents.length) {
+        setAlert('configure-alert', 'err', 'Please load students first.');
+        return;
+      }
+
+      examName   = $('cfg-exam-name').value.trim()  || 'Examination';
+      examDate   = $('cfg-exam-date').value           || '';
+      centerName = $('cfg-center-name').value.trim() || collegeName;
+
+      const numRooms      = parseInt($('cfg-num-rooms').value)      || 1;
+      const seatsPerRoom  = parseInt($('cfg-seats-per-room').value) || 30;
+
+      // Collect room names
+      const roomNames = [];
+      for (let i = 0; i < numRooms; i++) {
+        const inp = $(`room-name-${i}`);
+        roomNames.push(inp ? inp.value.trim() || `Room ${i + 1}` : `Room ${i + 1}`);
+      }
+
+      // Assign students to rooms sequentially (sorted by roll)
+      seatPlan = roomNames.map(name => ({ roomName: name, students: [] }));
+      allStudents.forEach((stu, idx) => {
+        const roomIdx = Math.floor(idx / seatsPerRoom);
+        const seatNo  = (idx % seatsPerRoom) + 1;
+        if (roomIdx < seatPlan.length) {
+          seatPlan[roomIdx].students.push({ student: stu, seatNo });
+        }
+      });
+
+      // Filter out empty rooms
+      seatPlan = seatPlan.filter(r => r.students.length > 0);
+
+      // Show overview tiles
+      const totalSeats = seatPlan.reduce((s, r) => s + r.students.length, 0);
+      $('plan-summary-badge').textContent = `${seatPlan.length} rooms · ${totalSeats} students`;
+
+      const tilesEl = $('rooms-overview-tiles');
+      tilesEl.innerHTML = seatPlan.map(r =>
+        `<div class="room-tile">
+          <div class="rt-name">${escHtml(r.roomName)}</div>
+          <div class="rt-count">${r.students.length} student${r.students.length !== 1 ? 's' : ''}</div>
+        </div>`
+      ).join('');
+
+      $('rooms-overview-section').style.display = 'block';
+      setAlert('configure-alert', 'ok', `Seat plan generated for ${seatPlan.length} room(s) with ${totalSeats} student(s).`);
+    }
+
+    // ══════════════════════════════════════════════════
+    // ESCAPE HTML
+    // ══════════════════════════════════════════════════
+    function escHtml(str) {
+      return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    // ══════════════════════════════════════════════════
+    // BUILD ONE STICKER HTML
+    // ══════════════════════════════════════════════════
+    function buildStickerHTML(roomName, seatNo, stu, bcId) {
+      const photoSrc = stu.photo
+        ? (stu.photo.startsWith('/photos/') ? stu.photo : stu.photo)
+        : '';
+      const photoTag = photoSrc
+        ? `<img class="sticker-photo" src="${escHtml(photoSrc)}" alt="Photo" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+           <div class="sticker-photo-placeholder" style="display:none;">No Photo</div>`
+        : `<div class="sticker-photo-placeholder">No Photo</div>`;
+
+      return `
+        <div class="sticker-card">
+          <div class="sticker-header">
+            <div>
+              <div class="sh-college">${escHtml(collegeName)}</div>
+              <div class="sh-exam">${escHtml(examName)}${examDate ? ' &nbsp;|&nbsp; ' + fmtDate(examDate) : ''}</div>
+            </div>
+          </div>
+          <div class="sticker-body">
+            <div class="sticker-info">
+              <div class="si-name">${escHtml(stu.name)}</div>
+              <div class="si-row"><span class="label">Roll:</span> ${escHtml(stu.roll)}</div>
+              <div class="si-row"><span class="label">Reg:</span> ${escHtml(stu.reg || '—')}</div>
+              <div class="si-row"><span class="label">Class:</span> ${escHtml(stu.cls || '')}&nbsp;&nbsp;<span class="label">Group:</span> ${escHtml(stu.group || '')}</div>
+              <div class="si-row"><span class="label">Section:</span> ${escHtml(stu.section || '—')}</div>
+              <div class="si-row"><span class="label">Father:</span> ${escHtml(stu.father || '—')}</div>
+            </div>
+            <div class="sticker-photo-col">
+              ${photoTag}
+            </div>
+          </div>
+          <div class="sticker-barcode-row">
+            <svg id="${bcId}"></svg>
+          </div>
+          <div class="sticker-footer">
+            <span class="sf-room">Room: ${escHtml(roomName)}</span>
+            <span class="sf-seat">Seat: ${seatNo}</span>
+          </div>
+        </div>`;
+    }
+
+    // ══════════════════════════════════════════════════
+    // RENDER STICKERS (SCREEN PREVIEW)
+    // ══════════════════════════════════════════════════
+    function renderStickersPreview() {
+      if (!seatPlan.length) {
+        $('stickers-container').innerHTML = '<div class="empty-state"><p>Generate a seat plan first (Configure tab) to see seat stickers here.</p></div>';
+        return;
+      }
+
+      // Flatten all seat entries
+      const allSeats = [];
+      seatPlan.forEach(room => {
+        room.students.forEach(entry => {
+          allSeats.push({ roomName: room.roomName, seatNo: entry.seatNo, student: entry.student });
+        });
+      });
+
+      // Build page groups of 9
+      const pages = [];
+      for (let i = 0; i < allSeats.length; i += 9) {
+        pages.push(allSeats.slice(i, i + 9));
+      }
+
+      let html = '';
+      pages.forEach((page, pi) => {
+        html += `<div class="card" style="margin-bottom:20px;">
+          <div class="card-head"><h3>Page ${pi + 1} <span style="font-weight:400;font-size:.78rem;color:var(--muted);">(${page.length} sticker${page.length !== 1 ? 's' : ''})</span></h3></div>
+          <div class="card-body">
+            <div class="sticker-preview-grid">`;
+        page.forEach((entry, si) => {
+          const bcId = `bc-prev-${pi}-${si}`;
+          html += buildStickerHTML(entry.roomName, entry.seatNo, entry.student, bcId);
+        });
+        html += `</div></div></div>`;
+      });
+
+      $('stickers-container').innerHTML = html;
+
+      // Render barcodes
+      allSeats.forEach((entry, idx) => {
+        const pi = Math.floor(idx / 9);
+        const si = idx % 9;
+        const bcId = `bc-prev-${pi}-${si}`;
+        const el = document.getElementById(bcId);
+        if (el && entry.student.roll) {
+          try {
+            JsBarcode(`#${bcId}`, entry.student.roll, {
+              format: 'CODE128', lineColor: '#0d2b45',
+              width: 1.4, height: 28, displayValue: false, margin: 0
+            });
+          } catch(e) {}
+        }
+      });
+    }
+
+    // ══════════════════════════════════════════════════
+    // BUILD PRINT STICKER PAGES
+    // ══════════════════════════════════════════════════
+    function buildPrintStickerPages() {
+      const allSeats = [];
+      seatPlan.forEach(room => {
+        room.students.forEach(entry => {
+          allSeats.push({ roomName: room.roomName, seatNo: entry.seatNo, student: entry.student });
+        });
+      });
+
+      const pages = [];
+      for (let i = 0; i < allSeats.length; i += 9) {
+        pages.push(allSeats.slice(i, i + 9));
+      }
+
+      let html = '';
+      pages.forEach((page, pi) => {
+        html += `<div class="sp-print-page">`;
+        page.forEach((entry, si) => {
+          const bcId = `bc-print-${pi}-${si}`;
+          html += buildStickerHTML(entry.roomName, entry.seatNo, entry.student, bcId);
+        });
+        // Fill empty slots to maintain 3×3 grid
+        for (let fill = page.length; fill < 9; fill++) {
+          html += `<div class="sticker-card" style="border-style:dashed;opacity:.3;"></div>`;
+        }
+        html += `</div>`;
+      });
+
+      $('sticker-print-area').innerHTML = html;
+
+      // Render barcodes in print area
+      allSeats.forEach((entry, idx) => {
+        const pi = Math.floor(idx / 9);
+        const si = idx % 9;
+        const bcId = `bc-print-${pi}-${si}`;
+        const el = document.getElementById(bcId);
+        if (el && entry.student.roll) {
+          try {
+            JsBarcode(`#${bcId}`, entry.student.roll, {
+              format: 'CODE128', lineColor: '#0d2b45',
+              width: 1.4, height: 28, displayValue: false, margin: 0
+            });
+          } catch(e) {}
+        }
+      });
+    }
+
+    function printStickers() {
+      if (!seatPlan.length) {
+        setAlert('stickers-alert', 'err', 'No seat plan generated. Go to Configure tab first.');
+        return;
+      }
+      buildPrintStickerPages();
+      // Tell CSS which thing to show
+      document.querySelectorAll('.print-target').forEach(el => el.classList.remove('active-print'));
+      $('sticker-print-area').classList.add('active-print');
+
+      // Temporarily override @media print to show only sticker area
+      const style = document.createElement('style');
+      style.id = 'tmp-print-override';
+      style.textContent = '@media print { .sticker-sheet-wrap { display:block!important; } .room-sheet-print,.center-summary-print { display:none!important; } }';
+      document.head.appendChild(style);
+      window.print();
+      setTimeout(() => { const s = document.getElementById('tmp-print-override'); if (s) s.remove(); }, 500);
+    }
+
+    // ══════════════════════════════════════════════════
+    // ROOM SHEET
+    // ══════════════════════════════════════════════════
+    function populateRoomSelect() {
+      const sel = $('rs-room-select');
+      const prev = sel.value;
+      sel.innerHTML = '<option value="">-- Select a Room --</option>';
+      seatPlan.forEach((room, idx) => {
+        const opt = document.createElement('option');
+        opt.value = idx; opt.textContent = room.roomName;
+        sel.appendChild(opt);
+      });
+      if (prev !== '' && seatPlan[prev]) { sel.value = prev; renderRoomSheet(); }
+    }
+
+    function renderRoomSheet() {
+      const idx = $('rs-room-select').value;
+      if (idx === '' || !seatPlan[idx]) {
+        $('room-sheet-screen').innerHTML = '<div class="empty-state"><p>Select a room from the dropdown above.</p></div>';
+        $('room-sheet-print').innerHTML = '';
+        return;
+      }
+      const room = seatPlan[parseInt(idx)];
+      const sheetHTML = buildRoomSheetHTML(room);
+      $('room-sheet-screen').innerHTML = sheetHTML.screen;
+      $('room-sheet-print').innerHTML  = sheetHTML.print;
+    }
+
+    function buildRoomSheetHTML(room) {
+      const rows = room.students.map((entry, i) =>
+        `<tr>
+          <td style="text-align:center;">${i + 1}</td>
+          <td style="text-align:center;font-weight:700;">${entry.seatNo}</td>
+          <td>${escHtml(entry.student.roll)}</td>
+          <td>${escHtml(entry.student.name)}</td>
+          <td>${escHtml(entry.student.reg || '—')}</td>
+          <td>${escHtml(entry.student.cls || '')}</td>
+          <td>${escHtml(entry.student.group || '')}</td>
+          <td>${escHtml(entry.student.section || '—')}</td>
+         </tr>`
+      ).join('');
+
+      const tableHTML = `
+        <table class="data-tbl compact" style="margin-top:14px;">
+          <thead>
+            <tr>
+              <th style="text-align:center;">Sl.</th>
+              <th style="text-align:center;">Seat</th>
+              <th>Roll</th>
+              <th>Student Name</th>
+              <th>Reg. No.</th>
+              <th>Class</th>
+              <th>Group</th>
+              <th>Section</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+
+      const header = `
+        <div style="text-align:center;margin-bottom:12px;">
+          <div style="font-family:'Merriweather',serif;font-size:1.1rem;font-weight:700;color:var(--navy);">${escHtml(collegeName)}</div>
+          <div style="font-size:.85rem;color:var(--txt2);margin-top:3px;">${escHtml(examName)}${examDate ? ' &nbsp;|&nbsp; ' + fmtDate(examDate) : ''}</div>
+          <div style="font-size:.95rem;font-weight:700;color:var(--navy);margin-top:8px;border-bottom:2px solid var(--border2);padding-bottom:6px;">
+            ${escHtml(room.roomName)} &nbsp;—&nbsp; ${room.students.length} Students
+          </div>
+        </div>`;
+
+      const screen = `<div class="card"><div class="card-body">${header}${tableHTML}</div></div>`;
+
+      // Print version
+      const printRows = room.students.map((entry, i) =>
+        `<tr>
+          <td style="text-align:center;">${i + 1}</td>
+          <td style="text-align:center;font-weight:700;">${entry.seatNo}</td>
+          <td>${escHtml(entry.student.roll)}</td>
+          <td>${escHtml(entry.student.name)}</td>
+          <td>${escHtml(entry.student.reg || '—')}</td>
+          <td>${escHtml(entry.student.cls || '')}</td>
+          <td>${escHtml(entry.student.group || '')}</td>
+          <td>${escHtml(entry.student.section || '—')}</td>
+         </tr>`
+      ).join('');
+
+      const print = `
+        <div class="rsp-header">
+          <div class="rsp-college">${escHtml(collegeName)}</div>
+          <div class="rsp-exam">${escHtml(examName)}${examDate ? ' | ' + fmtDate(examDate) : ''}</div>
+          <div class="rsp-room">${escHtml(room.roomName)} — ${room.students.length} Students</div>
+        </div>
+        <table class="rsp-table">
+          <thead>
+            <tr>
+              <th>Sl.</th>
+              <th>Seat No.</th>
+              <th>Roll</th>
+              <th>Student Name</th>
+              <th>Reg. No.</th>
+              <th>Class</th>
+              <th>Group</th>
+              <th>Section</th>
+            </tr>
+          </thead>
+          <tbody>${printRows}</tbody>
+        </table>
+        <div class="rsp-footer">
+          <span>Center: ${escHtml(centerName)}</span>
+          <span>Printed: ${new Date().toLocaleDateString('en-BD')}</span>
+        </div>`;
+
+      return { screen, print };
+    }
+
+    function printRoomSheet() {
+      if (!seatPlan.length) {
+        setAlert('roomsheet-alert', 'err', 'No seat plan generated. Go to Configure tab first.');
+        return;
+      }
+      const idx = $('rs-room-select').value;
+      if (idx === '') {
+        setAlert('roomsheet-alert', 'err', 'Please select a room first.');
+        return;
+      }
+      renderRoomSheet();
+      const style = document.createElement('style');
+      style.id = 'tmp-print-override';
+      style.textContent = '@media print { .room-sheet-print { display:block!important; } .sticker-sheet-wrap,.center-summary-print { display:none!important; } }';
+      document.head.appendChild(style);
+      window.print();
+      setTimeout(() => { const s = document.getElementById('tmp-print-override'); if (s) s.remove(); }, 500);
+    }
+
+    // ══════════════════════════════════════════════════
+    // CENTER SUMMARY
+    // ══════════════════════════════════════════════════
+    function renderSummaryScreen() {
+      if (!seatPlan.length) {
+        $('summary-screen').innerHTML = '<div class="empty-state"><p>Generate a seat plan first (Configure tab) to see the center summary here.</p></div>';
+        $('center-summary-print').innerHTML = '';
+        return;
+      }
+
+      let screenHTML = `
+        <div style="text-align:center;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border);">
+          <div style="font-family:'Merriweather',serif;font-size:1.1rem;font-weight:700;color:var(--navy);">${escHtml(collegeName)}</div>
+          <div style="font-size:.88rem;font-weight:600;color:var(--txt2);margin-top:3px;">${escHtml(examName)}${examDate ? ' | ' + fmtDate(examDate) : ''}</div>
+          <div style="font-size:.78rem;color:var(--muted);margin-top:2px;">Center: ${escHtml(centerName)}</div>
+        </div>`;
+
+      seatPlan.forEach(room => {
+        const rows = room.students.map((entry, i) =>
+          `<tr>
+            <td style="text-align:center;">${i + 1}</td>
+            <td style="text-align:center;font-weight:700;">${entry.seatNo}</td>
+            <td>${escHtml(entry.student.roll)}</td>
+            <td>${escHtml(entry.student.name)}</td>
+            <td>${escHtml(entry.student.reg || '—')}</td>
+            <td>${escHtml(entry.student.group || '')}</td>
+           </tr>`
+        ).join('');
+
+        screenHTML += `
+          <div class="card" style="margin-bottom:16px;">
+            <div class="card-head">
+              <h3>${escHtml(room.roomName)}</h3>
+              <span class="meta">${room.students.length} students</span>
+            </div>
+            <div class="card-body" style="padding:0;">
+              <table class="data-tbl compact">
+                <thead><tr>
+                  <th style="text-align:center;">Sl.</th>
+                  <th style="text-align:center;">Seat</th>
+                  <th>Roll</th>
+                  <th>Name</th>
+                  <th>Reg.</th>
+                  <th>Group</th>
+                </tr></thead>
+                <tbody>${rows}</tbody>
+              </table>
+            </div>
+          </div>`;
+      });
+
+      $('summary-screen').innerHTML = screenHTML;
+
+      // Build print version
+      let printHTML = `
+        <div class="csp-header">
+          <div class="csp-college">${escHtml(collegeName)}</div>
+          <div class="csp-title">${escHtml(examName)}</div>
+          <div class="csp-meta">${examDate ? fmtDate(examDate) + ' | ' : ''}Center: ${escHtml(centerName)}</div>
+        </div>`;
+
+      seatPlan.forEach(room => {
+        const rows = room.students.map((entry, i) =>
+          `<tr>
+            <td style="text-align:center;">${i + 1}</td>
+            <td style="text-align:center;font-weight:700;">${entry.seatNo}</td>
+            <td>${escHtml(entry.student.roll)}</td>
+            <td>${escHtml(entry.student.name)}</td>
+            <td>${escHtml(entry.student.reg || '—')}</td>
+            <td>${escHtml(entry.student.cls || '')}</td>
+            <td>${escHtml(entry.student.group || '')}</td>
+            <td>${escHtml(entry.student.section || '—')}</td>
+           </tr>`
+        ).join('');
+
+        printHTML += `
+          <div class="csp-room-block">
+            <div class="csp-room-title">${escHtml(room.roomName)} — ${room.students.length} Students</div>
+            <table class="csp-table">
+              <thead><tr>
+                <th>Sl.</th><th>Seat</th><th>Roll</th><th>Name</th><th>Reg.</th><th>Class</th><th>Group</th><th>Section</th>
+              </tr></thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>`;
+      });
+
+      $('center-summary-print').innerHTML = printHTML;
+    }
+
+    function printCenterSummary() {
+      if (!seatPlan.length) {
+        setAlert('summary-alert', 'err', 'No seat plan generated. Go to Configure tab first.');
+        return;
+      }
+      renderSummaryScreen();
+      const style = document.createElement('style');
+      style.id = 'tmp-print-override';
+      style.textContent = '@media print { .center-summary-print { display:block!important; } .sticker-sheet-wrap,.room-sheet-print { display:none!important; } }';
+      document.head.appendChild(style);
+      window.print();
+      setTimeout(() => { const s = document.getElementById('tmp-print-override'); if (s) s.remove(); }, 500);
+    }
+
+    // ══════════════════════════════════════════════════
+    // INIT
+    // ══════════════════════════════════════════════════
+    loadSettings();
+    // Set today as default date
+    $('cfg-exam-date').value = new Date().toISOString().split('T')[0];
+
+  </script>
+</body>
+</html>

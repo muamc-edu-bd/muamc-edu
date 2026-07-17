@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Analytics — Moinuddin Adarsha Mohila College AMS</title>
 <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700;900&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/all.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
 /* ═══════════════ DESIGN TOKENS (matches index.html exactly) ═══════════════ */
@@ -57,10 +58,12 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--slate);color:var(--
 }
 .nav-strip{display:flex;flex-direction:column;overflow-x:auto;padding:16px 0;background:rgba(0,0,0,.2);flex:1;}
 .nav-strip::-webkit-scrollbar{display:none;}
-.nt{padding:12px 16px;cursor:pointer;font-size:.79rem;font-weight:500;letter-spacing:.2px;border-left:3px solid transparent;color:rgba(255,255,255,.55);transition:color .15s,border-color .15s,background .15s;white-space:nowrap;display:flex;align-items:center;gap:8px;}
+.nt{padding:12px 16px;cursor:pointer;font-size:.79rem;font-weight:500;letter-spacing:.2px;border-left:3px solid transparent;color:rgba(255,255,255,.55);transition:color .15s,border-color .15s,background .15s;white-space:nowrap;display:flex;align-items:center;gap:10px;}
 .nt:hover{color:rgba(255,255,255,.88);background:rgba(255,255,255,.05);}
 .nt.active{color:var(--gold3);border-left-color:var(--gold2);background:rgba(255,255,255,.08);}
-.nt-icon{font-size:1rem;flex-shrink:0;}
+.nt-icon{font-size:1rem;flex-shrink:0;width:16px;text-align:center;}
+.nt .nav-icon{width:16px;text-align:center;font-size:.82rem;flex-shrink:0;opacity:.75;}
+.nt:hover .nav-icon,.nt.active .nav-icon{opacity:1;}
 .nav-section-label{padding:14px 16px 6px;font-size:.63rem;font-weight:700;letter-spacing:1px;color:rgba(255,255,255,.3);text-transform:uppercase;}
 
 /* Back-to-main link */
@@ -270,6 +273,72 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--slate);color:var(--
   .logout-btn{padding:6px 12px;font-size:.7rem;}
   .main{padding:16px 12px;}
 }
+
+    /* Standardized Mobile Navigation Overrides */
+    @media (max-width: 768px) {
+      .top-nav-bar {
+        padding: 0 16px !important;
+        height: 70px !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+      }
+      .top-nav-logo-text {
+        display: none !important;
+      }
+      .top-nav-logo {
+        gap: 8px !important;
+      }
+      .top-nav-logo-img {
+        width: 40px !important;
+        height: 40px !important;
+      }
+      .top-nav-admin-info {
+        display: none !important;
+      }
+      .top-nav-admin {
+        display: flex !important;
+        align-items: center !important;
+        gap: 12px !important;
+      }
+      .logout-btn {
+        padding: 6px 12px !important;
+        font-size: 0.72rem !important;
+      }
+      .hdr-hamburger {
+        display: flex !important;
+      }
+      .site-header {
+        width: 220px !important;
+        transform: translateX(-100%) !important;
+        top: 70px !important;
+        height: calc(100vh - 70px) !important;
+        position: fixed !important;
+        z-index: 200 !important;
+        transition: transform .3s ease !important;
+      }
+      .site-header.active {
+        transform: translateX(0) !important;
+      }
+      .site-header.open {
+        transform: translateX(0) !important;
+      }
+      .nav-strip {
+        position: static !important;
+        transform: none !important;
+        width: 100% !important;
+        height: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+      }
+      .sidebar-overlay.active {
+        display: block !important;
+      }
+      .main {
+        margin-left: 0 !important;
+        padding: 14px 10px !important;
+      }
+    }
 </style>
 
 
@@ -312,35 +381,35 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--slate);color:var(--
     </div>
   </div>
   <div class="top-nav-admin">
-    <div style="display:flex;align-items:center;gap:10px;">
-      <div class="top-nav-avatar">A</div>
-      <div>
-        <div class="top-nav-name">Admin</div>
-        <div class="top-nav-role">System Admin</div>
+      <div class="top-nav-admin-info">
+        <div class="top-nav-avatar" id="nav-avatar">A</div>
+        <div>
+          <div class="top-nav-name" id="nav-name">Admin</div>
+          <div class="top-nav-role" id="nav-role">System Admin</div>
+        </div>
       </div>
+      <button class="hdr-hamburger" id="hdr-hamburger" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+      <button class="logout-btn" onclick="doLogout()">Logout</button>
     </div>
-    <button class="logout-btn" onclick="doLogout()">Logout</button>
-    <button class="hdr-hamburger" id="hdr-hamburger" onclick="toggleSidebar()">☰</button>
-  </div>
 </div>
 
 <!-- ═══════════ SIDEBAR ═══════════ -->
 <header class="site-header" id="site-header">
   <nav class="nav-strip" id="nav-strip">
     <div class="nav-section-label">Analytics</div>
-    <div class="nt active" id="nt-archive" onclick="switchTab('archive')"><span class="nt-icon"></span> Student Archive</div>
-    <div class="nt" id="nt-promotion" onclick="switchTab('promotion')"><span class="nt-icon"></span> Auto-Promotion</div>
-    <div class="nt" id="nt-rolls" onclick="switchTab('rolls')"><span class="nt-icon"></span> Auto-Roll Gen</div>
-    <div class="nt" id="nt-detain" onclick="switchTab('detain')"><span class="nt-icon"></span> Detain List</div>
-    <div class="nt" id="nt-certificate" onclick="switchTab('certificate')"><span class="nt-icon"></span> TC / Certificate</div>
+    <div class="nt active" id="nt-archive" onclick="switchTab('archive')"><i class="fas fa-archive nt-icon"></i> Student Archive</div>
+    <div class="nt" id="nt-promotion" onclick="switchTab('promotion')"><i class="fas fa-level-up-alt nt-icon"></i> Auto-Promotion</div>
+    <div class="nt" id="nt-rolls" onclick="switchTab('rolls')"><i class="fas fa-list-ol nt-icon"></i> Auto-Roll Gen</div>
+    <div class="nt" id="nt-detain" onclick="switchTab('detain')"><i class="fas fa-user-times nt-icon"></i> Detain List</div>
+    <div class="nt" id="nt-certificate" onclick="switchTab('certificate')"><i class="fas fa-certificate nt-icon"></i> TC / Certificate</div>
     <div class="nav-section-label" style="color:var(--red);margin-top:12px;">Danger Zone</div>
     <div class="nt" id="nt-redalert" onclick="switchTab('redalert')" 
     style="
-    color:var(--red);"></span> RED Alert</div>
+    color:var(--red);"><i class="fas fa-exclamation-triangle nt-icon"></i> RED Alert</div>
     <div class="nav-section-label" style="margin-top:auto;padding-top:24px;">Navigation</div>
-    <div class="nt" onclick="window.location.href='result_analytics.html'"><span class="nt-icon"></span> Result Analytics</div>
-    <div class="nt" onclick="window.location.href='group-results.html'"><span class="nt-icon"></span> Group-wise Results</div>
-    <div class="nt back-link" onclick="window.location.href='index.html'"><span class="nt-icon">←</span> Main Dashboard</div>
+    <div class="nt" onclick="window.location.href='result_analytics.html'"><i class="fas fa-chart-bar nt-icon"></i> Result Analytics</div>
+    <div class="nt" onclick="window.location.href='group-results.html'"><i class="fas fa-table nt-icon"></i> Group-wise Results</div>
+    <div class="nt back-link" onclick="window.location.href='index.html'"><i class="fas fa-home nt-icon"></i> Main Dashboard</div>
   </nav>
 </header>
 
