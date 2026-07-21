@@ -2046,24 +2046,62 @@ def _public_result_summary_inner():
     if mMax == 0:  # fallback for display if all absent
         mMax = sum((s.get('cqMax', 70) + s.get('mcqMax', 30) + (25 if s.get('hasPrac') else 0)) for s in subs)
 
-    # Merit position — computed using a fast in-memory aggregation of already-fetched
-    # peer marks (avoids calling _compute_student_result per-peer which fires extra DB
-    # queries for Humanities students and causes timeouts on Render).
+    # Merit position — sorted by GPA descending, then total marks descending as
+    # tiebreaker, matching the Result-card.html front-end logic exactly.
+    # Uses the already-fetched peer marks to avoid extra DB queries / timeouts.
     merit_pos   = None
     merit_total = len(peers)
     try:
         peer_scores = []
         for p in peers:
             pm_all = (all_peer_marks.get(p.id) or {}).get(resolved_exam, {})
-            p_total = 0
-            for _code, _m in pm_all.items():
-                if _code == 'selectedOptional' or not isinstance(_m, dict):
+            p_total   = 0
+            p_gpa_sum = 0.0
+            p_cnt     = 0
+            p_has_fail   = False
+            p_has_absent = False
+            for sub in subs:
+                _code = sub['code']
+                _m = pm_all.get(_code, {})
+                if not isinstance(_m, dict):
                     continue
-                if _m.get('absent', False):
+                is_opt = _code in [c.strip() for c in (getattr(p, 'optional_subjects', '') or '').split('/') if c.strip()]
+                absent = _m.get('absent', False) or (
+                    (str(_m.get('cq', '')) == '' or _m.get('cq') is None) and
+                    (str(_m.get('mcq', '')) == '' or _m.get('mcq') is None)
+                )
+                if absent:
+                    if not is_opt:
+                        p_has_absent = True
                     continue
-                p_total += int(_m.get('cq') or 0) + int(_m.get('mcq') or 0) + int(_m.get('prac') or 0)
-            peer_scores.append((p.id, p_total))
-        peer_scores.sort(key=lambda x: -x[1])
+                _cq   = min(int(_m.get('cq')   or 0), sub.get('cqMax', 70))
+                _mcq  = min(int(_m.get('mcq')  or 0), sub.get('mcqMax', 30))
+                _prac = min(int(_m.get('prac') or 0), 25) if sub.get('hasPrac') else 0
+                _tot  = _cq + _mcq + _prac
+                p_total += _tot
+                _lg, _gp = _grade_letter(_tot)
+                _passed  = _subject_passed(_cq, _mcq, _prac,
+                                           bool(sub.get('hasPrac')),
+                                           sub.get('cqMax', 70),
+                                           sub.get('mcqMax', 30))
+                if not _passed:
+                    _gp = 0.0
+                    _lg = 'F'
+                if is_opt:
+                    if _gp > 2.0:
+                        p_gpa_sum += (_gp - 2.0)
+                else:
+                    p_gpa_sum += _gp
+                    p_cnt     += 1
+                    if _lg == 'F':
+                        p_has_fail = True
+            # GPA is 0 if any compulsory subject failed or student was absent
+            p_gpa = 0.0 if (p_has_fail or p_has_absent) else (
+                min(round(p_gpa_sum / p_cnt, 2), 5.0) if p_cnt else 0.0
+            )
+            peer_scores.append((p.id, p_gpa, p_total))
+        # Sort: GPA descending first, then total marks descending (same as Result-card.html)
+        peer_scores.sort(key=lambda x: (-x[1], -x[2]))
         merit_pos = next((i + 1 for i, ps in enumerate(peer_scores) if ps[0] == student.id), None)
     except Exception:
         merit_pos   = None
@@ -2572,6 +2610,194 @@ def set_result_publish_status():
         db.session.add(Setting(key='result_published', value=value_str))
     db.session.commit()
     return jsonify({'ok': True, 'published': published, 'message': f'Result publish status set to {value_str}'})
+
+
+# ─────────────────────────────────────────────
+# ANALYTICS — Promotion & Bulk Deletion APIs
+# ─────────────────────────────────────────────
+
+@app.route('/api/analytics/promote', methods=['POST'])
+@require_admin
+def analytics_promote():
+    """
+    Promote a list of Class-XI students to Class-XII.
+    Roll number, group, and session remain unchanged.
+
+    Request body:
+        { "student_ids": ["id1", "id2", ...] }
+
+    Response:
+        { ok: true, promoted: N, skipped: [{id, reason}] }
+    """
+    body = request.get_json(force=True, silent=True) or {}
+    student_ids = body.get('student_ids', [])
+
+    if not student_ids or not isinstance(student_ids, list):
+        return jsonify({'ok': False, 'message': 'student_ids list is required'}), 400
+
+    promoted_count = 0
+    skipped = []
+
+    for sid in student_ids:
+        stu = Student.query.filter_by(id=str(sid)).first()
+        if not stu:
+            skipped.append({'id': sid, 'reason': 'Student not found'})
+            continue
+        if stu.cls != 'Class-XI':
+            skipped.append({'id': sid, 'reason': f'Student is already in {stu.cls}'})
+            continue
+
+        # Promote: only change the class; roll, group, session stay the same
+        stu.cls = 'Class-XII'
+        promoted_count += 1
+
+        # Create an audit log entry
+        log_entry = PromotionLog(
+            student_id=stu.id,
+            name=stu.name,
+            old_roll=stu.roll,
+            new_roll=stu.roll,   # roll is unchanged
+            gpa=0.0,
+            total_marks=0,
+        )
+        db.session.add(log_entry)
+
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'ok': False, 'message': f'Database error: {str(e)}'}), 500
+
+    return jsonify({'ok': True, 'promoted': promoted_count, 'skipped': skipped})
+
+
+@app.route('/api/analytics/deletion-count', methods=['GET'])
+@require_admin
+def analytics_deletion_count():
+    """
+    Preview how many records would be deleted before committing.
+
+    Query params:
+        mode      — 'marks' | 'students'
+        cls       — e.g. 'Class-XI'
+        group     — 'Science' | 'Humanities' | 'Business'
+        session   — e.g. '2024-2025'
+        exam_type — e.g. 'Annual'  (only relevant when mode='marks')
+
+    Response:
+        { ok: true, count: N }
+    """
+    mode      = (request.args.get('mode')      or '').strip()
+    cls_val   = (request.args.get('cls')       or '').strip()
+    group_val = (request.args.get('group')     or '').strip()
+    sess_val  = (request.args.get('session')   or '').strip().replace('\u2013', '-').replace('\u2014', '-')
+    exam_val  = (request.args.get('exam_type') or '').strip()
+
+    if mode not in ('marks', 'students'):
+        return jsonify({'ok': False, 'message': "mode must be 'marks' or 'students'"}), 400
+    if not cls_val or not group_val:
+        return jsonify({'ok': False, 'message': 'cls and group are required'}), 400
+
+    # Build student query
+    q = Student.query.filter_by(cls=cls_val, group=group_val)
+    if sess_val:
+        q = q.filter((Student.session == sess_val) | (Student.year == sess_val))
+    student_ids = [s.id for s in q.with_entities(Student.id).all()]
+
+    if not student_ids:
+        return jsonify({'ok': True, 'count': 0})
+
+    if mode == 'students':
+        return jsonify({'ok': True, 'count': len(student_ids)})
+
+    # mode == 'marks'
+    mq = Mark.query.filter(Mark.student_id.in_(student_ids))
+    if exam_val:
+        mq = mq.filter_by(exam_type=exam_val)
+    count = mq.count()
+    return jsonify({'ok': True, 'count': count})
+
+
+@app.route('/api/analytics/marks-bulk', methods=['DELETE'])
+@require_admin
+def analytics_delete_marks_bulk():
+    """
+    Delete marks for all students matching cls + group + session (+ optional exam_type).
+
+    Query params:
+        cls, group, session, exam_type (optional)
+
+    Response:
+        { ok: true, deleted: N }
+    """
+    cls_val   = (request.args.get('cls')       or '').strip()
+    group_val = (request.args.get('group')     or '').strip()
+    sess_val  = (request.args.get('session')   or '').strip().replace('\u2013', '-').replace('\u2014', '-')
+    exam_val  = (request.args.get('exam_type') or '').strip()
+
+    if not cls_val or not group_val or not sess_val:
+        return jsonify({'ok': False, 'message': 'cls, group and session are required'}), 400
+
+    q = Student.query.filter_by(cls=cls_val, group=group_val)
+    q = q.filter((Student.session == sess_val) | (Student.year == sess_val))
+    student_ids = [s.id for s in q.with_entities(Student.id).all()]
+
+    if not student_ids:
+        return jsonify({'ok': True, 'deleted': 0})
+
+    mq = Mark.query.filter(Mark.student_id.in_(student_ids))
+    if exam_val:
+        mq = mq.filter_by(exam_type=exam_val)
+
+    deleted = mq.count()
+    mq.delete(synchronize_session=False)
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'ok': False, 'message': f'Database error: {str(e)}'}), 500
+
+    return jsonify({'ok': True, 'deleted': deleted})
+
+
+@app.route('/api/analytics/students-bulk', methods=['DELETE'])
+@require_admin
+def analytics_delete_students_bulk():
+    """
+    Delete student records (and cascade their marks) for a cls + group + session.
+
+    Query params:
+        cls, group, session
+
+    Response:
+        { ok: true, deleted: N }
+    """
+    cls_val   = (request.args.get('cls')     or '').strip()
+    group_val = (request.args.get('group')   or '').strip()
+    sess_val  = (request.args.get('session') or '').strip().replace('\u2013', '-').replace('\u2014', '-')
+
+    if not cls_val or not group_val or not sess_val:
+        return jsonify({'ok': False, 'message': 'cls, group and session are required'}), 400
+
+    q = Student.query.filter_by(cls=cls_val, group=group_val)
+    q = q.filter((Student.session == sess_val) | (Student.year == sess_val))
+    students_to_delete = q.all()
+
+    if not students_to_delete:
+        return jsonify({'ok': True, 'deleted': 0})
+
+    count = len(students_to_delete)
+    for stu in students_to_delete:
+        _delete_photo_file(stu.photo)
+        db.session.delete(stu)  # cascade deletes marks automatically
+
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'ok': False, 'message': f'Database error: {str(e)}'}), 500
+
+    return jsonify({'ok': True, 'deleted': count})
 
 
 # ─────────────────────────────────────────────
