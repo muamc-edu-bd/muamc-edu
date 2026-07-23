@@ -1,1458 +1,774 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Analytics — Moinuddin Adarsha Mohila College AMS</title>
-<link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700;900&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/static/css/all.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<style>
-/* ═══════════════ DESIGN TOKENS (matches index.html exactly) ═══════════════ */
-:root{
-  --navy:#0d2b45; --navy2:#174070; --navy3:#1f5490;
-  --gold:#a97c28; --gold2:#c9973a; --gold3:#e8b84b;
-  --slate:#f1f4f8; --slate2:#e8ecf2; --white:#fff;
-  --txt:#0f172a; --txt2:#334155; --muted:#64748b;
-  --border:#dde3ed; --border2:#c8d2e0;
-  --red:#b91c1c; --green:#166534; --amber:#92400e; --purple:#6d28d9;
-  --shadow-xs:0 1px 2px rgba(0,0,0,.06);
-  --shadow-sm:0 1px 4px rgba(13,43,69,.08),0 1px 3px rgba(13,43,69,.05);
-  --shadow:0 4px 16px rgba(13,43,69,.09);
-  --shadow-lg:0 8px 32px rgba(13,43,69,.14);
-  --r:6px; --r-md:10px; --r-lg:14px;
-}
-*{box-sizing:border-box;margin:0;padding:0;}
-html{scroll-behavior:smooth;}
-body{font-family:'Source Sans 3',sans-serif;background:var(--slate);color:var(--txt);display:flex;flex-direction:column;min-height:100vh;}
-
-/* ═══════════════ TOP NAV BAR ═══════════════ */
-.top-nav-bar{
-  position:fixed;top:0;left:0;right:0;height:70px;z-index:201;
-  background:linear-gradient(180deg,#0d2b45 0%,#0a2138 100%);
-  display:flex;align-items:center;justify-content:space-between;padding:0 24px;
-  border-bottom:1px solid rgba(255,255,255,.08);
-  box-shadow:0 4px 12px rgba(0,0,0,.15);
-}
-.top-nav-logo{display:flex;align-items:center;gap:14px;flex-shrink:0;}
-.top-nav-logo-img{width:48px;height:48px;border-radius:50%;background:#fff;border:2.5px solid var(--gold2);box-shadow:0 0 0 3px rgba(169,124,40,.2);overflow:hidden;display:flex;align-items:center;justify-content:center;}
-.top-nav-logo-img img{width:100%;height:100%;object-fit:contain;}
-.top-nav-logo-text h1{font-family:'Merriweather',serif;font-size:.85rem;font-weight:700;color:#fff;line-height:1.2;letter-spacing:.1px;}
-.top-nav-logo-text p{font-size:.58rem;color:rgba(255,255,255,.5);margin-top:2px;}
-.top-nav-admin{display:flex;align-items:center;gap:16px;flex-shrink:0;}
-.top-nav-avatar{width:40px;height:40px;border-radius:50%;background:var(--gold2);display:flex;align-items:center;justify-content:center;font-size:.95rem;font-weight:700;color:#fff;flex-shrink:0;}
-.top-nav-name{font-size:.78rem;font-weight:700;color:#fff;}
-.top-nav-role{font-size:.65rem;color:rgba(255,255,255,.7);}
-.logout-btn{padding:8px 16px;border-radius:var(--r);border:1px solid rgba(255,255,255,.3);background:transparent;color:#fff;font-size:.78rem;font-family:inherit;cursor:pointer;transition:all .15s;white-space:nowrap;font-weight:600;}
-.logout-btn:hover{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.6);}
-.hdr-hamburger{display:none;background:none;border:none;color:#fff;font-size:1.4rem;cursor:pointer;padding:0;width:32px;height:32px;align-items:center;justify-content:center;transition:all .15s;}
-.hdr-hamburger:hover{background:rgba(255,255,255,.1);border-radius:var(--r);}
-
-/* ═══════════════ SIDEBAR ═══════════════ */
-.site-header{
-  background:linear-gradient(180deg,#0d2b45 0%,#0a2138 100%);
-  position:fixed;left:0;top:70px;width:220px;height:calc(100vh - 70px);z-index:200;
-  border-right:1px solid rgba(255,255,255,.06);
-  box-shadow:4px 0 16px rgba(0,0,0,.3);
-  display:flex;flex-direction:column;overflow-y:auto;transition:transform .3s ease;
-}
-.nav-strip{display:flex;flex-direction:column;overflow-x:auto;padding:16px 0;background:rgba(0,0,0,.2);flex:1;}
-.nav-strip::-webkit-scrollbar{display:none;}
-.nt{padding:12px 16px;cursor:pointer;font-size:.79rem;font-weight:500;letter-spacing:.2px;border-left:3px solid transparent;color:rgba(255,255,255,.55);transition:color .15s,border-color .15s,background .15s;white-space:nowrap;display:flex;align-items:center;gap:10px;}
-.nt:hover{color:rgba(255,255,255,.88);background:rgba(255,255,255,.05);}
-.nt.active{color:var(--gold3);border-left-color:var(--gold2);background:rgba(255,255,255,.08);}
-.nt-icon{font-size:1rem;flex-shrink:0;width:16px;text-align:center;}
-.nt .nav-icon{width:16px;text-align:center;font-size:.82rem;flex-shrink:0;opacity:.75;}
-.nt:hover .nav-icon,.nt.active .nav-icon{opacity:1;}
-.nav-section-label{padding:14px 16px 6px;font-size:.63rem;font-weight:700;letter-spacing:1px;color:rgba(255,255,255,.3);text-transform:uppercase;}
-
-/* Back-to-main link */
-.nt.back-link{border-top:1px solid rgba(255,255,255,.08);margin-top:auto;color:rgba(255,255,255,.4);}
-
-/* Sidebar overlay */
-.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:190;}
-.sidebar-overlay.active{display:block;}
-
-/* ═══════════════ MAIN CONTENT ═══════════════ */
-.main{margin-left:220px;margin-top:70px;padding:28px 24px;flex:1;transition:margin-left .3s ease;}
-
-/* Page tab panels */
-.tc{display:none;animation:fi .18s ease;}
-.tc.active{display:block;}
-@keyframes fi{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:none;}}
-@keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
-
-/* ═══════════════ CARDS ═══════════════ */
-.card{background:var(--white);border-radius:var(--r-lg);border:1px solid var(--border);box-shadow:var(--shadow-sm);margin-bottom:20px;overflow:hidden;}
-.card-head{padding:15px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
-.card-head h3{font-family:'Merriweather',serif;font-size:.92rem;font-weight:700;color:var(--navy);}
-.card-head .meta{font-size:.72rem;color:var(--muted);}
-.card-body{padding:20px;}
-.card-body.np{padding:0;}
-
-/* ═══════════════ PAGE HEADER ═══════════════ */
-.pg-hd{margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--border);}
-.pg-hd h2{font-family:'Merriweather',serif;font-size:1.2rem;font-weight:700;color:var(--navy);}
-.pg-hd p{font-size:.78rem;color:var(--muted);margin-top:3px;}
-.pg-hd-row{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;}
-
-/* ═══════════════ BUTTONS ═══════════════ */
-.btn{padding:8px 18px;border-radius:var(--r);border:none;cursor:pointer;font-family:inherit;font-size:.8rem;font-weight:600;transition:all .14s;display:inline-flex;align-items:center;gap:5px;letter-spacing:.1px;}
-.btn-primary{background:var(--navy);color:#fff;}
-.btn-primary:hover{background:var(--navy2);box-shadow:0 3px 10px rgba(13,43,69,.3);}
-.btn-gold{background:var(--gold);color:#fff;}
-.btn-gold:hover{background:var(--gold2);}
-.btn-success{background:var(--green);color:#fff;}
-.btn-success:hover{background:#15803d;}
-.btn-danger{background:var(--red);color:#fff;}
-.btn-danger:hover{background:#991b1b;}
-.btn-purple{background:var(--purple);color:#fff;}
-.btn-purple:hover{background:#5b21b6;}
-.btn-amber{background:var(--amber);color:#fff;}
-.btn-amber:hover{background:#78350f;}
-.btn-outline{background:transparent;border:1.5px solid var(--navy);color:var(--navy);}
-.btn-outline:hover{background:var(--navy);color:#fff;}
-.btn-outline-danger{background:transparent;border:1.5px solid var(--red);color:var(--red);}
-.btn-outline-danger:hover{background:var(--red);color:#fff;}
-.btn-sm{padding:5px 12px;font-size:.74rem;}
-.btn-xs{padding:3px 9px;font-size:.7rem;}
-.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;}
-.btn:disabled{opacity:.5;cursor:not-allowed;}
-
-/* ═══════════════ ALERTS ═══════════════ */
-.alert{padding:10px 14px;border-radius:var(--r);font-size:.79rem;margin-bottom:12px;border:1px solid;}
-.alert-ok{background:#f0fdf4;color:#15803d;border-color:#bbf7d0;}
-.alert-err{background:#fef2f2;color:#991b1b;border-color:#fecaca;}
-.alert-info{background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe;}
-.alert-warn{background:#fffbeb;color:#92400e;border-color:#fde68a;}
-
-/* ═══════════════ TABLES ═══════════════ */
-.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-.tbl{width:100%;border-collapse:collapse;font-size:.78rem;}
-.tbl thead tr{background:var(--slate2);}
-.tbl th{padding:8px 12px;text-align:left;font-weight:600;color:var(--txt2);font-size:.72rem;letter-spacing:.2px;white-space:nowrap;border-bottom:1px solid var(--border);}
-.tbl td{padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:middle;color:var(--txt2);}
-.tbl tbody tr:last-child td{border-bottom:none;}
-.tbl tbody tr:hover{background:#f8fafc;}
-.tbl-empty{text-align:center;padding:32px;color:var(--muted);font-size:.82rem;}
-
-/* ═══════════════ FORMS ═══════════════ */
-.fg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;}
-.fg{display:flex;flex-direction:column;gap:5px;}
-.fg label{font-size:.74rem;font-weight:600;color:var(--navy);letter-spacing:.15px;}
-.fg input,.fg select{padding:8px 11px;border:1.5px solid var(--border2);border-radius:var(--r);font-size:.83rem;font-family:inherit;background:#fafcff;color:var(--txt);transition:border .15s,box-shadow .15s;}
-.fg input:focus,.fg select:focus{outline:none;border-color:var(--navy3);box-shadow:0 0 0 3px rgba(31,84,144,.1);}
-.search-row{display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap;}
-.search-row input{flex:1;min-width:220px;padding:8px 11px;border:1.5px solid var(--border2);border-radius:var(--r);font-size:.83rem;font-family:inherit;background:#fafcff;color:var(--txt);}
-.search-row input:focus{outline:none;border-color:var(--navy3);box-shadow:0 0 0 3px rgba(31,84,144,.1);}
-
-/* ═══════════════ BADGES ═══════════════ */
-.badge{display:inline-block;padding:3px 8px;border-radius:100px;font-size:.68rem;font-weight:600;}
-.badge-green{background:#dcfce7;color:#15803d;}
-.badge-red{background:#fee2e2;color:#b91c1c;}
-.badge-amber{background:#fef3c7;color:#92400e;}
-.badge-blue{background:#dbeafe;color:#1d4ed8;}
-.badge-purple{background:#ede9fe;color:#6d28d9;}
-.badge-navy{background:rgba(13,43,69,.1);color:var(--navy);}
-
-/* ═══════════════ SUMMARY TILES ═══════════════ */
-.summary-strip{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:14px;margin-bottom:24px;}
-.s-tile{background:var(--white);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px 16px;box-shadow:var(--shadow-sm);border-top:3px solid var(--navy);}
-.s-tile.gold{border-top-color:var(--gold2);}
-.s-tile.green{border-top-color:var(--green);}
-.s-tile.amber{border-top-color:var(--amber);}
-.s-tile.red{border-top-color:var(--red);}
-.s-tile.purple{border-top-color:var(--purple);}
-.s-val{font-size:1.9rem;font-weight:800;color:var(--navy);line-height:1;}
-.s-lbl{font-size:.7rem;color:var(--muted);margin-top:5px;line-height:1.3;}
-
-/* ═══════════════ LOADING ═══════════════ */
-.loading-container{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;gap:16px;}
-.loading-spinner{width:40px;height:40px;border:3px solid var(--slate2);border-top-color:var(--navy);border-radius:50%;animation:spin 1s linear infinite;}
-.loading-text{font-size:.85rem;color:var(--muted);}
-
-/* ═══════════════ CHECKBOX COLUMN ═══════════════ */
-.tbl input[type=checkbox]{cursor:pointer;width:14px;height:14px;accent-color:var(--navy);}
-.select-all-row{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--slate);border-bottom:1px solid var(--border);font-size:.75rem;color:var(--txt2);}
-
-/* ═══════════════ CONFIRM PANEL ═══════════════ */
-.confirm-panel{background:#fff8ed;border:1.5px solid #fde68a;border-radius:var(--r-md);padding:16px 20px;margin-bottom:16px;}
-.confirm-panel h4{font-size:.85rem;font-weight:700;color:#92400e;margin-bottom:8px;}
-.confirm-panel p{font-size:.78rem;color:#78350f;line-height:1.6;}
-
-/* ═══════════════ PREVIEW STEP FLOW ═══════════════ */
-.step-flow{display:flex;align-items:center;gap:0;margin-bottom:24px;}
-.step-item{display:flex;align-items:center;gap:8px;font-size:.75rem;color:var(--muted);}
-.step-item.active{color:var(--navy);font-weight:700;}
-.step-item.done{color:var(--green);}
-.step-num{width:24px;height:24px;border-radius:50%;border:2px solid currentColor;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;flex-shrink:0;}
-.step-item.done .step-num{background:var(--green);border-color:var(--green);color:#fff;}
-.step-item.active .step-num{background:var(--navy);border-color:var(--navy);color:#fff;}
-.step-sep{height:2px;flex:1;background:var(--border);margin:0 6px;}
-.step-sep.done{background:var(--green);}
-
-/* ═══════════════ CERTIFICATE ═══════════════ */
-.cert-wrap{padding:20px;max-width:720px;margin:0 auto;}
-#cert-preview{display:none;}
-.cert-page{
-  background:#fff;border:3px solid var(--navy);border-radius:8px;
-  padding:40px 48px;
-  font-family:'Source Sans 3',sans-serif;
-  position:relative;
-}
-.cert-top-border{height:5px;background:linear-gradient(90deg,var(--navy),var(--gold2),var(--navy2));border-radius:4px 4px 0 0;margin:-40px -48px 32px;padding:0;}
-.cert-header{text-align:center;margin-bottom:28px;}
-.cert-logo{width:72px;height:72px;border-radius:50%;border:2px solid var(--gold2);margin:0 auto 12px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#f8faff;}
-.cert-logo img{width:100%;height:100%;object-fit:contain;}
-.cert-college-name{font-family:'Merriweather',serif;font-size:1.15rem;font-weight:900;color:var(--navy);line-height:1.2;}
-.cert-subtitle{font-size:.72rem;color:var(--muted);margin-top:3px;letter-spacing:.5px;}
-.cert-title-band{
-  background:linear-gradient(90deg,var(--navy),var(--navy2));
-  color:#fff;text-align:center;padding:10px 24px;
-  border-radius:var(--r);margin:20px 0;
-  font-family:'Merriweather',serif;font-size:1rem;font-weight:700;letter-spacing:1.5px;
-}
-.cert-body{font-size:.85rem;color:var(--txt);line-height:1.7;}
-.cert-body strong{color:var(--navy);}
-.cert-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:.8rem;}
-.cert-table td{padding:6px 10px;border:1px solid var(--border);}
-.cert-table td:first-child{font-weight:600;color:var(--navy);background:#fafcff;width:40%;}
-.cert-result-band{
-  display:flex;justify-content:center;gap:32px;margin:20px 0;
-  background:var(--slate);border-radius:var(--r);padding:14px;
-}
-.cert-result-item{text-align:center;}
-.cert-result-val{font-family:'Merriweather',serif;font-size:1.4rem;font-weight:900;color:var(--navy);}
-.cert-result-lbl{font-size:.67rem;color:var(--muted);letter-spacing:.5px;margin-top:2px;}
-.cert-signatures{display:flex;justify-content:space-between;margin-top:40px;padding-top:16px;}
-.cert-sig{text-align:center;}
-.cert-sig-line{width:120px;border-top:1.5px solid var(--txt);margin:0 auto 6px;}
-.cert-sig-label{font-size:.7rem;color:var(--muted);font-weight:600;}
-.cert-seal{position:absolute;bottom:48px;left:50%;transform:translateX(-50%);opacity:.06;font-size:7rem;pointer-events:none;user-select:none;}
-.cert-watermark{color:var(--navy);}
-.cert-footer{text-align:center;font-size:.68rem;color:var(--muted);margin-top:20px;padding-top:12px;border-top:1px solid var(--border);}
-
-/* ═══════════════ ROLL GEN RANK INDICATOR ═══════════════ */
-.rank-badge{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;font-size:.72rem;font-weight:800;flex-shrink:0;}
-.rank-1{background:#fef9c3;color:#78350f;}
-.rank-2{background:#f1f5f9;color:#475569;}
-.rank-3{background:#fef3c7;color:#92400e;}
-.rank-n{background:var(--slate2);color:var(--muted);}
-
-/* ═══════════════ FILTER STRIP ═══════════════ */
-.filter-strip{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:12px 20px;background:var(--slate);border-bottom:1px solid var(--border);}
-.filter-strip select,.filter-strip input{padding:6px 10px;border:1.5px solid var(--border2);border-radius:var(--r);font-size:.78rem;font-family:inherit;background:#fff;}
-
-/* ═══════════════ PRINT ═══════════════ */
-@media print{
-  .top-nav-bar,.site-header,.sidebar-overlay,.no-print{display:none!important;}
-  .main{margin-left:0!important;margin-top:0!important;padding:0!important;}
-  body{background:#fff!important;}
-  .cert-page{border-color:#000!important;box-shadow:none!important;}
-  #cert-preview{display:block!important;}
-  .tc{display:block!important;}
-  .print-only-cert > *:not(#cert-preview){display:none;}
-}
-
-/* ═══════════════ RESPONSIVE ═══════════════ */
-@media(max-width:768px){
-  .hdr-hamburger{display:flex!important;}
-  .site-header{transform:translateX(-100%);}
-  .site-header.active{transform:translateX(0);}
-  .main{margin-left:0;}
-  .top-nav-logo-text h1{font-size:.75rem;}
-  .top-nav-logo-text p{font-size:.52rem;}
-  .summary-strip{grid-template-columns:repeat(2,1fr);}
-}
-@media(max-width:480px){
-  .top-nav-bar{flex-direction:column;height:auto;padding:8px 12px;gap:8px;}
-  .top-nav-logo{gap:8px;}
-  .top-nav-logo-img{width:40px;height:40px;}
-  .top-nav-logo-text h1{font-size:.68rem;}
-  .top-nav-name{font-size:.65rem;}
-  .logout-btn{padding:6px 12px;font-size:.7rem;}
-  .main{padding:16px 12px;}
-}
-
-    /* Standardized Mobile Navigation Overrides */
-    @media (max-width: 768px) {
-      .top-nav-bar {
-        padding: 0 16px !important;
-        height: 70px !important;
-        display: flex !important;
-        justify-content: space-between !important;
-        align-items: center !important;
-      }
-      .top-nav-logo-text {
-        display: none !important;
-      }
-      .top-nav-logo {
-        gap: 8px !important;
-      }
-      .top-nav-logo-img {
-        width: 40px !important;
-        height: 40px !important;
-      }
-      .top-nav-admin-info {
-        display: none !important;
-      }
-      .top-nav-admin {
-        display: flex !important;
-        align-items: center !important;
-        gap: 12px !important;
-      }
-      .logout-btn {
-        padding: 6px 12px !important;
-        font-size: 0.72rem !important;
-      }
-      .hdr-hamburger {
-        display: flex !important;
-      }
-      .site-header {
-        width: 220px !important;
-        transform: translateX(-100%) !important;
-        top: 70px !important;
-        height: calc(100vh - 70px) !important;
-        position: fixed !important;
-        z-index: 200 !important;
-        transition: transform .3s ease !important;
-      }
-      .site-header.active {
-        transform: translateX(0) !important;
-      }
-      .site-header.open {
-        transform: translateX(0) !important;
-      }
-      .nav-strip {
-        position: static !important;
-        transform: none !important;
-        width: 100% !important;
-        height: 100% !important;
-        display: flex !important;
-        flex-direction: column !important;
-      }
-      .sidebar-overlay.active {
-        display: block !important;
-      }
-      .main {
-        margin-left: 0 !important;
-        padding: 14px 10px !important;
-      }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analytics &#8212; Moinuddin Adarsha Mohila College</title>
+  <meta name="description" content="Analytics: Class promotion and data management tools.">
+  <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700;900&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/all.min.css">
+  <style>    :root{
+      --navy:#0d2b45;--navy2:#174070;--navy3:#1f5490;
+      --gold:#a97c28;--gold2:#c9973a;--gold3:#e8b84b;
+      --slate:#f1f4f8;--slate2:#e8ecf2;--white:#fff;
+      --txt:#0f172a;--txt2:#334155;--muted:#64748b;
+      --border:#dde3ed;--border2:#c8d2e0;
+      --red:#b91c1c;--red2:#dc2626;--red-bg:#fef2f2;--red-border:#fecaca;
+      --green:#166534;--green2:#15803d;--green-bg:#f0fdf4;--green-border:#bbf7d0;
+      --amber:#92400e;--amber-bg:#fffbeb;--amber-border:#fde68a;
+      --shadow-sm:0 1px 4px rgba(13,43,69,.08),0 1px 3px rgba(13,43,69,.05);
+      --shadow-lg:0 8px 32px rgba(13,43,69,.14);
+      --r:6px;--r-md:10px;--r-lg:14px;
     }
-</style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{scroll-behavior:smooth;}
+    body{font-family:'Source Sans 3',sans-serif;background:var(--slate);color:var(--txt);display:flex;flex-direction:column;}
 
+    /* ── TOP NAV ── */
+    .top-nav-bar{position:fixed;top:0;left:0;right:0;height:70px;z-index:201;background:linear-gradient(180deg,#0d2b45 0%,#0a2138 100%);display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid rgba(255,255,255,.08);box-shadow:0 4px 12px rgba(0,0,0,.15);}
+    .top-nav-logo{display:flex;align-items:center;gap:14px;}
+    .top-nav-logo-img{width:48px;height:48px;border-radius:50%;background:#fff;border:2.5px solid var(--gold2);overflow:hidden;display:flex;align-items:center;justify-content:center;}
+    .top-nav-logo-img img{width:100%;height:100%;object-fit:contain;}
+    .top-nav-logo-text h1{font-family:'Merriweather',serif;font-size:.85rem;font-weight:700;color:#fff;}
+    .top-nav-logo-text p{font-size:.58rem;color:rgba(255,255,255,.5);margin-top:2px;}
+    .top-nav-admin{display:flex;align-items:center;gap:16px;}
+    .logout-btn{padding:8px 16px;border-radius:var(--r);border:1px solid rgba(255,255,255,.3);background:transparent;color:#fff;font-size:.78rem;font-family:inherit;cursor:pointer;font-weight:600;transition:all .15s;}
+    .logout-btn:hover{background:rgba(255,255,255,.1);}
+    .hdr-hamburger{display:none;background:none;border:none;color:#fff;font-size:1.4rem;cursor:pointer;width:32px;height:32px;align-items:center;justify-content:center;border-radius:var(--r);}
 
+    /* ── SIDEBAR ── */
+    .site-header{background:linear-gradient(180deg,#0d2b45 0%,#0a2138 100%);position:fixed;left:0;top:70px;width:220px;height:calc(100vh - 70px);z-index:200;border-right:1px solid rgba(255,255,255,.06);box-shadow:4px 0 16px rgba(0,0,0,.3);display:flex;flex-direction:column;overflow-y:auto;transition:transform .3s ease;}
+    .nav-strip{display:flex;flex-direction:column;padding:16px 0;background:rgba(0,0,0,.2);flex:1;}
+    .nt{padding:12px 16px;cursor:pointer;font-size:.79rem;font-weight:500;border-left:3px solid transparent;color:rgba(255,255,255,.55);transition:color .15s,border-color .15s,background .15s;display:flex;align-items:center;gap:10px;text-decoration:none;}
+    .nt .nav-icon { width: 16px; text-align: center; font-size: .82rem; flex-shrink: 0; opacity: .75; }
+    .nt:hover .nav-icon, .nt.active .nav-icon { opacity: 1; }
+    .nt:hover{color:rgba(255,255,255,.88);background:rgba(255,255,255,.05);}
+    .nt.active{color:var(--gold3);border-left-color:var(--gold2);background:rgba(255,255,255,.08);}
+    .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:190;}
+    .sidebar-overlay.active{display:block;}
 
-  <!-- PAGE TRANSITION LOADER -->
-  <style>
+    /* ── MAIN ── */
+    .main{margin-left:220px;margin-top:70px;padding:28px 24px;flex:1;}
+    .pg-hd{margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border);}
+    .pg-hd h2{font-family:'Merriweather',serif;font-size:1.2rem;font-weight:700;color:var(--navy);}
+    .pg-hd p{font-size:.78rem;color:var(--muted);margin-top:3px;}
+
+    /* ── TAB STRIP ── */
+    .tab-strip{display:flex;gap:0;border-bottom:2px solid var(--border2);margin-bottom:24px;}
+    .tab-btn{
+      padding:11px 24px;font-size:.84rem;font-weight:600;font-family:inherit;
+      border:none;cursor:pointer;background:transparent;color:var(--muted);
+      border-bottom:2px solid transparent;margin-bottom:-2px;
+      transition:color .18s,border-color .18s;
+    }
+    .tab-btn:hover{color:var(--navy);}
+    .tab-btn.active{color:var(--navy);border-bottom-color:var(--navy);}
+    .tab-btn.danger-tab.active{color:var(--red);border-bottom-color:var(--red);}
+    .tab-panel{display:none;}
+    .tab-panel.active{display:block;}
+
+    /* ── CARDS ── */
+    .card{background:var(--white);border-radius:var(--r-lg);border:1px solid var(--border);box-shadow:var(--shadow-sm);margin-bottom:28px;overflow:hidden;}
+    .card-head{padding:16px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+    .card-head h3{font-family:'Merriweather',serif;font-size:.95rem;font-weight:700;color:var(--navy);}
+    .card-head.danger-head{background:linear-gradient(135deg,#fef2f2,#fff1f1);border-bottom-color:var(--red-border);}
+    .card-head.danger-head h3{color:var(--red);}
+    .card-body{padding:22px;}
+
+    /* ── FORMS ── */
+    .fg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px;}
+    .fg{display:flex;flex-direction:column;gap:5px;}
+    .fg label{font-size:.74rem;font-weight:600;color:var(--navy);}
+    .fg select,.fg input[type=text]{padding:9px 12px;border:1.5px solid var(--border2);border-radius:var(--r);font-size:.83rem;font-family:inherit;background:#fafcff;color:var(--txt);transition:border .15s,box-shadow .15s;}
+    .fg select{-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2364748b' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;}
+    .fg select:focus,.fg input[type=text]:focus{outline:none;border-color:var(--navy3);box-shadow:0 0 0 3px rgba(31,84,144,.1);}
+    .fg select:disabled{background:#f1f4f8;color:var(--muted);cursor:not-allowed;}
+    .fg-note{font-size:.7rem;color:var(--muted);margin-top:2px;}
+    .fixed-class-badge{display:inline-flex;align-items:center;padding:8px 14px;background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;border-radius:var(--r);font-size:.82rem;font-weight:700;}
+
+    /* ── BUTTONS ── */
+    .btn{padding:9px 20px;border-radius:var(--r);border:none;cursor:pointer;font-family:inherit;font-size:.82rem;font-weight:600;transition:all .15s;display:inline-flex;align-items:center;gap:7px;}
+    .btn-primary{background:var(--navy);color:#fff;}
+    .btn-primary:hover{background:var(--navy2);box-shadow:0 3px 10px rgba(13,43,69,.3);}
+    .btn-success{background:var(--green);color:#fff;}
+    .btn-success:hover{background:var(--green2);}
+    .btn-danger{background:var(--red);color:#fff;}
+    .btn-danger:hover{background:var(--red2);}
+    .btn-outline{background:transparent;border:1.5px solid var(--border2);color:var(--txt2);}
+    .btn-outline:hover{background:var(--slate);border-color:var(--navy3);}
+    .btn-sm{padding:6px 14px;font-size:.76rem;}
+    .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;align-items:center;}
+    .btn:disabled{opacity:.45;cursor:not-allowed;pointer-events:none;}
+
+    /* ── ALERTS ── */
+    .alert{padding:10px 14px;border-radius:var(--r);font-size:.79rem;border:1px solid;}
+    .alert-err{background:var(--red-bg);color:#991b1b;border-color:var(--red-border);}
+    .alert-ok{background:var(--green-bg);color:#15803d;border-color:var(--green-border);}
+    .alert-warn{background:var(--amber-bg);color:var(--amber);border-color:var(--amber-border);}
+
+    /* ── PROMOTION TABLE ── */
+    .prom-controls{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px;}
+    .prom-count-badge{background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;padding:5px 14px;border-radius:20px;font-size:.78rem;font-weight:700;}
+    .prom-table-wrap{max-height:420px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--r-md);}
+    .prom-table{width:100%;border-collapse:collapse;font-size:.83rem;}
+    .prom-table thead{position:sticky;top:0;z-index:2;}
+    .prom-table th{background:linear-gradient(180deg,var(--navy) 0%,var(--navy2) 100%);color:#fff;padding:10px 12px;text-align:left;font-size:.75rem;font-weight:600;letter-spacing:.3px;}
+    .prom-table th:first-child{width:46px;text-align:center;}
+    .prom-table th:nth-child(2){width:60px;}
+    .prom-table th:nth-child(3){width:90px;}
+    .prom-table td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:middle;}
+    .prom-table td:first-child{text-align:center;}
+    .prom-table tbody tr:last-child td{border-bottom:none;}
+    .prom-table tbody tr:hover{background:#f8fafc;}
+    .prom-table tbody tr.sel-row{background:#f0f9ff;}
+    .cb-check{width:16px;height:16px;cursor:pointer;accent-color:var(--navy3);}
+    .sl-num{color:var(--muted);font-size:.75rem;}
+    .roll-cell{font-weight:600;color:var(--navy);font-size:.82rem;}
+    .prom-state-row td{text-align:center;padding:40px 20px;color:var(--muted);font-size:.84rem;}
+    .cat-badge{display:inline-block;padding:2px 9px;border-radius:12px;font-size:.7rem;font-weight:600;}
+    .cat-pass{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border);}
+    .cat-fail{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border);}
+    .cat-absent{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-border);}
+    .section-sep{height:0;border:none;border-top:1px dashed var(--border2);margin:8px 0 22px;}
+
+    /* ── SPINNER ── */
+    .spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin 1s linear infinite;vertical-align:middle;}
+    .spin.dk{border-color:var(--slate2);border-top-color:var(--navy);}
+    @keyframes spin{to{transform:rotate(360deg);}}
+
+    /* ── DELETION ZONE ── */
+    .danger-banner{background:linear-gradient(135deg,#fef2f2,#fff5f5);border:1.5px solid var(--red-border);border-radius:var(--r-md);padding:12px 16px;margin-bottom:18px;display:flex;align-items:flex-start;gap:12px;}
+    .danger-tag{background:var(--red);color:#fff;padding:2px 9px;border-radius:4px;font-size:.68rem;font-weight:800;letter-spacing:.5px;flex-shrink:0;margin-top:2px;}
+    .danger-banner p{font-size:.79rem;color:#7f1d1d;line-height:1.5;}
+    .mode-toggle{display:flex;border:1.5px solid var(--border2);border-radius:var(--r-md);overflow:hidden;width:fit-content;}
+    .mode-btn{padding:9px 20px;font-size:.8rem;font-weight:600;font-family:inherit;border:none;cursor:pointer;background:#fafcff;color:var(--muted);transition:all .15s;border-right:1.5px solid var(--border2);}
+    .mode-btn:last-child{border-right:none;}
+    .mode-btn.active{background:var(--navy);color:#fff;}
+    .preview-pill{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:var(--r-md);font-size:.84rem;font-weight:600;border:1.5px solid;margin-top:14px;}
+    .preview-pill.marks{background:#eff6ff;border-color:#bfdbfe;color:#1e40af;}
+    .preview-pill.students{background:var(--red-bg);border-color:var(--red-border);color:var(--red);}
+    .pill-num{font-size:1.1rem;font-weight:800;}
+    .confirm-box{background:var(--red-bg);border:1.5px solid var(--red-border);border-radius:var(--r-md);padding:16px 18px;margin-top:16px;}
+    .confirm-box p{font-size:.8rem;color:#7f1d1d;margin-bottom:10px;line-height:1.5;}
+    .confirm-input{padding:9px 12px;border:1.5px solid var(--red-border);border-radius:var(--r);font-size:.85rem;font-family:inherit;width:200px;color:var(--txt);background:#fff;}
+    .confirm-input:focus{outline:none;border-color:var(--red2);box-shadow:0 0 0 3px rgba(220,38,38,.15);}
+    .confirm-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:10px;}
+    .del-progress-wrap{margin-top:18px;display:none;}
+    .del-progress-label{font-size:.78rem;font-weight:600;color:var(--txt2);margin-bottom:8px;display:flex;justify-content:space-between;}
+    .del-progress-bar-bg{height:18px;background:var(--slate2);border-radius:10px;overflow:hidden;border:1px solid var(--border);}
+    .del-progress-bar-fill{height:100%;width:0%;border-radius:10px;background:linear-gradient(90deg,#b91c1c,#ef4444);transition:width .35s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden;}
+    .del-progress-bar-fill::after{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);animation:shimbar 1.4s infinite;}
+    @keyframes shimbar{to{left:100%;}}
+    .del-progress-stats{margin-top:8px;font-size:.76rem;color:var(--muted);display:flex;gap:16px;}
+    .del-progress-stats .pstat{font-weight:700;color:var(--txt2);}
+
+    /* ── MODAL ── */
+    .modal-overlay{position:fixed;inset:0;background:rgba(13,27,45,.55);z-index:300;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:opacity .22s,visibility .22s;padding:20px;}
+    .modal-overlay.open{opacity:1;visibility:visible;}
+    .modal-box{background:#fff;border-radius:var(--r-lg);box-shadow:var(--shadow-lg);max-width:480px;width:100%;padding:28px;transform:scale(.96);transition:transform .22s;border:1px solid var(--border);}
+    .modal-overlay.open .modal-box{transform:scale(1);}
+    .modal-title{font-family:'Merriweather',serif;font-size:1.05rem;font-weight:700;color:var(--navy);margin-bottom:12px;}
+    .modal-body{font-size:.84rem;color:var(--txt2);line-height:1.6;margin-bottom:20px;}
+    .modal-body strong{color:var(--navy);}
+    .modal-footer{display:flex;gap:10px;justify-content:flex-end;}
+
+    /* ── TOAST ── */
+    #toast-container{position:fixed;bottom:24px;right:24px;z-index:500;display:flex;flex-direction:column;gap:10px;}
+    .toast{padding:12px 18px;border-radius:var(--r-md);font-size:.82rem;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.15);transform:translateX(120%);transition:transform .3s cubic-bezier(.4,0,.2,1);max-width:360px;min-width:220px;}
+    .toast.show{transform:translateX(0);}
+    .toast.success{background:var(--green);color:#fff;}
+    .toast.error{background:var(--red);color:#fff;}
+    .toast.info{background:var(--navy);color:#fff;}
+
+    /* ── RESPONSIVE ── */
+    @media(max-width:768px){
+      .hdr-hamburger{display:flex;}
+      .site-header{transform:translateX(-100%);}
+      .site-header.active{transform:translateX(0);}
+      .main{margin-left:0;padding:14px 12px;}
+      .top-nav-logo-text{display:none;}
+      .fg-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));}
+    }
+
+    /* ── PAGE LOADER ── */
     .page-loader{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.72);backdrop-filter:blur(2px);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .24s ease,visibility .24s ease;z-index:9999;}
     .page-loader.visible{opacity:1;visibility:visible;pointer-events:auto;}
-    .page-loader-inner{display:flex;flex-direction:column;align-items:center;gap:12px;padding:16px 20px;background:rgba(255,255,255,.92);border:1px solid rgba(15,23,42,.1); box-shadow:0 12px 32px rgba(15,23,42,.12);}
+    .page-loader-inner{display:flex;flex-direction:column;align-items:center;gap:12px;padding:16px 20px;background:rgba(255,255,255,.92);border:1px solid rgba(15,23,42,.1);box-shadow:0 12px 32px rgba(15,23,42,.12);}
     .page-loader-dots{display:flex;gap:8px;}
-    .page-loader-dot{width:12px;height:12px;background:var(--navy);animation:page-loader-pulse 1s ease-in-out infinite both;}
+    .page-loader-dot{width:12px;height:12px;background:var(--navy);animation:plp 1s ease-in-out infinite both;}
     .page-loader-dot:nth-child(2){animation-delay:.16s;}
     .page-loader-dot:nth-child(3){animation-delay:.32s;}
-    @keyframes page-loader-pulse{0%,100%{transform:scale(1);opacity:.4;}50%{transform:scale(1.45);opacity:1;}}
-    .page-loader-text{font-size:.92rem;color:var(--navy);font-weight:700;letter-spacing:.02em;}
-  </style>
+    @keyframes plp{0%,100%{transform:scale(1);opacity:.4;}50%{transform:scale(1.45);opacity:1;}}
+    .page-loader-text{font-size:.92rem;color:var(--navy);font-weight:700;}
+</style>
 </head>
 <body>
-  <div id="page-loader" class="page-loader" aria-hidden="true">
-    <div class="page-loader-inner">
-      <div class="page-loader-dots">
-        <span class="page-loader-dot"></span>
-        <span class="page-loader-dot"></span>
-        <span class="page-loader-dot"></span>
-      </div>
-      <div class="page-loader-text">Loading…</div>
-    </div>
+
+<div id="page-loader" class="page-loader" aria-hidden="true">
+  <div class="page-loader-inner">
+    <div class="page-loader-dots"><span class="page-loader-dot"></span><span class="page-loader-dot"></span><span class="page-loader-dot"></span></div>
+    <div class="page-loader-text">Loading&hellip;</div>
   </div>
+</div>
 
-
-<!-- ═══════════ TOP NAVIGATION BAR ═══════════ -->
 <div class="top-nav-bar">
   <div class="top-nav-logo">
-    <div class="top-nav-logo-img">
-      <img src="https://www.muamc.edu.bd/wp-content/uploads/2025/01/logo-muam-scaled.jpeg" alt="Logo">
-    </div>
-    <div class="top-nav-logo-text">
-      <h1>Moinuddin Adarsha Mohila College</h1>
-      <p>Analytics &amp; Management Module</p>
-    </div>
+    <div class="top-nav-logo-img"><img src="https://www.muamc.edu.bd/wp-content/uploads/2025/01/logo-muam-scaled.jpeg" alt="College Logo"></div>
+    <div class="top-nav-logo-text"><h1>Moinuddin Adarsha Mohila College</h1><p>Student Database System</p></div>
   </div>
   <div class="top-nav-admin">
-      <div class="top-nav-admin-info">
-        <div class="top-nav-avatar" id="nav-avatar">A</div>
-        <div>
-          <div class="top-nav-name" id="nav-name">Admin</div>
-          <div class="top-nav-role" id="nav-role">System Admin</div>
-        </div>
-      </div>
-      <button class="hdr-hamburger" id="hdr-hamburger" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
-      <button class="logout-btn" onclick="doLogout()">Logout</button>
-    </div>
+    <button class="hdr-hamburger" id="hdr-hamburger" onclick="toggleSidebar()" aria-label="Menu"><i class="fas fa-bars"></i></button>
+    <button class="logout-btn" onclick="doLogout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+  </div>
 </div>
 
-<!-- ═══════════ SIDEBAR ═══════════ -->
 <header class="site-header" id="site-header">
   <nav class="nav-strip" id="nav-strip">
-    <div class="nav-section-label">Analytics</div>
-    <div class="nt active" id="nt-archive" onclick="switchTab('archive')"><i class="fas fa-archive nt-icon"></i> Student Archive</div>
-    <div class="nt" id="nt-promotion" onclick="switchTab('promotion')"><i class="fas fa-level-up-alt nt-icon"></i> Auto-Promotion</div>
-    <div class="nt" id="nt-rolls" onclick="switchTab('rolls')"><i class="fas fa-list-ol nt-icon"></i> Auto-Roll Gen</div>
-    <div class="nt" id="nt-detain" onclick="switchTab('detain')"><i class="fas fa-user-times nt-icon"></i> Detain List</div>
-    <div class="nt" id="nt-certificate" onclick="switchTab('certificate')"><i class="fas fa-certificate nt-icon"></i> TC / Certificate</div>
-    <div class="nav-section-label" style="color:var(--red);margin-top:12px;">Danger Zone</div>
-    <div class="nt" id="nt-redalert" onclick="switchTab('redalert')" 
-    style="
-    color:var(--red);"><i class="fas fa-exclamation-triangle nt-icon"></i> RED Alert</div>
-    <div class="nav-section-label" style="margin-top:auto;padding-top:24px;">Navigation</div>
-    <div class="nt" onclick="window.location.href='result_analytics.html'"><i class="fas fa-chart-bar nt-icon"></i> Result Analytics</div>
-    <div class="nt" onclick="window.location.href='group-results.html'"><i class="fas fa-table nt-icon"></i> Group-wise Results</div>
-    <div class="nt back-link" onclick="window.location.href='index.html'"><i class="fas fa-home nt-icon"></i> Main Dashboard</div>
+    <a class="nt" href="/"><i class="fas fa-home nav-icon"></i> Dashboard</a>
+    <a class="nt" href="/student-list.html"><i class="fas fa-users nav-icon"></i> Student Management</a>
+    <a class="nt" href="/marks-entry.html"><i class="fas fa-edit nav-icon"></i> Mark Entry</a>
+    <a class="nt" href="/Teachers.html"><i class="fas fa-chalkboard-teacher nav-icon"></i> Teachers</a>
+    <a class="nt" href="/Result-card.html"><i class="fas fa-file-invoice nav-icon"></i> Result Card</a>
+    <a class="nt" href="/Admit-card.html"><i class="fas fa-id-card nav-icon"></i> Admit Card</a>
+    <a class="nt" href="/bulk-photo.html"><i class="fas fa-images nav-icon"></i> Bulk Photo Upload</a>
+    <a class="nt active" href="/analytics.html" style="border-top:1px solid rgba(255,255,255,.08);margin-top:8px;padding-top:16px;"><i class="fas fa-chart-line nav-icon"></i> Analytics</a>
+    <a class="nt" href="/result_analytics.html"><i class="fas fa-chart-bar nav-icon"></i> Result Analytics</a>
+    <a class="nt" href="/group-results.html"><i class="fas fa-table nav-icon"></i> Group-wise Results</a>
+    <a class="nt" href="/seat-plan.html"><i class="fas fa-th nav-icon"></i> Seat Plan</a>
   </nav>
 </header>
-
-<!-- Sidebar overlay for mobile -->
 <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
 
-<!-- ═══════════════════════════════════════════════════ -->
-<!-- MAIN CONTENT -->
-<!-- ═══════════════════════════════════════════════════ -->
-<main class="main">
-
-<!-- ══════════════════ TAB: STUDENT ARCHIVE ══════════════════ -->
-<div id="tc-archive" class="tc active">
-  <div class="pg-hd-row pg-hd">
-    <div>
-      <h2>Student Archive</h2>
-      <p>Class-XII graduates ready to move to permanent archive</p>
-    </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;">
-      <button class="btn btn-gold btn-sm" onclick="loadArchiveCandidates()">↻ Refresh Candidates</button>
-    </div>
-  </div>
-
-  <!-- Archive Candidates (Class-XII pass students) -->
-  <div class="card">
-    <div class="card-head">
-      <h3>Archive Candidates — Passing Class-XII Students</h3>
-      <span class="meta" id="archive-cand-count">—</span>
-    </div>
-    <div class="card-body" id="archive-alert-wrap"></div>
-    <div class="select-all-row" id="archive-cand-controls" style="display:none;">
-      <input type="checkbox" id="archive-check-all" onchange="toggleAllArchiveCandidates(this)">
-      <label for="archive-check-all" style="cursor:pointer;">Select All</label>
-      <span style="flex:1;"></span>
-      <button class="btn btn-primary btn-sm" onclick="moveToArchive()">🗃️ Move Selected to Archive</button>
-    </div>
-    <div class="tbl-wrap">
-      <table class="tbl" id="archive-cand-tbl">
-        <thead><tr>
-          <th style="width:32px;"></th>
-          <th>#</th><th>Name</th><th>Roll</th><th>Group</th><th>Session</th><th>GPA</th><th>Result</th>
-        </tr></thead>
-        <tbody id="archive-cand-body">
-          <tr><td colspan="8" class="tbl-empty"><div class="loading-container"><div class="loading-spinner"></div><div class="loading-text">Loading candidates…</div></div></td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- Existing Archive -->
-  <div class="card">
-    <div class="card-head">
-      <h3>Archived Graduates</h3>
-      <span class="meta" id="archive-stored-count">—</span>
-    </div>
-    <div class="card-body">
-      <div class="search-row">
-        <input id="archive-search" placeholder="Search by name or roll…" oninput="renderArchivedStudents()">
-        <button class="btn btn-outline btn-sm" onclick="exportArchiveCSV()">⬇ Export CSV</button>
-      </div>
-    </div>
-    <div class="tbl-wrap">
-      <table class="tbl">
-        <thead><tr><th>#</th><th>Name</th><th>Roll</th><th>Reg. No.</th><th>Group</th><th>Session</th><th>Archived On</th><th>Actions</th></tr></thead>
-        <tbody id="archive-stored-body"><tr><td colspan="8" class="tbl-empty"><div class="loading-container"><div class="loading-spinner"></div></div></td></tr></tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════ TAB: AUTO-PROMOTION ══════════════════ -->
-<div id="tc-promotion" class="tc">
+<main class="main" id="main-content">
   <div class="pg-hd">
-    <h2>Auto-Promotion</h2>
-    <p>Identify passing Class-XI students and promote them to Class-XII</p>
+    <h2><i class="fas fa-chart-line" style="margin-right:8px;color:var(--navy2);"></i>Analytics</h2>
+    <p>Class promotion management and bulk data operations.</p>
   </div>
 
-  <!-- Step flow -->
-  <div class="step-flow" id="promo-step-flow">
-    <div class="step-item active" id="ps1"><div class="step-num">1</div><span>Analyze</span></div>
-    <div class="step-sep" id="pss1"></div>
-    <div class="step-item" id="ps2"><div class="step-num">2</div><span>Preview</span></div>
-    <div class="step-sep" id="pss2"></div>
-    <div class="step-item" id="ps3"><div class="step-num">3</div><span>Confirm</span></div>
-    <div class="step-sep" id="pss3"></div>
-    <div class="step-item" id="ps4"><div class="step-num">4</div><span>Done</span></div>
+  <!-- TAB STRIP -->
+  <div class="tab-strip" role="tablist" aria-label="Analytics sections">
+    <button class="tab-btn active" id="tab-btn-promotion" role="tab"
+            aria-selected="true" aria-controls="tab-panel-promotion"
+            onclick="switchTab('promotion')"><i class="fas fa-user-graduate" style="margin-right:6px;"></i>Class Promotion</button>
+    <button class="tab-btn danger-tab" id="tab-btn-deletion" role="tab"
+            aria-selected="false" aria-controls="tab-panel-deletion"
+            onclick="switchTab('deletion')"><i class="fas fa-trash-alt" style="margin-right:6px;"></i>Data Deletion</button>
   </div>
 
-  <!-- Step 1: Analyze -->
-  <div id="promo-step-1" class="card">
-    <div class="card-head"><h3>Step 1 — Analyze Eligible Students</h3></div>
-    <div class="card-body">
-      <p style="font-size:.82rem;color:var(--txt2);margin-bottom:16px;">This will scan all <strong>Class-XI</strong> students who have marks on record, compute their result, and list those who <strong>passed</strong> (no F in mandatory subjects).</p>
-      <div class="fg-grid" style="margin-bottom:16px;">
-        <div class="fg">
-          <label>New Academic Year / Session</label>
-          <select id="promo-year">
-            <option value="">— Keep existing year —</option>
-            <option value="2022-2023">2022-2023</option>
-            <option value="2023-2024">2023-2024</option>
-            <option value="2024-2025">2024-2025</option>
-            <option value="2025-2026">2025-2026</option>
-          </select>
+  <!-- TAB PANEL: PROMOTION -->
+  <div class="tab-panel active" id="tab-panel-promotion" role="tabpanel" aria-labelledby="tab-btn-promotion">
+    <div class="card" id="promotion-card">
+      <div class="card-head"><h3><i class="fas fa-graduation-cap" style="margin-right:8px;color:var(--navy3);"></i>Class XI &#8594; Class XII Promotion</h3></div>
+      <div class="card-body">
+        <div class="fg-grid">
+          <div class="fg">
+            <label>Class (Fixed)</label>
+            <span class="fixed-class-badge"><i class="fas fa-user-tag" style="margin-right:6px;"></i>Class-XI</span>
+            <span class="fg-note">Promotion is always XI to XII</span>
+          </div>
+          <div class="fg">
+            <label for="prom-group">Department</label>
+            <select id="prom-group" onchange="promOnGroupChange()">
+              <option value="">&#8212; Select Department &#8212;</option>
+              <option value="Science">Science</option>
+              <option value="Humanities">Humanities</option>
+              <option value="Business">Business</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label for="prom-session">Session</label>
+            <select id="prom-session" disabled onchange="promOnSessionChange()">
+              <option value="">&#8212; Select Session &#8212;</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label for="prom-exam">Exam</label>
+            <select id="prom-exam" disabled onchange="promOnExamChange()">
+              <option value="">&#8212; Select Exam &#8212;</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label for="prom-category">Result Category</label>
+            <select id="prom-category" disabled onchange="promCheckReady()">
+              <option value="">&#8212; Select Category &#8212;</option>
+              <option value="passed_all">Passed All Subjects</option>
+              <option value="failed_1">Failed in 1 Subject</option>
+              <option value="failed_2">Failed in 2 Subjects</option>
+              <option value="failed_3">Failed in 3 Subjects</option>
+              <option value="failed_4">Failed in 4 Subjects</option>
+              <option value="failed_5">Failed in 5 Subjects</option>
+              <option value="failed_6">Failed in 6 Subjects</option>
+              <option value="failed_all">Failed All Subjects</option>
+              <option value="absent">Absent</option>
+              <option value="top10">Top 10 List</option>
+            </select>
+          </div>
+        </div>
+        <div id="prom-alert" class="alert alert-err" style="margin-top:14px;display:none;"></div>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="prom-btn-load" onclick="promLoadStudents()" disabled><i class="fas fa-search"></i> Load Students</button>
+        </div>
+        <div id="prom-table-section" style="display:none;margin-top:22px;">
+          <hr class="section-sep">
+          <div class="prom-controls">
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn btn-outline btn-sm" onclick="promSelectAll()"><i class="fas fa-check-square"></i> Select All</button>
+              <button class="btn btn-outline btn-sm" onclick="promDeselectAll()"><i class="far fa-square"></i> Deselect All</button>
+            </div>
+            <span class="prom-count-badge" id="prom-sel-count"><i class="fas fa-users-cog" style="margin-right:4px;"></i>0 selected</span>
+          </div>
+          <div class="prom-table-wrap">
+            <table class="prom-table" aria-label="Students for Promotion">
+              <thead>
+                <tr>
+                  <th><input type="checkbox" id="prom-cb-all" class="cb-check" onchange="promToggleAll(this)" title="Toggle all"></th>
+                  <th>SL</th><th>Roll</th><th>Name</th><th>Group</th><th>Category</th>
+                </tr>
+              </thead>
+              <tbody id="prom-tbody"><tr class="prom-state-row"><td colspan="6">No data loaded.</td></tr></tbody>
+            </table>
+          </div>
+          <div class="btn-row" style="margin-top:16px;">
+            <button class="btn btn-success" id="prom-btn-promote" onclick="openPromoteModal()" disabled><i class="fas fa-level-up-alt"></i> Promote Selected to Class-XII</button>
+            <span id="prom-skip-note" style="font-size:.76rem;color:var(--muted);display:none;"></span>
+          </div>
         </div>
       </div>
-      <button class="btn btn-primary" onclick="analyzePromotion()">Analyze &amp; Preview Eligible Students</button>
     </div>
-  </div>
+  </div><!-- end tab-panel-promotion -->
 
-  <!-- Step 2: Preview list -->
-  <div id="promo-step-2" style="display:none;">
-    <div class="card">
-      <div class="card-head">
-        <h3>Eligible for Promotion</h3>
-        <span class="meta" id="promo-count">0 students</span>
-      </div>
-      <!-- Back / Continue at the TOP-LEFT -->
-      <div class="card-body" style="padding:10px 20px;border-bottom:1px solid var(--border);background:var(--slate);">
-        <div style="display:flex;gap:8px;align-items:center;">
-          <button class="btn btn-outline btn-sm" onclick="resetPromoFlow()">← Back</button>
-          <button class="btn btn-primary btn-sm" onclick="showPromoConfirm()">Continue →</button>
-        </div>
-      </div>
-      <div class="card-body" id="promo-alert-wrap"></div>
-      <div class="select-all-row" id="promo-select-row">
-        <input type="checkbox" id="promo-check-all" onchange="toggleAllPromo(this)">
-        <label for="promo-check-all" style="cursor:pointer;">Select All</label>
-        <button class="btn btn-amber btn-xs" onclick="selectOnlyEligible()" style="margin-left:8px;">✓ Select Only Eligible</button>
-        <span style="flex:1;"></span>
-        <span style="font-size:.72rem;color:var(--muted);">Select students to promote</span>
-      </div>
-      <div class="tbl-wrap">
-        <table class="tbl">
-          <thead><tr>
-            <th style="width:32px;"></th>
-            <th>#</th><th>Name</th><th>Roll</th><th>Reg. No.</th><th>Group</th><th>Section</th><th>GPA</th><th>Total</th><th>Exam</th>
-          </tr></thead>
-          <tbody id="promo-list-body"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <!-- Step 3: Confirm -->
-  <div id="promo-step-3" style="display:none;">
-    <div class="confirm-panel">
-      <h4>⚠️ Confirm Promotion</h4>
-      <p id="promo-confirm-text">You are about to promote <strong>N</strong> students from Class-XI to Class-XII. This action will update their class level in the database. This cannot be automatically undone.</p>
-    </div>
-    <div class="btn-row">
-      <button class="btn btn-outline btn-sm" onclick="backToPromoPreview()">← Back</button>
-      <button class="btn btn-success" id="promo-confirm-btn" onclick="executePromotion()">✅ Confirm &amp; Promote</button>
-    </div>
-  </div>
-
-  <!-- Step 4: Done -->
-  <div id="promo-step-4" style="display:none;">
-    <div class="card">
-      <div class="card-body" style="text-align:center;padding:40px;">
-        <div style="font-size:3rem;margin-bottom:12px;">🎉</div>
-        <div style="font-family:'Merriweather',serif;font-size:1.1rem;font-weight:700;color:var(--navy);margin-bottom:8px;" id="promo-done-msg">Promotion Complete!</div>
-        <p style="font-size:.82rem;color:var(--muted);margin-bottom:24px;">Students have been promoted to Class-XII.</p>
-        <button class="btn btn-outline" onclick="resetPromoFlow()">Start New Analysis</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════ TAB: AUTO-ROLL GEN ══════════════════ -->
-<div id="tc-rolls" class="tc">
-  <div class="pg-hd">
-    <h2>Auto-Roll Number Generation</h2>
-    <p>Sort Class-XII students by GPA (desc) then Total Marks, and assign sequential roll numbers</p>
-  </div>
-
-  <!-- Step flow -->
-  <div class="step-flow">
-    <div class="step-item active" id="rs1"><div class="step-num">1</div><span>Configure</span></div>
-    <div class="step-sep" id="rss1"></div>
-    <div class="step-item" id="rs2"><div class="step-num">2</div><span>Preview Ranking</span></div>
-    <div class="step-sep" id="rss2"></div>
-    <div class="step-item" id="rs3"><div class="step-num">3</div><span>Apply Rolls</span></div>
-  </div>
-
-  <div id="roll-step-1" class="card">
-    <div class="card-head"><h3>Step 1 — Configure Roll Generation</h3></div>
-    <div class="card-body">
-      <p style="font-size:.82rem;color:var(--txt2);margin-bottom:16px;">Rolls are assigned to <strong>Class-XII</strong> students. They will be sorted by GPA (highest first), then Total Marks as a tiebreaker. Roll 1 goes to the top student.</p>
-      <div class="fg-grid" style="margin-bottom:16px;">
-        <div class="fg">
-          <label>Filter by Group (optional)</label>
-          <select id="roll-group-filter">
-            <option value="">All Groups</option>
-            <option value="Science">Science</option>
-            <option value="Humanities">Humanities</option>
-            <option value="Business">Business Studies</option>
-          </select>
-        </div>
-      </div>
-      <button class="btn btn-primary" onclick="generateRolls()">Generate Roll Preview</button>
-    </div>
-  </div>
-
-  <div id="roll-step-2" style="display:none;">
-    <div class="card">
-      <div class="card-head">
-        <h3>Roll Assignment Preview</h3>
-        <span class="meta" id="roll-count">—</span>
-      </div>
-      <div id="roll-alert-wrap" class="card-body" style="display:none;padding:12px 20px;"></div>
-      <div class="tbl-wrap">
-        <table class="tbl">
-          <thead><tr>
-            <th>Rank</th><th>New Roll</th><th>Name</th><th>Old Roll</th><th>Group</th><th>GPA</th><th>Total Marks</th>
-          </tr></thead>
-          <tbody id="roll-preview-body"></tbody>
-        </table>
+  <!-- TAB PANEL: DELETION -->
+  <div class="tab-panel" id="tab-panel-deletion" role="tabpanel" aria-labelledby="tab-btn-deletion">
+    <div class="card" id="deletion-card">
+      <div class="card-head danger-head">
+        <h3><i class="fas fa-exclamation-triangle" style="margin-right:8px;color:var(--red);"></i>Data Management &#8212; Deletion</h3>
+        <span style="font-size:.72rem;color:var(--red);font-weight:700;letter-spacing:.3px;text-transform:uppercase;"><i class="fas fa-shield-alt" style="margin-right:3px;"></i>Danger Zone</span>
       </div>
       <div class="card-body">
-        <div class="confirm-panel" style="margin-bottom:0;">
-          <h4>Confirm Roll Assignment</h4>
-          <p>Existing roll numbers for the listed students will be overwritten. This is a permanent change. Ensure results have been finalised before applying.</p>
+        <div class="danger-banner">
+          <span class="danger-tag"><i class="fas fa-radiation"></i> WARNING</span>
+          <p>Deletion is <strong>permanent and cannot be undone</strong>. All records deleted from the database are lost forever. Verify your selections carefully. A multi-step confirmation is required before any data is removed.</p>
         </div>
+        <div style="margin-bottom:20px;">
+          <div style="font-size:.74rem;font-weight:600;color:var(--navy);margin-bottom:8px;">What to delete:</div>
+          <div class="mode-toggle" role="group" aria-label="Deletion mode">
+            <button class="mode-btn active" id="del-mode-marks" onclick="setDelMode('marks')"><i class="fas fa-file-alt" style="margin-right:4px;"></i>Marks Only</button>
+            <button class="mode-btn" id="del-mode-students" onclick="setDelMode('students')"><i class="fas fa-user-slash" style="margin-right:4px;"></i>Students &amp; Marks</button>
+          </div>
+          <div id="del-mode-warning" style="display:none;margin-top:10px;">
+            <div class="alert alert-err" style="font-size:.77rem;"><i class="fas fa-exclamation-circle" style="margin-right:4px;"></i>Selecting "Students &amp; Marks" will permanently remove all student profiles, their marks, and their photos. This cannot be reversed.</div>
+          </div>
+        </div>
+        <div class="fg-grid">
+          <div class="fg">
+            <label for="del-cls">Class</label>
+            <select id="del-cls" onchange="delOnClassChange()">
+              <option value="">&#8212; Select Class &#8212;</option>
+              <option value="Class-XI">Class-XI</option>
+              <option value="Class-XII">Class-XII</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label for="del-group">Department</label>
+            <select id="del-group" disabled onchange="delOnGroupChange()">
+              <option value="">&#8212; Select Department &#8212;</option>
+              <option value="Science">Science</option>
+              <option value="Humanities">Humanities</option>
+              <option value="Business">Business</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label for="del-session">Session</label>
+            <select id="del-session" disabled onchange="delOnSessionChange()">
+              <option value="">&#8212; Select Session &#8212;</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label for="del-exam">Exam <span style="font-weight:400;color:var(--muted);">(marks mode)</span></label>
+            <select id="del-exam" disabled onchange="delCheckReady()">
+              <option value="">&#8212; Select Exam &#8212;</option>
+            </select>
+          </div>
+        </div>
+        <div id="del-alert" class="alert alert-err" style="margin-top:14px;display:none;"></div>
         <div class="btn-row">
-          <button class="btn btn-outline btn-sm" onclick="resetRollFlow()">← Back</button>
-          <button class="btn btn-success" id="roll-apply-btn" onclick="applyRolls()">✅ Apply Roll Numbers</button>
+          <button class="btn btn-outline" id="del-btn-preview" onclick="delPreviewCount()" disabled><i class="fas fa-calculator"></i> Preview Count</button>
+        </div>
+        <div id="del-preview-result" style="display:none;">
+          <div class="preview-pill marks" id="del-preview-pill">
+            <span class="pill-num" id="del-preview-num">0</span>
+            <span id="del-preview-text">records will be deleted</span>
+          </div>
+        </div>
+        <div class="confirm-box" id="del-confirm-box" style="display:none;">
+          <p>To confirm, type <strong>DELETE</strong> exactly in the field below, then click the button. This action <strong style="color:var(--red);">cannot be reversed</strong>.</p>
+          <div class="confirm-row">
+            <input type="text" class="confirm-input" id="del-confirm-input" placeholder="Type DELETE here" oninput="delCheckConfirm()" autocomplete="off" aria-label="Confirmation input">
+            <button class="btn btn-danger" id="del-btn-execute" onclick="delExecute()" disabled><i class="fas fa-trash-alt"></i> Delete Now</button>
+          </div>
+        </div>
+        <div class="del-progress-wrap" id="del-progress-wrap">
+          <div class="del-progress-label"><span>Deleting data&hellip;</span><span id="del-pct-label">0%</span></div>
+          <div class="del-progress-bar-bg"><div class="del-progress-bar-fill" id="del-progress-fill"></div></div>
+          <div class="del-progress-stats">
+            <span><span class="pstat" id="del-stat-done">0</span> deleted</span>
+            <span>of <span class="pstat" id="del-stat-total">0</span> total</span>
+          </div>
+        </div>
+        <div id="del-done-msg" style="display:none;margin-top:14px;">
+          <div class="alert alert-ok" id="del-done-text"></div>
         </div>
       </div>
     </div>
-  </div>
-</div>
-
-<!-- ══════════════════ TAB: DETAIN LIST ══════════════════ -->
-<div id="tc-detain" class="tc">
-  <div class="pg-hd-row pg-hd">
-    <div>
-      <h2>Detain List</h2>
-      <p>Class-XI students who failed — option to re-enroll for another session</p>
-    </div>
-    <button class="btn btn-gold btn-sm" onclick="loadDetainList()">↻ Refresh</button>
-  </div>
-
-  <div id="detain-alert-wrap"></div>
-
-  <div class="summary-strip" id="detain-summary-strip" style="display:none;">
-    <div class="s-tile red"><div class="s-val" id="ds-detained">0</div><div class="s-lbl">Detained<br>Students</div></div>
-    <div class="s-tile amber"><div class="s-val" id="ds-avg-fail">0</div><div class="s-lbl">Avg Failed<br>Subjects</div></div>
-    <div class="s-tile navy" style="border-top-color:var(--navy);"><div class="s-val" id="ds-groups">0</div><div class="s-lbl">Groups<br>Affected</div></div>
-  </div>
-
-  <div class="card">
-    <div class="card-head">
-      <h3>Detained Students — Class-XI</h3>
-      <span class="meta" id="detain-count">Loading…</span>
-    </div>
-    <div class="filter-strip">
-      <select id="detain-group-filter" onchange="renderDetainList()">
-        <option value="">All Groups</option>
-        <option value="Science">Science</option>
-        <option value="Humanities">Humanities</option>
-        <option value="Business">Business</option>
-      </select>
-      <input id="detain-search" placeholder="Search name…" oninput="renderDetainList()" style="padding:6px 10px;border:1.5px solid var(--border2);border-radius:var(--r);font-size:.78rem;font-family:inherit;">
-    </div>
-    <div class="tbl-wrap">
-      <table class="tbl">
-        <thead><tr>
-          <th>#</th><th>Name</th><th>Roll</th><th>Group</th><th>Section</th><th>Failed Subjects</th><th>Fail Count</th><th>Exam</th><th>Actions</th>
-        </tr></thead>
-        <tbody id="detain-body">
-          <tr><td colspan="9" class="tbl-empty"><div class="loading-container"><div class="loading-spinner"></div></div></td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════ TAB: TC / CERTIFICATE ══════════════════ -->
-<div id="tc-certificate" class="tc">
-  <div class="pg-hd">
-    <h2>Transfer Certificate &amp; Academic Certificate</h2>
-    <p>Search for a graduate or active student and generate a printable TC/certificate</p>
-  </div>
-
-  <div class="card no-print">
-    <div class="card-head"><h3>Student Search</h3></div>
-    <div class="card-body">
-      <div class="search-row">
-        <input id="cert-search" placeholder="Search by name or roll number…" oninput="searchCertStudents()">
-      </div>
-      <div id="cert-search-results" style="margin-top:8px;"></div>
-    </div>
-  </div>
-
-  <!-- Certificate Preview -->
-  <div id="cert-preview" class="cert-wrap" style="display:none;">
-    <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;" class="no-print">
-      <button class="btn btn-success" onclick="printCert()">🖨️ Print Certificate</button>
-      <button class="btn btn-primary" onclick="downloadCertPDF()">⬇ Download PDF</button>
-      <button class="btn btn-outline" onclick="closeCert()">✕ Close</button>
-    </div>
-    <div class="cert-page" id="cert-page-content">
-      <div class="cert-top-border"></div>
-      <div class="cert-header">
-        <div class="cert-logo">
-          <img src="https://www.muamc.edu.bd/wp-content/uploads/2025/01/logo-muam-scaled.jpeg" alt="Logo">
-        </div>
-        <div class="cert-college-name">Moinuddin Adarsha Mohila College</div>
-        <div class="cert-subtitle">Sylhet, Bangladesh &nbsp;|&nbsp; Established: ————</div>
-      </div>
-      <div class="cert-title-band" id="cert-title-text">TRANSFER CERTIFICATE</div>
-      <div class="cert-body">
-        <p>This is to certify that the following student was duly enrolled at <strong>Moinuddin Adarsha Mohila College</strong> and has completed her academic tenure as detailed below.</p>
-        <table class="cert-table" id="cert-data-table">
-          <tbody></tbody>
-        </table>
-        <div class="cert-result-band" id="cert-result-band"></div>
-        <p style="margin-top:16px;">This certificate is issued on the basis of college records and is correct to the best of our knowledge.</p>
-      </div>
-      <div class="cert-signatures">
-        <div class="cert-sig"><div class="cert-sig-line"></div><div class="cert-sig-label">Class Teacher</div></div>
-        <div class="cert-sig"><div class="cert-sig-line"></div><div class="cert-sig-label">Date of Issue</div></div>
-        <div class="cert-sig"><div class="cert-sig-line"></div><div class="cert-sig-label" id="cert-principal-label">Principal</div></div>
-      </div>
-      <div class="cert-seal cert-watermark">🎓</div>
-      <div class="cert-footer" id="cert-footer-text">Moinuddin Adarsha Mohila College — Academic Management System | This is a computer-generated certificate.</div>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════ TAB: RED ALERT ══════════════════ -->
-<div id="tc-redalert" class="tc">
-  <div class="pg-hd">
-    <h2 style="color: var(--red);">RED Alert</h2>
-    <p>Danger Zone: Perform bulk deletion of students or marks.</p>
-  </div>
-
-  <div class="card" style="border: 1px solid var(--red);">
-    <div class="card-head" style="background: #fef2f2; border-bottom: 1px solid #fecaca;">
-      <h3 style="color: var(--red);">Bulk Delete Operations</h3>
-      <span class="meta" style="color: #991b1b;">Irreversible Actions</span>
-    </div>
-    <div class="card-body">
-      <div id="redalert-alert-wrap"></div>
-      
-      <div class="fg-grid" style="margin-bottom: 20px;">
-        <div class="fg">
-          <label>Target Class (Optional)</label>
-          <select id="red-class">
-            <option value="">-- All Classes --</option>
-            <option value="Class-XI">Class XI</option>
-            <option value="Class-XII">Class XII</option>
-          </select>
-        </div>
-        <div class="fg">
-          <label>Target Group (Optional)</label>
-          <select id="red-group">
-            <option value="">-- All Groups --</option>
-            <option value="Science">Science</option>
-            <option value="Humanities">Humanities</option>
-            <option value="Business">Business Studies</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="confirm-panel" style="background: #fff5f5; border-color: #fecaca; margin-bottom: 24px;">
-        <h4 style="color: var(--red);">Warning</h4>
-        <p style="color: #991b1b;">These actions will permanently delete records from the database based on the selected filters. If no class or group is selected, ALL records will be deleted. Please proceed with extreme caution.</p>
-      </div>
-
-      <div class="btn-row">
-        <button class="btn btn-outline-danger" onclick="bulkDeleteMarks()">Delete Marks Only</button>
-        <button class="btn btn-danger" onclick="bulkDeleteStudents()">Delete Students &amp; Marks</button>
-      </div>
-    </div>
-  </div>
-</div>
+  </div><!-- end tab-panel-deletion -->
 
 </main>
 
-<!-- ═══════════════════════════════════════════════════ -->
-<!-- SCRIPTS -->
-<!-- ═══════════════════════════════════════════════════ -->
+<!-- PROMOTION MODAL -->
+<div class="modal-overlay" id="prom-modal" role="dialog" aria-modal="true" aria-labelledby="prom-modal-title">
+  <div class="modal-box">
+    <div class="modal-title" id="prom-modal-title"><i class="fas fa-user-graduate" style="margin-right:8px;color:var(--green);"></i>Confirm Promotion</div>
+    <div class="modal-body" id="prom-modal-body">Are you sure?</div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closePromoteModal()"><i class="fas fa-times"></i> Cancel</button>
+      <button class="btn btn-success" id="prom-modal-confirm" onclick="promExecute()"><i class="fas fa-check"></i> Yes, Promote</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container" aria-live="polite" aria-atomic="false"></div>
 <script>
 
-// --- API CONFIGURATION FOR STATIC SERVERS ---
-(function() {
-  const defaultBase = window.location.origin;
-  window.API_BASE = window.API_BASE !== undefined ? window.API_BASE : defaultBase;
-  const _origFetch = window.fetch;
-  window.fetch = function() {
-    let args = Array.prototype.slice.call(arguments);
-    let resource = args[0];
-    let config = args[1];
-    if (typeof resource === 'string' && resource.startsWith('/api')) {
-      resource = window.API_BASE + resource;
+var API=(window.API_BASE!==undefined?window.API_BASE:'');
+
+/* ── AUTH ── */
+async function doLogout(){if(!confirm('Logout?'))return;try{await fetch(API+'/api/logout',{method:'POST'});}catch(_){}window.location.href='login.html';}
+(async function init(){try{var res=await fetch(API+'/api/auth-status');var auth=await res.json();if(!auth.authenticated){window.location.href='login.html';return;}if(auth.role!=='admin'){document.getElementById('main-content').innerHTML='<div class="alert alert-err" style="max-width:460px;margin:60px auto;">Access denied. Administrator privileges required.</div>';}}catch(_){window.location.href='login.html';}})();
+
+/* ── SIDEBAR ── */
+function toggleSidebar(){document.getElementById('site-header').classList.toggle('active');document.getElementById('sidebar-overlay').classList.toggle('active');}
+function closeSidebar(){document.getElementById('site-header').classList.remove('active');document.getElementById('sidebar-overlay').classList.remove('active');}
+
+/* ── TABS ── */
+function switchTab(tab){
+  document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
+  document.querySelectorAll('.tab-panel').forEach(function(p){p.classList.remove('active');});
+  document.getElementById('tab-btn-'+tab).classList.add('active');
+  document.getElementById('tab-panel-'+tab).classList.add('active');
+}
+
+/* ── TOAST ── */
+function showToast(msg,type,dur){var c=document.getElementById('toast-container');var t=document.createElement('div');t.className='toast '+(type||'info');t.textContent=msg;c.appendChild(t);requestAnimationFrame(function(){t.classList.add('show');});setTimeout(function(){t.classList.remove('show');setTimeout(function(){if(c.contains(t))c.removeChild(t);},350);},(dur||4000));}
+
+/* ── HELPERS ── */
+function escH(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function showEl(id,show){var el=document.getElementById(id);if(el)el.style.display=(show===false)?'none':'';}
+function setAlert(id,msg,type){var el=document.getElementById(id);if(!el)return;el.className='alert alert-'+(type||'err');el.textContent=msg;el.style.display=msg?'':'none';}
+function fillSel(id,items,vf,lf,ph){var s=document.getElementById(id);s.innerHTML='<option value="">'+ph+'</option>';items.forEach(function(i){var o=document.createElement('option');o.value=vf(i);o.textContent=lf(i);s.appendChild(o);});s.disabled=items.length===0;}
+/* resetSels: only resets session/exam-type selects — NOT the category select which is static HTML */
+function resetDynSels(ids){ids.forEach(function(id){var el=document.getElementById(id);el.innerHTML='<option value="">&#8212; Select &#8212;</option>';el.disabled=true;});}
+function _sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
+
+/* ══════════════════════════════════════════
+   PROMOTION
+══════════════════════════════════════════ */
+var _pfd=null,_ps=[];
+
+async function promOnGroupChange(){
+  var g=document.getElementById('prom-group').value;
+  /* Only reset the dynamic selects — NOT prom-category (its options are static HTML) */
+  resetDynSels(['prom-session','prom-exam']);
+  /* Reset category selection but KEEP its options */
+  var catSel=document.getElementById('prom-category');
+  catSel.value='';catSel.disabled=true;
+  document.getElementById('prom-btn-load').disabled=true;
+  hidePromTable();setAlert('prom-alert','');
+  if(!g)return;
+  try{
+    var r=await fetch(API+'/api/tabulation-sheet/filters?cls=Class-XI&group='+encodeURIComponent(g));
+    var d=await r.json();
+    if(!d.ok){setAlert('prom-alert',d.message||'Failed to load sessions.');return;}
+    _pfd=d;
+    fillSel('prom-session',d.sessions,function(s){return s;},function(s){return s;},'&#8212; Select Session &#8212;');
+    document.getElementById('prom-session').disabled=d.sessions.length===0;
+    if(!d.sessions.length)setAlert('prom-alert','No Class-XI students found for this department.','warn');
+  }catch(e){setAlert('prom-alert','Network error loading sessions.');}
+}
+
+function promOnSessionChange(){
+  /* Only reset exam and category value — keep category options intact */
+  resetDynSels(['prom-exam']);
+  var catSel=document.getElementById('prom-category');
+  catSel.value='';catSel.disabled=true;
+  document.getElementById('prom-btn-load').disabled=true;
+  hidePromTable();setAlert('prom-alert','');
+  var ses=document.getElementById('prom-session').value;
+  if(!ses||!_pfd)return;
+  fillSel('prom-exam',_pfd.exam_types,function(e){return e;},function(e){return e;},'&#8212; Select Exam &#8212;');
+  document.getElementById('prom-exam').disabled=_pfd.exam_types.length===0;
+}
+
+function promOnExamChange(){
+  /* Enable category select; its options are already in the HTML */
+  var catSel=document.getElementById('prom-category');
+  catSel.value='';
+  catSel.disabled=false;
+  hidePromTable();
+  promCheckReady();
+}
+
+function promCheckReady(){
+  var ok=['prom-group','prom-session','prom-exam','prom-category'].every(function(id){return!!document.getElementById(id).value;});
+  document.getElementById('prom-btn-load').disabled=!ok;
+}
+
+function hidePromTable(){showEl('prom-table-section',false);_ps=[];updatePromCount();}
+
+async function promLoadStudents(){
+  var g=document.getElementById('prom-group').value;
+  var ses=document.getElementById('prom-session').value;
+  var ex=document.getElementById('prom-exam').value;
+  var cat=document.getElementById('prom-category').value;
+  if(!g||!ses||!ex||!cat){setAlert('prom-alert','Please select all filter fields.');return;}
+  setAlert('prom-alert','');
+  var btn=document.getElementById('prom-btn-load');var orig=btn.innerHTML;
+  btn.disabled=true;btn.innerHTML='<span class="spin"></span> Loading&hellip;';
+  try{
+    var params=new URLSearchParams({cls:'Class-XI',group:g,session:ses,exam_type:ex});
+    var r=await fetch(API+'/api/result-details?'+params);
+    var d=await r.json();
+    btn.innerHTML=orig;btn.disabled=false;
+    if(!d.ok){setAlert('prom-alert',d.message||'Failed to load result data.');return;}
+    var rawList=d[cat]||[];
+    if(!rawList.length){setAlert('prom-alert','No students found in "'+catLabel(cat)+'" category.','warn');hidePromTable();return;}
+    var sr=await fetch(API+'/api/students?cls=Class-XI&group='+encodeURIComponent(g)+'&session='+encodeURIComponent(ses));
+    var sd=await sr.json();
+    if(!sd.ok){setAlert('prom-alert','Failed to load student details.');return;}
+    var byRoll={};sd.data.forEach(function(s){byRoll[s.roll]=s;});
+    _ps=rawList.map(function(e){var f=byRoll[e.roll]||{};return{id:f.id||null,roll:e.roll,name:e.name||f.name||'',group:f.group||g,cat:cat,checked:true};}).filter(function(s){return!!s.id;});
+    if(!_ps.length){setAlert('prom-alert','Could not match students to database records.','warn');hidePromTable();return;}
+    renderPromTable();showEl('prom-table-section');updatePromCount();
+  }catch(e){btn.innerHTML=orig;btn.disabled=false;setAlert('prom-alert','Network error. Please try again.');}
+}
+
+function catLabel(c){var m={passed_all:'Passed All Subjects',failed_1:'Failed in 1 Subject',failed_2:'Failed in 2 Subjects',failed_3:'Failed in 3 Subjects',failed_4:'Failed in 4 Subjects',failed_5:'Failed in 5 Subjects',failed_6:'Failed in 6 Subjects',failed_all:'Failed All Subjects',absent:'Absent',top10:'Top 10 List'};return m[c]||c;}
+function catBC(c){if(c==='passed_all'||c==='top10')return 'cat-pass';if(c==='absent')return 'cat-absent';return 'cat-fail';}
+
+function renderPromTable(){
+  var tbody=document.getElementById('prom-tbody');
+  if(!_ps.length){tbody.innerHTML='<tr class="prom-state-row"><td colspan="6">No students found.</td></tr>';return;}
+  tbody.innerHTML=_ps.map(function(s,i){
+    return '<tr class="'+(s.checked?'sel-row':'')+'" id="pr-'+i+'">'+
+      '<td><input type="checkbox" class="cb-check" id="pc-'+i+'"'+(s.checked?' checked':'')+' onchange="promToggleRow('+i+',this.checked)" aria-label="Select '+escH(s.name)+'"></td>'+
+      '<td class="sl-num">'+(i+1)+'</td>'+
+      '<td class="roll-cell">'+escH(s.roll)+'</td>'+
+      '<td>'+escH(s.name)+'</td>'+
+      '<td style="font-size:.78rem;color:var(--muted);">'+escH(s.group)+'</td>'+
+      '<td><span class="cat-badge '+catBC(s.cat)+'">'+escH(catLabel(s.cat))+'</span></td>'+
+      '</tr>';
+  }).join('');
+  syncHdrCb();
+}
+
+function promToggleRow(i,v){_ps[i].checked=v;var r=document.getElementById('pr-'+i);if(r)r.classList.toggle('sel-row',v);updatePromCount();syncHdrCb();}
+function promToggleAll(cb){_ps.forEach(function(s,i){s.checked=cb.checked;var c=document.getElementById('pc-'+i);var r=document.getElementById('pr-'+i);if(c)c.checked=cb.checked;if(r)r.classList.toggle('sel-row',cb.checked);});updatePromCount();}
+function promSelectAll(){var cb=document.getElementById('prom-cb-all');cb.checked=true;promToggleAll(cb);}
+function promDeselectAll(){var cb=document.getElementById('prom-cb-all');cb.checked=false;promToggleAll(cb);}
+function syncHdrCb(){var m=document.getElementById('prom-cb-all');if(!m)return;var t=_ps.length,s=_ps.filter(function(x){return x.checked;}).length;m.checked=(t>0&&s===t);m.indeterminate=(s>0&&s<t);}
+function updatePromCount(){var s=_ps.filter(function(x){return x.checked;}).length;var b=document.getElementById('prom-sel-count');if(b)b.innerHTML='<i class="fas fa-users-cog" style="margin-right:4px;"></i>'+s+' selected';var btn=document.getElementById('prom-btn-promote');if(btn)btn.disabled=(s===0);}
+
+function openPromoteModal(){
+  var sel=_ps.filter(function(s){return s.checked;});
+  if(!sel.length){showToast('No students selected.','error');return;}
+  var g=document.getElementById('prom-group').value;
+  var ses=document.getElementById('prom-session').value;
+  var cat=catLabel(document.getElementById('prom-category').value);
+  document.getElementById('prom-modal-body').innerHTML=
+    'You are about to promote <strong>'+sel.length+' student(s)</strong> from <strong>Class-XI &#8594; Class-XII</strong>.<br><br>'+
+    'Department: <strong>'+escH(g)+'</strong> &nbsp;&bull;&nbsp; Session: <strong>'+escH(ses)+'</strong> &nbsp;&bull;&nbsp; Category: <strong>'+escH(cat)+'</strong><br><br>'+
+    'Their <strong>roll numbers, group, and session will remain unchanged</strong>.';
+  document.getElementById('prom-modal').classList.add('open');
+}
+function closePromoteModal(){document.getElementById('prom-modal').classList.remove('open');}
+
+async function promExecute(){
+  var sel=_ps.filter(function(s){return s.checked;}).map(function(s){return s.id;});
+  if(!sel.length){closePromoteModal();return;}
+  var cb=document.getElementById('prom-modal-confirm');
+  cb.disabled=true;cb.innerHTML='<span class="spin"></span> Promoting&hellip;';
+  try{
+    var r=await fetch(API+'/api/analytics/promote',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({student_ids:sel})});
+    var d=await r.json();closePromoteModal();
+    if(!d.ok){showToast(d.message||'Promotion failed.','error');}
+    else{
+      var sk=(d.skipped&&d.skipped.length)?' ('+d.skipped.length+' skipped)':'';
+      showToast(d.promoted+' student(s) promoted to Class-XII.'+sk,'success',5000);
+      if(d.skipped&&d.skipped.length){var n=document.getElementById('prom-skip-note');n.textContent=d.skipped.length+' student(s) skipped (already in Class-XII).';n.style.display='';}
+      _ps=_ps.filter(function(s){return sel.indexOf(s.id)===-1;});
+      if(!_ps.length){hidePromTable();setAlert('prom-alert','All selected students have been promoted.','ok');}
+      else{renderPromTable();updatePromCount();}
     }
-    config = config || {};
-    config.credentials = 'include';
-    args[0] = resource;
-    args[1] = config;
-    return _origFetch.apply(window, args);
-  };
+  }catch(e){closePromoteModal();showToast('Network error during promotion.','error');}
+  finally{cb.disabled=false;cb.innerHTML='<i class="fas fa-check"></i> Yes, Promote';}
+}
+
+/* ══════════════════════════════════════════
+   DATA DELETION
+══════════════════════════════════════════ */
+var _dMode='marks',_dfd=null,_dPrevCount=null;
+
+function setDelMode(m){
+  _dMode=m;
+  document.getElementById('del-mode-marks').classList.toggle('active',m==='marks');
+  document.getElementById('del-mode-students').classList.toggle('active',m==='students');
+  showEl('del-mode-warning',m==='students');
+  var ex=document.getElementById('del-exam');
+  if(m==='students'){ex.disabled=true;ex.value='';}
+  var pill=document.getElementById('del-preview-pill');
+  if(pill)pill.className='preview-pill '+m;
+  resetDelState();delCheckReady();
+}
+
+function delOnClassChange(){
+  var cls=document.getElementById('del-cls').value;
+  resetDynSels(['del-group','del-session','del-exam']);
+  resetDelState();
+  if(cls)document.getElementById('del-group').disabled=false;
+  delCheckReady();
+}
+
+function delOnGroupChange(){
+  var cls=document.getElementById('del-cls').value;
+  var g=document.getElementById('del-group').value;
+  resetDynSels(['del-session','del-exam']);resetDelState();setAlert('del-alert','');
+  if(!cls||!g){delCheckReady();return;}
+  (async function(){
+    try{
+      var r=await fetch(API+'/api/tabulation-sheet/filters?cls='+encodeURIComponent(cls)+'&group='+encodeURIComponent(g));
+      var d=await r.json();
+      _dfd=d.ok?d:null;
+      if(!d.ok){setAlert('del-alert',d.message||'Failed to load sessions.');delCheckReady();return;}
+      fillSel('del-session',d.sessions,function(s){return s;},function(s){return s;},'&#8212; Select Session &#8212;');
+      document.getElementById('del-session').disabled=d.sessions.length===0;
+      if(!d.sessions.length)setAlert('del-alert','No students found for this class and department.','warn');
+    }catch(e){setAlert('del-alert','Network error loading sessions.');}
+    delCheckReady();
+  })();
+}
+
+function delOnSessionChange(){
+  resetDynSels(['del-exam']);resetDelState();setAlert('del-alert','');
+  var ses=document.getElementById('del-session').value;
+  if(ses&&_dfd&&_dfd.exam_types&&_dMode==='marks'){
+    fillSel('del-exam',_dfd.exam_types,function(e){return e;},function(e){return e;},'&#8212; Select Exam &#8212;');
+    document.getElementById('del-exam').disabled=_dfd.exam_types.length===0;
+  }
+  delCheckReady();
+}
+
+function resetDelState(){
+  _dPrevCount=null;
+  showEl('del-preview-result',false);showEl('del-confirm-box',false);
+  showEl('del-progress-wrap',false);showEl('del-done-msg',false);
+  document.getElementById('del-confirm-input').value='';
+  document.getElementById('del-btn-execute').disabled=true;
+  setProgBar(0,0,0);
+}
+
+function delCheckReady(){
+  var cls=document.getElementById('del-cls').value;
+  var g=document.getElementById('del-group').value;
+  var ses=document.getElementById('del-session').value;
+  var ok=!!(cls&&g&&ses);
+  if(_dMode==='marks')ok=ok&&!!document.getElementById('del-exam').value;
+  document.getElementById('del-btn-preview').disabled=!ok;
+  if(!ok)resetDelState();
+}
+
+async function delPreviewCount(){
+  var cls=document.getElementById('del-cls').value;
+  var g=document.getElementById('del-group').value;
+  var ses=document.getElementById('del-session').value;
+  var ex=document.getElementById('del-exam').value;
+  setAlert('del-alert','');resetDelState();
+  var btn=document.getElementById('del-btn-preview');var orig=btn.innerHTML;
+  btn.disabled=true;btn.innerHTML='<span class="spin dk"></span> Checking&hellip;';
+  try{
+    var params=new URLSearchParams({mode:_dMode,cls:cls,group:g,session:ses});
+    if(_dMode==='marks'&&ex)params.set('exam_type',ex);
+    var r=await fetch(API+'/api/analytics/deletion-count?'+params);
+    var d=await r.json();
+    btn.innerHTML=orig;btn.disabled=false;
+    if(!d.ok){setAlert('del-alert',d.message||'Failed to get count.');return;}
+    _dPrevCount=d.count;
+    document.getElementById('del-preview-num').textContent=d.count;
+    document.getElementById('del-preview-text').textContent=_dMode==='marks'?(d.count===1?'mark record will be deleted':'mark records will be deleted'):(d.count===1?'student will be deleted (including all marks)':'students will be deleted (including all marks)');
+    document.getElementById('del-preview-pill').className='preview-pill '+_dMode;
+    showEl('del-preview-result');
+    if(d.count===0){setAlert('del-alert','No records match the selected filters.','warn');}
+    else{showEl('del-confirm-box');}
+  }catch(e){btn.innerHTML=orig;btn.disabled=false;setAlert('del-alert','Network error. Please try again.');}
+}
+
+function delCheckConfirm(){var v=document.getElementById('del-confirm-input').value.trim();document.getElementById('del-btn-execute').disabled=(v!=='DELETE');}
+
+async function delExecute(){
+  var cls=document.getElementById('del-cls').value;
+  var g=document.getElementById('del-group').value;
+  var ses=document.getElementById('del-session').value;
+  var ex=document.getElementById('del-exam').value;
+  var total=_dPrevCount||0;
+  if(document.getElementById('del-confirm-input').value.trim()!=='DELETE')return;
+  document.getElementById('del-btn-execute').disabled=true;
+  document.getElementById('del-btn-preview').disabled=true;
+  showEl('del-confirm-box',false);showEl('del-progress-wrap');showEl('del-done-msg',false);
+  var fp=0;setProgBar(0,0,total);
+  var ticker=setInterval(function(){fp=Math.min(fp+(Math.random()*3.5+1.2),88);setProgBar(fp,Math.round((fp/100)*total),total);},180);
+  try{
+    var params=new URLSearchParams({cls:cls,group:g,session:ses});
+    if(_dMode==='marks'&&ex)params.set('exam_type',ex);
+    var ep=_dMode==='marks'?(API+'/api/analytics/marks-bulk'):(API+'/api/analytics/students-bulk');
+    var r=await fetch(ep+'?'+params,{method:'DELETE'});
+    var d=await r.json();clearInterval(ticker);
+    if(!d.ok){setProgBar(0,0,total);showEl('del-progress-wrap',false);setAlert('del-alert',d.message||'Deletion failed.');document.getElementById('del-btn-preview').disabled=false;return;}
+    setProgBar(100,d.deleted,d.deleted||total);
+    await _sleep(600);
+    showEl('del-progress-wrap',false);showEl('del-done-msg');
+    var noun=_dMode==='marks'?'mark record(s)':'student record(s)';
+    document.getElementById('del-done-text').textContent='Successfully deleted '+d.deleted+' '+noun+'. The data has been permanently removed.';
+    showToast(d.deleted+' '+noun+' deleted.','success',5000);
+    setTimeout(function(){
+      resetDelState();
+      document.getElementById('del-cls').value='';
+      document.getElementById('del-group').value='';
+      document.getElementById('del-group').disabled=true;
+      resetDynSels(['del-session','del-exam']);
+      document.getElementById('del-btn-preview').disabled=true;
+    },4000);
+  }catch(e){clearInterval(ticker);setProgBar(0,0,total);showEl('del-progress-wrap',false);setAlert('del-alert','Network error during deletion. Please try again.');document.getElementById('del-btn-preview').disabled=false;}
+}
+
+function setProgBar(pct,done,total){document.getElementById('del-progress-fill').style.width=pct+'%';document.getElementById('del-pct-label').textContent=Math.round(pct)+'%';document.getElementById('del-stat-done').textContent=done;document.getElementById('del-stat-total').textContent=total;}
+
+/* ── PAGE TRANSITION ── */
+(function(){
+  var loader=document.getElementById('page-loader');if(!loader)return;
+  var show=function(){loader.classList.add('visible');};
+  var hide=function(){loader.classList.remove('visible');};
+  document.addEventListener('click',function(e){
+    var a=e.target.closest('a');if(!a||!a.href)return;
+    var href=a.getAttribute('href');
+    if(!href||href.trim().startsWith('javascript:')||href.trim().startsWith('#'))return;
+    if(a.getAttribute('target')==='_blank')return;
+    var url=new URL(a.href,location.href);
+    if(url.origin!==location.origin)return;
+    if(url.pathname===location.pathname&&url.search===location.search)return;
+    e.preventDefault();show();setTimeout(function(){window.location.href=url.href;},180);
+  },true);
+  window.addEventListener('beforeunload',show);
+  window.addEventListener('pageshow',hide);
 })();
-// --------------------------------------------
 
-/* ─────────────────────────────────── AUTH ─────────────────────────────────── */
-const AUTH_KEY = 'muamc_auth';
-async function checkAuth(){
-  try {
-    const response = await fetch('/api/auth-status');
-    const result = await response.json();
-    if(!result.authenticated){
-      window.location.href = 'login.html';
-      return false;
-    }
-    return true;
-  } catch (error) {
-    window.location.href = 'login.html';
-    return false;
-  }
-}
-async function doLogout(){
-  if(!confirm('Logout?')) return;
-  await fetch('/api/logout', {method:'POST', credentials:'include'}).catch(()=>{});
-  window.location.href = 'login.html';
-}
-
-/* ─────────────────────────────────── SIDEBAR / NAV ─────────────────────────── */
-function toggleSidebar(){
-  document.getElementById('site-header').classList.toggle('active');
-  document.getElementById('sidebar-overlay').classList.toggle('active');
-}
-function closeSidebar(){
-  document.getElementById('site-header').classList.remove('active');
-  document.getElementById('sidebar-overlay').classList.remove('active');
-}
-
-const TABS = ['archive','promotion','rolls','detain','certificate','redalert'];
-function switchTab(name){
-  TABS.forEach(t => {
-    document.getElementById('tc-'+t).classList.toggle('active', t===name);
-    document.getElementById('nt-'+t).classList.toggle('active', t===name);
-  });
-  closeSidebar();
-  if(name==='archive') loadArchiveTab();
-  if(name==='detain') loadDetainList();
-  if(name==='certificate') renderCertSearchResults([]);
-}
-
-/* ─────────────────────────────────── API HELPERS ────────────────────────────── */
-async function api(url, opts={}){
-  const defaults = {credentials:'include', headers:{'Content-Type':'application/json'}};
-  const res = await fetch(url, {...defaults, ...opts});
-  const data = await res.json().catch(()=>({ok:false,message:'Invalid server response'}));
-  return data;
-}
-
-function showAlert(wrapperId, type, msg){
-  const el = document.getElementById(wrapperId);
-  if(!el) return;
-  el.innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
-  setTimeout(()=>{if(el) el.innerHTML='';}, 6000);
-}
-
-/* ─────────────────────────────────── ARCHIVE TAB ─────────────────────────────── */
-let archiveCandidates = [];
-let archivedStudents = [];
-
-async function loadArchiveTab(){
-  await loadArchiveCandidates();
-  await loadArchivedStudents();
-}
-
-async function loadArchiveCandidates(){
-  document.getElementById('archive-cand-body').innerHTML =
-    '<tr><td colspan="8" class="tbl-empty"><div class="loading-container"><div class="loading-spinner"></div></div></td></tr>';
-  document.getElementById('archive-cand-count').textContent = '…';
-  const res = await api('/api/analyze-archive-candidates');
-  if(!res.ok){ archiveCandidates=[]; renderArchiveCandidates(); return; }
-  archiveCandidates = res.data || [];
-  document.getElementById('archive-cand-count').textContent = `${archiveCandidates.length} eligible`;
-  document.getElementById('archive-cand-controls').style.display = archiveCandidates.length ? 'flex' : 'none';
-  renderArchiveCandidates();
-}
-
-function renderArchiveCandidates(){
-  const tbody = document.getElementById('archive-cand-body');
-  if(!archiveCandidates.length){
-    tbody.innerHTML='<tr><td colspan="8" class="tbl-empty">No passing Class-XII students found for archiving.</td></tr>';
-    return;
-  }
-  tbody.innerHTML = archiveCandidates.map((s,i)=>`
-    <tr>
-      <td><input type="checkbox" class="archive-cand-check" value="${s.id}" checked></td>
-      <td>${i+1}</td>
-      <td style="font-weight:600;">${s.name}</td>
-      <td>${s.roll}</td>
-      <td><span class="badge badge-blue">${s.group}</span></td>
-      <td>${s.year||s.session||'—'}</td>
-      <td>${s.gpa||'—'}</td>
-      <td><span class="badge ${s.result==='Pass'?'badge-green':'badge-red'}">${s.result||'—'}</span></td>
-    </tr>`).join('');
-}
-
-function toggleAllArchiveCandidates(chk){
-  document.querySelectorAll('.archive-cand-check').forEach(c=>c.checked=chk.checked);
-}
-
-async function moveToArchive(){
-  const checked = [...document.querySelectorAll('.archive-cand-check:checked')].map(c=>c.value);
-  if(!checked.length){ alert('Select at least one student.'); return; }
-  if(!confirm(`Archive ${checked.length} student(s)? This moves them out of the active database permanently.`)) return;
-  const res = await api('/api/archive-graduates', {method:'POST', body:JSON.stringify({studentIds:checked})});
-  showAlert('archive-alert-wrap', res.ok?'ok':'err', res.message||'Error');
-  if(res.ok){ await loadArchiveTab(); }
-}
-
-async function loadArchivedStudents(){
-  const res = await api('/api/archive');
-  archivedStudents = res.data || [];
-  document.getElementById('archive-stored-count').textContent = `${archivedStudents.length} total`;
-  renderArchivedStudents();
-}
-
-function renderArchivedStudents(){
-  const q = document.getElementById('archive-search').value.toLowerCase();
-  const filtered = archivedStudents.filter(s=>
-    s.name.toLowerCase().includes(q) || (s.roll||'').toLowerCase().includes(q));
-  document.getElementById('archive-stored-body').innerHTML = filtered.length ? filtered.map((s,i)=>`
-    <tr>
-      <td>${i+1}</td>
-      <td style="font-weight:600;">${s.name}</td>
-      <td>${s.roll}</td>
-      <td>${s.reg||'—'}</td>
-      <td><span class="badge badge-blue">${s.group}</span></td>
-      <td>${s.year||s.session||'—'}</td>
-      <td>${s.archivedAt||'—'}</td>
-      <td><button class="btn btn-xs btn-outline" onclick="openCertForStudent('${s.id}')">📜 TC</button></td>
-    </tr>`).join('')
-    : '<tr><td colspan="8" class="tbl-empty">No archived Students yet.</td></tr>';
-}
-
-function exportArchiveCSV(){
-  if(!archivedStudents.length){ alert('No archived students to export.'); return; }
-  const rows=[['Name','Roll','Reg','Group','Session','Archived On'],...archivedStudents.map(s=>[s.name,s.roll,s.reg||'',s.group,s.year||s.session||'',s.archivedAt||''])];
-  const csv=rows.map(r=>r.map(c=>`"${(c||'').toString().replace(/"/g,'""')}"`).join(',')).join('\n');
-  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);a.download='archive_graduates.csv';a.click();
-}
-
-/* ─────────────────────────────────── PROMOTION TAB ────────────────────────────── */
-let promoData = [];
-let selectedPromoIds = new Set();
-
-async function analyzePromotion(){
-  document.getElementById('promo-step-2').style.display='none';
-  document.getElementById('promo-step-3').style.display='none';
-  document.getElementById('promo-step-4').style.display='none';
-  const btn = event.target;
-  btn.disabled=true; btn.textContent='Analyzing…';
-
-  const res = await api('/api/analyze-promotion');
-  btn.disabled=false; btn.textContent='Analyze & Preview Eligible Students';
-
-  if(!res.ok){ alert(res.message||'Error'); return; }
-  promoData = res.data||[];
-  selectedPromoIds = new Set(promoData.map(s=>s.id));
-
-  document.getElementById('promo-count').textContent = `${promoData.length} eligible`;
-  renderPromoList();
-  document.getElementById('promo-step-1').style.display='none';
-  document.getElementById('promo-step-2').style.display='block';
-  setPromoStep(2);
-
-  if(!promoData.length){
-    showAlert('promo-alert-wrap','info','No eligible Class-XI students found. Ensure marks have been entered and saved.');
-  }
-}
-
-function renderPromoList(){
-  document.getElementById('promo-list-body').innerHTML = promoData.length ?
-    promoData.map((s,i)=>`
-      <tr>
-        <td><input type="checkbox" class="promo-check" value="${s.id}" checked onchange="syncPromoCheck('${s.id}',this.checked)"></td>
-        <td>${i+1}</td>
-        <td style="font-weight:600;">${s.name}</td>
-        <td>${s.roll}</td>
-        <td>${s.reg||'—'}</td>
-        <td><span class="badge badge-blue">${s.group}</span></td>
-        <td>${s.section||'—'}</td>
-        <td style="font-weight:700;color:var(--green);">${s.gpa||'—'}</td>
-        <td>${s.totalMarks||'—'}</td>
-        <td><span class="badge badge-navy">${s.examType||'—'}</span></td>
-      </tr>`).join('')
-    : '<tr><td colspan="10" class="tbl-empty">No eligible students found.</td></tr>';
-}
-
-function syncPromoCheck(id, checked){
-  if(checked) selectedPromoIds.add(id);
-  else selectedPromoIds.delete(id);
-}
-
-function toggleAllPromo(chk){
-  document.querySelectorAll('.promo-check').forEach(c=>{ c.checked=chk.checked; syncPromoCheck(c.value,chk.checked); });
-}
-
-function selectOnlyEligible(){
-  // promoData already contains only eligible students (no F, passed all mandatory subjects)
-  // "Only Eligible" = gpa >= 1.0 AND failCount === 0 (or undefined)
-  let anySelected = false;
-  document.querySelectorAll('.promo-check').forEach(c=>{
-    const s = promoData.find(p => p.id === c.value);
-    const eligible = s && parseFloat(s.gpa || 0) >= 1.0 && (!s.failCount || s.failCount === 0);
-    c.checked = !!eligible;
-    syncPromoCheck(c.value, c.checked);
-    if(c.checked) anySelected = true;
-  });
-  document.getElementById('promo-check-all').checked = false;
-  if(!anySelected) showAlert('promo-alert-wrap','info','No students meet the strict eligibility criteria (GPA ≥ 1.0, no failures).');
-}
-
-function showPromoConfirm(){
-  const sel = [...selectedPromoIds];
-  if(!sel.length){ alert('Select at least one student.'); return; }
-  const yr = document.getElementById('promo-year').value;
-  document.getElementById('promo-confirm-text').innerHTML =
-    `You are about to promote <strong>${sel.length}</strong> student(s) from <strong>Class-XI to Class-XII</strong>${yr?` with session <strong>${yr}</strong>`:''}.
-    <br><br>This will update their class level in the database. Verify the list before proceeding.`;
-  document.getElementById('promo-step-2').style.display='none';
-  document.getElementById('promo-step-3').style.display='block';
-  setPromoStep(3);
-}
-
-function backToPromoPreview(){
-  document.getElementById('promo-step-3').style.display='none';
-  document.getElementById('promo-step-2').style.display='block';
-  setPromoStep(2);
-}
-
-async function executePromotion(){
-  const btn = document.getElementById('promo-confirm-btn');
-  btn.disabled=true; btn.textContent='Promoting…';
-  const yr = document.getElementById('promo-year').value;
-  const res = await api('/api/execute-promotion',{method:'POST',body:JSON.stringify({studentIds:[...selectedPromoIds],year:yr})});
-  btn.disabled=false; btn.textContent='✅ Confirm & Promote';
-  document.getElementById('promo-step-3').style.display='none';
-  document.getElementById('promo-step-4').style.display='block';
-  setPromoStep(4);
-  document.getElementById('promo-done-msg').textContent = res.ok ? `${res.promoted||0} Students Promoted Successfully!` : (res.message||'Error occurred.');
-}
-
-function resetPromoFlow(){
-  document.getElementById('promo-step-1').style.display='block';
-  document.getElementById('promo-step-2').style.display='none';
-  document.getElementById('promo-step-3').style.display='none';
-  document.getElementById('promo-step-4').style.display='none';
-  setPromoStep(1);
-  promoData=[]; selectedPromoIds=new Set();
-  document.getElementById('promo-alert-wrap').innerHTML='';
-}
-
-function setPromoStep(n){
-  [1,2,3,4].forEach(i=>{
-    const el=document.getElementById('ps'+i);
-    el.classList.toggle('active',i===n);
-    el.classList.toggle('done',i<n);
-  });
-  [1,2,3].forEach(i=>{
-    const sep=document.getElementById('pss'+i);
-    if(sep) sep.classList.toggle('done',i<n);
-  });
-}
-
-/* ─────────────────────────────────── ROLL GEN TAB ────────────────────────────── */
-let rollAssignments = [];
-
-async function generateRolls(){
-  const group = document.getElementById('roll-group-filter').value;
-  const btn=event.target; btn.disabled=true; btn.textContent='Generating…';
-  const res = await api('/api/generate-rolls',{method:'POST',body:JSON.stringify({group})});
-  btn.disabled=false; btn.textContent='🔢 Generate Roll Preview';
-  if(!res.ok){ alert(res.message||'Error'); return; }
-  rollAssignments = res.data||[];
-  document.getElementById('roll-count').textContent=`${rollAssignments.length} students`;
-  renderRollPreview();
-  document.getElementById('roll-step-1').style.display='none';
-  document.getElementById('roll-step-2').style.display='block';
-  setRollStep(2);
-  if(!rollAssignments.length){
-    const w=document.getElementById('roll-alert-wrap');
-    w.style.display='block';
-    w.innerHTML='<div class="alert alert-info">No Class-XII students found. Promote students first.</div>';
-  }
-}
-
-function renderRollPreview(){
-  const tbody=document.getElementById('roll-preview-body');
-  const rankClass = i => i===1?'rank-1':i===2?'rank-2':i===3?'rank-3':'rank-n';
-  tbody.innerHTML = rollAssignments.length ?
-    rollAssignments.map((a,i)=>`
-      <tr>
-        <td><span class="rank-badge ${rankClass(i+1)}">${i+1}</span></td>
-        <td style="font-weight:800;color:var(--navy);font-size:.9rem;">${a.newRoll}</td>
-        <td style="font-weight:600;">${a.name}</td>
-        <td style="color:var(--muted);text-decoration:line-through;">${a.oldRoll}</td>
-        <td><span class="badge badge-blue">${a.group||'—'}</span></td>
-        <td style="font-weight:700;color:var(--green);">${a.gpa||'—'}</td>
-        <td>${a.totalMarks||'—'}</td>
-      </tr>`).join('')
-    : '<tr><td colspan="7" class="tbl-empty">No students found.</td></tr>';
-}
-
-async function applyRolls(){
-  if(!rollAssignments.length){ alert('Nothing to apply.'); return; }
-  if(!confirm(`Apply new roll numbers to ${rollAssignments.length} Class-XII students? Old rolls will be overwritten.`)) return;
-  const btn=document.getElementById('roll-apply-btn');
-  btn.disabled=true; btn.textContent='Applying…';
-  const res = await api('/api/apply-rolls',{method:'POST',body:JSON.stringify({assignments:rollAssignments})});
-  btn.disabled=false; btn.textContent='✅ Apply Roll Numbers';
-  const w=document.getElementById('roll-alert-wrap');
-  w.style.display='block';
-  w.innerHTML=`<div class="alert alert-${res.ok?'ok':'err'}">${res.message||'Done'}</div>`;
-  if(res.ok){ setRollStep(3); btn.style.display='none'; }
-}
-
-function resetRollFlow(){
-  document.getElementById('roll-step-1').style.display='block';
-  document.getElementById('roll-step-2').style.display='none';
-  rollAssignments=[];
-  const w=document.getElementById('roll-alert-wrap');
-  w.style.display='none'; w.innerHTML='';
-  document.getElementById('roll-apply-btn').style.display='';
-  setRollStep(1);
-}
-
-function setRollStep(n){
-  [1,2,3].forEach(i=>{
-    const el=document.getElementById('rs'+i);
-    if(el){ el.classList.toggle('active',i===n); el.classList.toggle('done',i<n); }
-  });
-  [1,2].forEach(i=>{
-    const sep=document.getElementById('rss'+i);
-    if(sep) sep.classList.toggle('done',i<n);
-  });
-}
-
-/* ─────────────────────────────────── DETAIN TAB ────────────────────────────────── */
-let detainData = [];
-
-async function loadDetainList(){
-  document.getElementById('detain-body').innerHTML=
-    '<tr><td colspan="9" class="tbl-empty"><div class="loading-container"><div class="loading-spinner"></div></div></td></tr>';
-  document.getElementById('detain-count').textContent='Loading…';
-  const res = await api('/api/detain-list');
-  if(!res.ok){ document.getElementById('detain-count').textContent='Error'; return; }
-  detainData = res.data||[];
-  document.getElementById('detain-count').textContent=`${detainData.length} detained`;
-  // Update summary
-  if(detainData.length){
-    const avgFail = detainData.length ? (detainData.reduce((s,d)=>s+(d.failCount||0),0)/detainData.length).toFixed(1) : 0;
-    const groups = new Set(detainData.map(d=>d.group)).size;
-    document.getElementById('ds-detained').textContent=detainData.length;
-    document.getElementById('ds-avg-fail').textContent=avgFail;
-    document.getElementById('ds-groups').textContent=groups;
-    document.getElementById('detain-summary-strip').style.display='grid';
-  }
-  renderDetainList();
-}
-
-function renderDetainList(){
-  const grp=document.getElementById('detain-group-filter').value;
-  const q=document.getElementById('detain-search').value.toLowerCase();
-  const filtered = detainData.filter(s=>
-    (!grp||s.group===grp) && (!q||s.name.toLowerCase().includes(q)));
-  document.getElementById('detain-body').innerHTML = filtered.length ?
-    filtered.map((s,i)=>`
-      <tr>
-        <td>${i+1}</td>
-        <td style="font-weight:600;">${s.name}</td>
-        <td>${s.roll}</td>
-        <td><span class="badge badge-blue">${s.group}</span></td>
-        <td>${s.section||'—'}</td>
-        <td style="max-width:200px;"><span style="font-size:.72rem;color:var(--red);">${(s.failedSubjects||[]).join(', ')||'—'}</span></td>
-        <td style="text-align:center;"><span class="badge badge-red">${s.failCount||0}</span></td>
-        <td><span class="badge badge-navy">${s.examType||'—'}</span></td>
-        <td><button class="btn btn-xs btn-amber" onclick="reEnroll('${s.id}','${s.name.replace(/'/g,"\\'")}')">↻ Re-enroll</button></td>
-      </tr>`).join('')
-    : '<tr><td colspan="9" class="tbl-empty">No detained students found for the selected filter.</td></tr>';
-}
-
-async function reEnroll(sid, name){
-  const yr = prompt(`Re-enroll "${name}" in Class-XI.\nEnter new academic year (leave blank to keep existing):`, '2025–2026');
-  if(yr===null) return;
-  const res = await api(`/api/re-enroll/${sid}`,{method:'POST',body:JSON.stringify({year:yr||''})});
-  if(res.ok){
-    showAlert('detain-alert-wrap','ok',res.message||'Re-enrolled successfully.');
-    await loadDetainList();
-  } else {
-    showAlert('detain-alert-wrap','err',res.message||'Error');
-  }
-}
-
-/* ─────────────────────────────────── CERTIFICATE TAB ─────────────────────────── */
-let certSearchResults = [];
-let activeCertData = null;
-
-async function searchCertStudents(){
-  const q = document.getElementById('cert-search').value.trim();
-  if(q.length < 2){ renderCertSearchResults([]); return; }
-  // Search active students + archived
-  const [r1, r2] = await Promise.all([
-    api(`/api/students?q=${encodeURIComponent(q)}`),
-    api(`/api/archive?q=${encodeURIComponent(q)}`)
-  ]);
-  const active = (r1.data||[]).map(s=>({...s,_source:'active'}));
-  const archived = (r2.data||[]).map(s=>({...s,_source:'archive'}));
-  certSearchResults = [...active, ...archived];
-  renderCertSearchResults(certSearchResults);
-}
-
-function renderCertSearchResults(list){
-  const el = document.getElementById('cert-search-results');
-  if(!list.length){ el.innerHTML=''; return; }
-  el.innerHTML = list.map(s=>`
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border:1px solid var(--border);border-radius:var(--r);margin-bottom:6px;background:#fafcff;flex-wrap:wrap;gap:8px;">
-      <div>
-        <strong style="font-size:.82rem;">${s.name}</strong>
-        <span style="font-size:.72rem;color:var(--muted);margin-left:8px;">Roll: ${s.roll} · ${s.cls||'Class-XII'} · ${s.group}</span>
-        <span class="badge ${s._source==='archive'?'badge-purple':'badge-blue'}" style="margin-left:6px;">${s._source==='archive'?'Archived':'Active'}</span>
-      </div>
-      <button class="btn btn-xs btn-primary" onclick="loadCertificate('${s.id}')">📜 Generate TC</button>
-    </div>`).join('');
-}
-
-async function loadCertificate(sid){
-  const res = await api(`/api/generate-certificate/${sid}`);
-  if(!res.ok){ alert(res.message||'Error'); return; }
-  activeCertData = res.data;
-  renderCertificate(activeCertData);
-  document.getElementById('cert-preview').style.display='block';
-  document.getElementById('cert-preview').scrollIntoView({behavior:'smooth'});
-}
-
-function renderCertificate(d){
-  document.getElementById('cert-title-text').textContent = d.cls==='Class-XII'?'TRANSFER CERTIFICATE':'ACADEMIC PROGRESS CERTIFICATE';
-  // Data table
-  const rows = [
-    ['Student Name', d.name],
-    ['Roll Number', d.roll],
-    ['Registration No.', d.reg||'—'],
-    ['Date of Birth', d.dob||'—'],
-    ['Father\'s Name', d.father||'—'],
-    ['Mother\'s Name', d.mother||'—'],
-    ['Class', d.cls||'Class-XII'],
-    ['Group / Stream', d.group||'—'],
-    ['Section', d.section||'—'],
-    ['Academic Session', d.year||d.session||'—'],
-    ['Religion', d.religion||'—'],
-    ['Phone / Contact', d.phone||'—'],
-    ['Date of Issue', d.issueDate||'—'],
-  ];
-  document.querySelector('#cert-data-table tbody').innerHTML = rows.map(([k,v])=>`<tr><td>${k}</td><td>${v}</td></tr>`).join('');
-  // Result band
-  document.getElementById('cert-result-band').innerHTML = `
-    <div class="cert-result-item"><div class="cert-result-val">${d.gpa||'—'}</div><div class="cert-result-lbl">GPA</div></div>
-    <div class="cert-result-item"><div class="cert-result-val">${d.totalMarks||'—'}</div><div class="cert-result-lbl">Total Marks</div></div>
-    <div class="cert-result-item"><div class="cert-result-val" style="color:${d.result==='Pass'?'var(--green)':'var(--red)'}">${d.result||'—'}</div><div class="cert-result-lbl">Result</div></div>
-    <div class="cert-result-item"><div class="cert-result-val">${d.examType||'—'}</div><div class="cert-result-lbl">Exam</div></div>`;
-  // Principal label
-  if(d.principal) document.getElementById('cert-principal-label').textContent=d.principal;
-  // Footer
-  document.getElementById('cert-footer-text').textContent=`${d.collegeName||'Moinuddin Adarsha Mohila College'} — Academic Management System | This is a computer-generated certificate.`;
-}
-
-function openCertForStudent(sid){
-  switchTab('certificate');
-  loadCertificate(sid);
-}
-
-function closeCert(){
-  document.getElementById('cert-preview').style.display='none';
-  activeCertData=null;
-}
-
-function printCert(){
-  const content = document.getElementById('cert-page-content').innerHTML;
-  const w = window.open('','_blank','width=900,height=700');
-  w.document.write(`<!DOCTYPE html><html><head>
-    <title>Certificate</title>
-    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700;900&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-      *{box-sizing:border-box;margin:0;padding:0;}
-      :root{--navy:#0d2b45;--navy2:#174070;--gold2:#c9973a;--slate:#f1f4f8;--border:#dde3ed;--txt:#0f172a;--muted:#64748b;--green:#166534;--red:#b91c1c;}
-      body{font-family:'Source Sans 3',sans-serif;padding:24px;}
-      .cert-page{background:#fff;border:3px solid var(--navy);border-radius:8px;padding:40px 48px;position:relative;}
-      .cert-top-border{height:5px;background:linear-gradient(90deg,var(--navy),var(--gold2),var(--navy2));border-radius:4px 4px 0 0;margin:-40px -48px 32px;padding:0;}
-      .cert-header{text-align:center;margin-bottom:28px;}
-      .cert-logo{width:72px;height:72px;border-radius:50%;border:2px solid var(--gold2);margin:0 auto 12px;overflow:hidden;display:flex;align-items:center;justify-content:center;}
-      .cert-logo img{width:100%;height:100%;object-fit:contain;}
-      .cert-college-name{font-family:'Merriweather',serif;font-size:1.15rem;font-weight:900;color:var(--navy);}
-      .cert-subtitle{font-size:.72rem;color:var(--muted);margin-top:3px;letter-spacing:.5px;}
-      .cert-title-band{background:linear-gradient(90deg,var(--navy),var(--navy2));color:#fff;text-align:center;padding:10px 24px;border-radius:6px;margin:20px 0;font-family:'Merriweather',serif;font-size:1rem;font-weight:700;letter-spacing:1.5px;}
-      .cert-body{font-size:.85rem;color:var(--txt);line-height:1.7;}
-      .cert-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:.8rem;}
-      .cert-table td{padding:6px 10px;border:1px solid var(--border);}
-      .cert-table td:first-child{font-weight:600;color:var(--navy);background:#fafcff;width:40%;}
-      .cert-result-band{display:flex;justify-content:center;gap:32px;margin:20px 0;background:var(--slate);border-radius:6px;padding:14px;}
-      .cert-result-item{text-align:center;}
-      .cert-result-val{font-family:'Merriweather',serif;font-size:1.4rem;font-weight:900;color:var(--navy);}
-      .cert-result-lbl{font-size:.67rem;color:var(--muted);letter-spacing:.5px;margin-top:2px;}
-      .cert-signatures{display:flex;justify-content:space-between;margin-top:40px;padding-top:16px;}
-      .cert-sig{text-align:center;}
-      .cert-sig-line{width:120px;border-top:1.5px solid var(--txt);margin:0 auto 6px;}
-      .cert-sig-label{font-size:.7rem;color:var(--muted);font-weight:600;}
-      .cert-seal{position:absolute;bottom:48px;left:50%;transform:translateX(-50%);opacity:.06;font-size:7rem;pointer-events:none;}
-      .cert-footer{text-align:center;font-size:.68rem;color:var(--muted);margin-top:20px;padding-top:12px;border-top:1px solid var(--border);}
-    </style></head><body><div class="cert-page">${content}</div>
-  <script>
-    (function(){
-      const loader = document.getElementById('page-loader');
-      if(!loader) return;
-      const show = () => loader.classList.add('visible');
-      const hide = () => loader.classList.remove('visible');
-      document.addEventListener('click', function(event){
-        const anchor = event.target.closest('a');
-        if(!anchor || !anchor.href) return;
-        const target = anchor.getAttribute('target');
-        const href = anchor.getAttribute('href');
-        if(target === '_blank' || target === '_top' || target === '_parent' || target === '_self' && anchor.hasAttribute('download')) return;
-        if(!href || href.trim().startsWith('javascript:') || href.trim().startsWith('#')) return;
-        const url = new URL(anchor.href, location.href);
-        if(url.origin !== location.origin) return;
-        if(url.pathname === location.pathname && url.search === location.search) return;
-        event.preventDefault();
-        show();
-        setTimeout(()=> { window.location.href = url.href; }, 180);
-      }, true);
-      window.addEventListener('beforeunload', show);
-      window.addEventListener('pageshow', hide);
-    })();
-  <\/script>
-</body></html>`);
-  w.document.close();
-  setTimeout(()=>{ w.print(); w.close(); }, 800);
-}
-
-function downloadCertPDF(){
-  if(!activeCertData){ alert('No certificate loaded.'); return; }
-  const el = document.getElementById('cert-page-content');
-  const opt = {
-    margin: 8,
-    filename: `TC_${(activeCertData.name||'student').replace(/\s+/g,'_')}.pdf`,
-    image: {type:'jpeg',quality:.98},
-    html2canvas: {scale:2,useCORS:true},
-    jsPDF: {unit:'mm',format:'a4',orientation:'portrait'}
-  };
-  html2pdf().set(opt).from(el).save();
-}
-
-/* ─────────────────────────────────── RED ALERT TAB ───────────────────────────── */
-async function bulkDeleteMarks() {
-  const cls = document.getElementById('red-class').value;
-  const grp = document.getElementById('red-group').value;
-  
-  let msg = 'Are you absolutely sure you want to DELETE ALL MARKS';
-  if(cls) msg += ` for ${cls}`;
-  if(grp) msg += ` (${grp})`;
-  msg += '?\n\nThis action cannot be undone!';
-  
-  if(!confirm(msg)) return;
-  if(prompt('Type "CONFIRM" to proceed with deletion:') !== 'CONFIRM') {
-    showAlert('redalert-alert-wrap', 'err', 'Action cancelled. Confirmation text did not match.');
-    return;
-  }
-  
-  showAlert('redalert-alert-wrap', 'info', 'Fetching records and processing deletion...');
-  try {
-    const res = await api('/api/students');
-    let students = res.data || [];
-    if(cls) students = students.filter(s => s.cls === cls);
-    if(grp) students = students.filter(s => s.group === grp);
-    
-    if(!students.length) {
-      showAlert('redalert-alert-wrap', 'warn', 'No students found for the selected criteria.');
-      return;
-    }
-    
-    let count = 0;
-    for(const s of students) {
-      await api(`/api/marks/${s.id}`, { method: 'DELETE' });
-      count++;
-    }
-    showAlert('redalert-alert-wrap', 'ok', `Successfully deleted marks for ${count} student(s).`);
-  } catch(e) {
-    showAlert('redalert-alert-wrap', 'err', 'Error: ' + e.message);
-  }
-}
-
-async function bulkDeleteStudents() {
-  const cls = document.getElementById('red-class').value;
-  const grp = document.getElementById('red-group').value;
-  
-  let msg = 'Are you absolutely sure you want to DELETE ALL STUDENTS AND MARKS';
-  if(cls) msg += ` for ${cls}`;
-  if(grp) msg += ` (${grp})`;
-  msg += '?\n\nThis action cannot be undone!';
-  
-  if(!confirm(msg)) return;
-  if(prompt('Type "CONFIRM" to proceed with deletion:') !== 'CONFIRM') {
-    showAlert('redalert-alert-wrap', 'err', 'Action cancelled. Confirmation text did not match.');
-    return;
-  }
-  
-  showAlert('redalert-alert-wrap', 'info', 'Fetching records and processing deletion...');
-  try {
-    const res = await api('/api/students');
-    let students = res.data || [];
-    if(cls) students = students.filter(s => s.cls === cls);
-    if(grp) students = students.filter(s => s.group === grp);
-    
-    if(!students.length) {
-      showAlert('redalert-alert-wrap', 'warn', 'No students found for the selected criteria.');
-      return;
-    }
-    
-    let count = 0;
-    for(const s of students) {
-      await api(`/api/marks/${s.id}`, { method: 'DELETE' });
-      await api(`/api/students/${s.id}`, { method: 'DELETE' });
-      count++;
-    }
-    showAlert('redalert-alert-wrap', 'ok', `Successfully deleted ${count} student(s) and their records.`);
-  } catch(e) {
-    showAlert('redalert-alert-wrap', 'err', 'Error: ' + e.message);
-  }
-}
-
-/* ─────────────────────────────────── INIT ─────────────────────────────────── */
-(async function(){
-  if(!(await checkAuth())) return;
-  // Load archive tab on start (default active tab)
-  loadArchiveTab();
-})();
 </script>
 </body>
 </html>

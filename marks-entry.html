@@ -1318,8 +1318,8 @@ function renderBatchTable(students, sub, marksMap, examType){
     const disAttr = isAbsent ? 'disabled class="batch-inp absent-locked"' : '';
 
     html += `<tr data-sid="${s.id}">
-      <td>${s.roll}</td>
-      <td title="${s.name}">${s.name}</td>
+      <td>${(window.escHtml||(x=>x))(s.roll)}</td>
+      <td title="${(window.escHtml||(x=>x))(s.name)}">${(window.escHtml||(x=>x))(s.name)}</td>
       <td style="text-align:center;">
         <label class="absent-chk-wrap" title="Mark student as absent for this subject">
           <input type="checkbox" id="babsent-${s.id}" ${isAbsent ? 'checked' : ''}

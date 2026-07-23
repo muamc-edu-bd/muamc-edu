@@ -1070,8 +1070,8 @@ function renderStudentList(){
     const active = selectedStudentId === s.id ? 'active' : '';
     return `<div class="student-card ${active}" onclick="selectStudent('${s.id}')">
       <div class="student-row-text">
-        <span class="student-row-name">${s.name}</span>
-        <span class="student-row-roll">Roll: ${s.roll}</span>
+        <span class="student-row-name">${(window.escHtml||(x=>x))(s.name)}</span>
+        <span class="student-row-roll">Roll: ${(window.escHtml||(x=>x))(s.roll)}</span>
       </div>
     </div>`;
   }).join('');
@@ -1645,8 +1645,8 @@ function renderBatchTable(students, sub, marksMap, examType){
     const rowId   = `brow-${s.id}`;
 
     html += `<tr id="${rowId}" data-sid="${s.id}" data-idx="${idx}">
-      <td>${s.roll}</td>
-      <td title="${s.name}">${s.name}</td>
+      <td>${(window.escHtml||(x=>x))(s.roll)}</td>
+      <td title="${(window.escHtml||(x=>x))(s.name)}">${(window.escHtml||(x=>x))(s.name)}</td>
       <td>
         <input class="batch-inp" type="number" id="bcq-${s.id}"
           min="0" max="${cqM}" maxlength="2" value="${cqVal}"

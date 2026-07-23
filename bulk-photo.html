@@ -701,13 +701,13 @@
             item.studentId   = found.id;
             item.hasPhoto    = !!found.photo;
             item.status      = 'ready';
-            document.getElementById(`name-${i}`).innerHTML = `<strong>${found.name}</strong>${found.photo ? ' <span style="font-size:.7rem;color:var(--amber);"> (Photo exists)</span>' : ''}`;
+            document.getElementById(`name-${i}`).innerHTML = `<strong>${(window.escHtml||(x=>x))(found.name)}</strong>${found.photo ? ' <span style="font-size:.7rem;color:var(--amber);"> (Photo exists)</span>' : ''}`;
             document.getElementById(`status-${i}`).innerHTML = found.photo
               ? pill('warning','Will Replace')
               : pill('ready','Ready');
           } else {
             item.status = 'notfound';
-            document.getElementById(`name-${i}`).innerHTML = `<span style="color:var(--red);font-size:.78rem;">Roll ${item.roll} not found</span>`;
+            document.getElementById(`name-${i}`).innerHTML = `<span style="color:var(--red);font-size:.78rem;">Roll ${(window.escHtml||(x=>x))(item.roll)} not found</span>`;
             document.getElementById(`status-${i}`).innerHTML = pill('notfound','Roll Not Found');
           }
         } catch(e) {

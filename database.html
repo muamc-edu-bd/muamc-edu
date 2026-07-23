@@ -319,13 +319,13 @@ function renderTable() {
   tbody.innerHTML = allStudents.map(s => `
     <tr onclick="selectStudent('${s.id}')">
       <td><img src="${s.photo || 'https://via.placeholder.com/32x40?text=No'}" class="photo-thumb"></td>
-      <td style="font-weight:700;">${s.roll}</td>
-      <td style="font-weight:600; color:var(--navy);">${s.name}</td>
-      <td>${s.cls}</td>
-      <td><span class="pill pill-${s.group}">${s.group}</span></td>
-      <td>${s.section || '—'}</td>
-      <td>${s.session}</td>
-      <td>${s.phone || '—'}</td>
+      <td style="font-weight:700;">${(window.escHtml||(x=>x))(s.roll)}</td>
+      <td style="font-weight:600; color:var(--navy);">${(window.escHtml||(x=>x))(s.name)}</td>
+      <td>${(window.escHtml||(x=>x))(s.cls)}</td>
+      <td><span class="pill pill-${(window.escHtml||(x=>x))(s.group)}">${(window.escHtml||(x=>x))(s.group)}</span></td>
+      <td>${(window.escHtml||(x=>x))(s.section) || '—'}</td>
+      <td>${(window.escHtml||(x=>x))(s.session)}</td>
+      <td>${(window.escHtml||(x=>x))(s.phone) || '—'}</td>
     </tr>
   `).join('');
 

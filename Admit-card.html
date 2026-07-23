@@ -633,9 +633,9 @@
         ss.map((s, i) => `<tr>
           <td style="color:var(--muted);">${i + 1}</td>
           <td>${s.photo ? `<img src="${s.photo}" style="width:32px;height:40px;object-fit:cover;border-radius:3px;border:1px solid var(--border);">` : `<div style="width:32px;height:40px;background:var(--slate2);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:.55rem;color:var(--muted);">N/A</div>`}</td>
-          <td><strong>${s.name}</strong></td>
-          <td>${s.roll}</td>
-          <td style="font-size:.75rem;color:var(--muted);">${s.optional_subjects || s.optional_subject || s.optionalSubjects || '—'}</td>
+          <td><strong>${(window.escHtml||(x=>x))(s.name)}</strong></td>
+          <td>${(window.escHtml||(x=>x))(s.roll)}</td>
+          <td style="font-size:.75rem;color:var(--muted);">${(window.escHtml||(x=>x))(s.optional_subjects || s.optional_subject || s.optionalSubjects) || '—'}</td>
           <td><button class="btn btn-primary btn-sm" onclick="openAdmitModal('${s.id}')">View Admit Card</button></td>
         </tr>`).join('') + '</tbody></table>';
     }

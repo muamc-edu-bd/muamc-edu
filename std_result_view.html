@@ -540,12 +540,12 @@
         </div>
 
         <div class="rc-stu-block">
-          <div class="rc-stu-row"><div class="rc-stu-lbl">Student Name</div><div>: ${stu.name}</div></div>
-          <div class="rc-stu-row"><div class="rc-stu-lbl">Father's Name</div><div>: ${stu.father || 'N/A'}</div></div>
-          <div class="rc-stu-row"><div class="rc-stu-lbl">Mother's Name</div><div>: ${stu.mother || 'N/A'}</div></div>
-          <div class="rc-stu-row"><div class="rc-stu-lbl">Class</div><div>: ${stu.cls}</div></div>
-          <div class="rc-stu-row"><div class="rc-stu-lbl">Roll Number</div><div>: ${stu.roll}</div></div>
-          <div class="rc-stu-row"><div class="rc-stu-lbl">Registration No</div><div>: ${stu.reg || 'N/A'}</div></div>
+          <div class="rc-stu-row"><div class="rc-stu-lbl">Student Name</div><div>: ${(window.escHtml||(x=>x))(stu.name)}</div></div>
+          <div class="rc-stu-row"><div class="rc-stu-lbl">Father's Name</div><div>: ${(window.escHtml||(x=>x))(stu.father) || 'N/A'}</div></div>
+          <div class="rc-stu-row"><div class="rc-stu-lbl">Mother's Name</div><div>: ${(window.escHtml||(x=>x))(stu.mother) || 'N/A'}</div></div>
+          <div class="rc-stu-row"><div class="rc-stu-lbl">Class</div><div>: ${(window.escHtml||(x=>x))(stu.cls)}</div></div>
+          <div class="rc-stu-row"><div class="rc-stu-lbl">Roll Number</div><div>: ${(window.escHtml||(x=>x))(stu.roll)}</div></div>
+          <div class="rc-stu-row"><div class="rc-stu-lbl">Registration No</div><div>: ${(window.escHtml||(x=>x))(stu.reg) || 'N/A'}</div></div>
           <div class="rc-stu-row"><div class="rc-stu-lbl">Academic Group</div><div>: ${grpLabel}</div></div>
           <div class="rc-stu-row"><div class="rc-stu-lbl">Examination</div><div>: ${data.exam_type} ${ey}</div></div>
         </div>

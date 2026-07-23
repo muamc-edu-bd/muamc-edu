@@ -936,8 +936,8 @@
     }
 
     function computeStudentGPAAndResult(stu, marks, subs) {
-      const optionalSelected = (marks && marks.selectedOptional) || 
-                               getOptionalIdByCode(stu.group, stu.optionalSubjects || stu.optional_subject || stu.optional_subjects);
+      const optionalSelected = getOptionalIdByCode(stu.group, stu.optionalSubjects || stu.optional_subject || stu.optional_subjects) ||
+                               (marks && marks.selectedOptional);
       
       let tGPA = 0, cnt = 0, fail = 0, tMark = 0;
       let hasAbsent = false;
@@ -1054,14 +1054,14 @@
         const examText = hasMarks ? examKeys.join(', ') : 'No exams recorded';
         return `<div class="card" style="margin-bottom:12px;">
   <div class="card-head">
-    <h3 style="font-size:.85rem;">${s.name}</h3>
-    <span class="meta">${s.cls} — ${s.group} Group</span>
+    <h3 style="font-size:.85rem;">${(window.escHtml||(x=>x))(s.name)}</h3>
+    <span class="meta">${(window.escHtml||(x=>x))(s.cls)} — ${(window.escHtml||(x=>x))(s.group)} Group</span>
   </div>
   <div class="card-body" style="padding:14px 20px;">
     <div class="alert alert-ok" style="margin-bottom:12px;">
-      <strong>${s.name}</strong> &nbsp;|&nbsp; Roll: ${s.roll}
-      &nbsp;|&nbsp; Reg: ${s.reg || '—'}
-      &nbsp;|&nbsp; Session: ${s.session || '—'}
+      <strong>${(window.escHtml||(x=>x))(s.name)}</strong> &nbsp;|&nbsp; Roll: ${(window.escHtml||(x=>x))(s.roll)}
+      &nbsp;|&nbsp; Reg: ${(window.escHtml||(x=>x))(s.reg) || '—'}
+      &nbsp;|&nbsp; Session: ${(window.escHtml||(x=>x))(s.session) || '—'}
       &nbsp;|&nbsp; Exams: <em>${examText}</em>
     </div>
     <div class="btn-row" style="margin-top:0;">
@@ -1234,15 +1234,15 @@
       const db = _marks;
       const marks = db[id][examType];
       const cats = getStudentSubjects(stu, stu.cls);
-      const optionalSelected = marks.selectedOptional;
+      const optionalSelected = getOptionalIdByCode(stu.group, stu.optionalSubjects || stu.optional_subject || stu.optional_subjects) ||
+                               (marks && marks.selectedOptional);
 
       // Merit position
       const peers = _students.filter(s => s.cls === stu.cls && s.group === stu.group);
       const peerScores = peers.map(p => {
         const pMarks = db[p.id] || {};
-        const pKey = Object.keys(pMarks).includes(examType) ? examType : (Object.keys(pMarks).pop() || null);
-        if (!pKey || !pMarks[pKey]) return { id: p.id, gpa: 0, total: 0 };
-        const pm = pMarks[pKey];
+        if (!pMarks[examType]) return { id: p.id, gpa: 0, total: 0 };
+        const pm = pMarks[examType];
         const res = computeStudentGPAAndResult(p, pm, flatStudentSubs(p, p.cls));
         return { id: p.id, gpa: res.gpa, total: res.totalMark };
       });
@@ -1492,7 +1492,8 @@
           if (!marks) return; // Skip students with no marks recorded for this exam
 
           generatedCount++;
-          const optionalSelected = marks.selectedOptional;
+          const optionalSelected = getOptionalIdByCode(stu.group, stu.optionalSubjects || stu.optional_subject || stu.optional_subjects) ||
+                                   (marks && marks.selectedOptional);
           const curStudentSubs = flatStudentSubs(stu, cls);
           const resObj = computeStudentGPAAndResult(stu, marks, curStudentSubs);
           let fail = resObj.failCount, tMark = resObj.totalMark, mMax = 0, failSubs = [];

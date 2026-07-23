@@ -33,6 +33,8 @@ except ImportError:
 
 from flask import Flask, request, jsonify, send_from_directory, abort, session, Response, redirect
 from flask_cors import CORS
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 from models import db, Student, Mark, Teacher, Setting, Archive, PromotionLog
 
@@ -62,7 +64,47 @@ if _db_url.startswith('postgresql'):
 
 # Secret key for server-side session (session cookie auth)
 app.secret_key = os.environ.get('SECRET_KEY') or secrets.token_hex(32)
-CORS(app, supports_credentials=True)
+
+# ── Session cookie hardening (ISSUE-006) ───────────────────────────
+app.config['SESSION_COOKIE_SECURE']    = not _db_url.startswith('sqlite')  # True in prod (HTTPS)
+app.config['SESSION_COOKIE_HTTPONLY']  = True   # Prevent JS access
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # CSRF protection
+app.config['PERMANENT_SESSION_LIFETIME'] = 28800  # 8-hour session timeout
+
+# ── CORS — restrict to known origins (ISSUE-007) ───────────────────
+_allowed_origins_raw = os.environ.get('ALLOWED_ORIGINS', '')
+_allowed_origins = [o.strip() for o in _allowed_origins_raw.split(',') if o.strip()]
+if not _allowed_origins:
+    # Default: same-origin only (localhost for dev)
+    _allowed_origins = ['http://localhost:5000', 'http://127.0.0.1:5000']
+CORS(app,
+     origins=_allowed_origins,
+     supports_credentials=True,
+     allow_headers=['Content-Type'])
+
+# ── Rate limiter — prevents brute-force on /api/login (ISSUE-003) ──
+limiter = Limiter(
+    app=app,
+    key_func=get_remote_address,
+    default_limits=[],           # No global limit; apply per-route only
+    storage_uri='memory://',
+)
+
+@app.after_request
+def add_security_headers(response):
+    """Add security headers to every response."""
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options']         = 'SAMEORIGIN'
+    response.headers['Referrer-Policy']          = 'strict-origin-when-cross-origin'
+    response.headers['Content-Security-Policy'] = (
+        "default-src 'self'; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; "
+        "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
+        "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; "
+        "img-src 'self' data: blob: https:; "
+        "connect-src 'self';"
+    )
+    return response
 
 # Initialize database
 db.init_app(app)
@@ -249,13 +291,16 @@ def _delete_photo_file(photo_url: str):
 # ─────────────────────────────────────────────
 # Serve static files
 # ─────────────────────────────────────────────
-@app.route('/photos/<path:filename>')
+@app.route('/photos/<string:filename>')
 def serve_photo(filename):
-    filepath = os.path.join(PHOTOS_DIR, filename)
+    safe_name = secure_filename(filename)
+    if not safe_name or safe_name != filename:
+        abort(400)
+    filepath = os.path.join(PHOTOS_DIR, safe_name)
+    student_id = safe_name.split('.')[0]
     if not os.path.exists(filepath):
         # File missing on disk (e.g., ephemeral hosting container restart).
         # Lazy-restore from DB photo_base64
-        student_id = filename.split('.')[0]
         student = Student.query.filter_by(id=student_id).first()
         b64_data = ''
         if student and student.photo_base64:
@@ -274,7 +319,7 @@ def serve_photo(filename):
             except Exception:
                 pass
 
-    return send_from_directory(PHOTOS_DIR, filename)
+    return send_from_directory(PHOTOS_DIR, safe_name)
 
 
 # ─────────────────────────────────────────────
@@ -288,14 +333,18 @@ def _serve_html(name, inject_api=True):
     with open(html_path, 'r', encoding='utf-8') as f:
         html = f.read()
 
-    # Inject Arial font globally for all served HTML pages
-    font_inject = (
-        '<style> * { font-family: Arial, sans-serif !important; } </style>\n'
-    )
-    html = html.replace('</head>', font_inject + '</head>', 1)
 
     if inject_api:
-        inject = '<script>window.USE_API = true; window.API_BASE = "";</script>'
+        inject = (
+            '<script>'
+            'window.USE_API = true; window.API_BASE = "";'
+            'window.escHtml = function(s) {'
+            '  if (s == null) return "";'
+            '  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;")'
+            '    .replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/\'/g,"&#39;");'
+            '};'
+            '</script>'
+        )
         html = html.replace('</head>', inject + '\n</head>', 1)
     return Response(html, mimetype='text/html')
 
@@ -913,50 +962,59 @@ def get_group_results():
 # ─────────────────────────────────────────────
 # HEALTH CHECK  (no auth — for deployment diagnosis)
 # ─────────────────────────────────────────────
+# ─────────────────────────────────────────────
+# HEALTH CHECK
+# ─────────────────────────────────────────────
 @app.route('/api/health', methods=['GET'])
 def health_check():
-    db_ok = False
-    db_info = {}
+    """Public health check — returns only pass/fail. No internal details."""
     try:
         from sqlalchemy import text
         with db.engine.connect() as conn:
             conn.execute(text('SELECT 1'))
-        student_count = Student.query.count()
-        teacher_count = Teacher.query.count()
-        marks_count = Mark.query.count()
-        db_ok = True
-        safe_url = _db_url.split('@')[-1] if '@' in _db_url else _db_url
-        db_info = {
-            'connected': True,
-            'host': safe_url,
-            'students': student_count,
-            'teachers': teacher_count,
-            'marks_entries': marks_count,
-        }
-    except Exception as e:
-        db_info = {'connected': False, 'error': str(e)}
+        return jsonify({'ok': True, 'status': 'healthy'}), 200
+    except Exception:
+        return jsonify({'ok': False, 'status': 'unhealthy'}), 503
 
-    return jsonify({
-        'ok': db_ok,
-        'status': 'healthy' if db_ok else 'unhealthy',
-        'database': db_info,
-        'version': '1.0.0',
-        'timestamp': datetime.utcnow().isoformat() + 'Z',
-    }), 200 if db_ok else 503
+
+@app.route('/api/health/detail', methods=['GET'])
+@require_admin
+def health_check_detail():
+    """Admin-only detailed health check."""
+    try:
+        from sqlalchemy import text
+        with db.engine.connect() as conn:
+            conn.execute(text('SELECT 1'))
+        safe_url = _db_url.split('@')[-1] if '@' in _db_url else _db_url
+        return jsonify({
+            'ok': True,
+            'status': 'healthy',
+            'database': {
+                'connected': True,
+                'host': safe_url,
+                'students': Student.query.count(),
+                'teachers': Teacher.query.count(),
+                'marks_entries': Mark.query.count(),
+            },
+            'version': '1.0.0',
+            'timestamp': datetime.utcnow().isoformat() + 'Z',
+        }), 200
+    except Exception as e:
+        return jsonify({'ok': False, 'status': 'unhealthy', 'error': str(e)}), 503
 
 
 # ─────────────────────────────────────────────
 # AUTH
 # ─────────────────────────────────────────────
 @app.route('/api/login', methods=['POST'])
+@limiter.limit("10 per minute")
 def login():
     body = request.get_json(force=True, silent=True) or {}
     uid = body.get('uid', '').strip()
     pw = body.get('pw', '')
 
-    # Admin Logic: User mentioned "one password only" for admin. 
-    # We'll allow admin to login with just the password OR with the admin UID + PW.
-    if pw == ADMIN_PW:
+    # Admin Login: BOTH UID and password required
+    if uid == ADMIN_UID and pw == ADMIN_PW:
         session['authenticated'] = True
         session['role'] = 'admin'
         session.permanent = False
@@ -1131,9 +1189,28 @@ def add_student():
         if not body.get(field):
             return jsonify({'ok': False, 'message': f'Field "{field}" is required'}), 400
 
-    # Check if roll already exists
-    if Student.query.filter_by(roll=body['roll']).first():
-        return jsonify({'ok': False, 'message': 'A student with this roll number already exists'}), 409
+    # Input length validation (ISSUE-024)
+    _MAX_LENGTHS = {
+        'name': 255, 'roll': 50, 'reg': 50, 'cls': 50, 'group': 50,
+        'section': 50, 'father': 255, 'mother': 255, 'dob': 50,
+        'phone': 20, 'religion': 50, 'year': 10, 'session': 50,
+    }
+    for _field, _max_len in _MAX_LENGTHS.items():
+        _val = body.get(_field, '')
+        if _val and len(str(_val)) > _max_len:
+            return jsonify({'ok': False, 'message': f'Field "{_field}" exceeds maximum length of {_max_len} characters'}), 400
+
+    # Scope roll uniqueness check to same class, group and session (ISSUE-011)
+    _session_val = (body.get('session') or body.get('year') or '').strip().replace('–', '-').replace('\u2013', '-')
+    _existing = Student.query.filter_by(
+        roll=body['roll'],
+        cls=body['cls'],
+        group=body['group'],
+    ).filter(
+        (Student.session == _session_val) | (Student.year == _session_val)
+    ).first()
+    if _existing:
+        return jsonify({'ok': False, 'message': f'Roll {body["roll"]} already exists in {body["cls"]} / {body["group"]} for session {_session_val}'}), 409
 
     student_id   = str(uuid.uuid4().hex[:16])
     photo_b64    = body.get('photo', '')
@@ -1395,7 +1472,7 @@ def import_students():
     if not import_list:
         return jsonify({'ok': False, 'message': 'No students provided'}), 400
 
-    existing_rolls = {s.roll for s in Student.query.all()}
+    existing_rolls = {r[0] for r in db.session.query(Student.roll).all()}
     imported = skipped = 0
 
     for student_data in import_list:
@@ -1615,7 +1692,7 @@ def add_teacher():
             return jsonify({'ok': False, 'message': f'Field "{field}" is required'}), 400
 
     teacher = Teacher(
-        id='T' + str(int(datetime.utcnow().timestamp() * 1000)),
+        id='T' + uuid.uuid4().hex[:14],
         name=body.get('name', ''),
         email=body.get('email', ''),
         phone=body.get('phone', ''),
@@ -1724,9 +1801,14 @@ def get_all_marks():
 @app.route('/api/marks', methods=['DELETE'])
 @require_admin
 def clear_all_marks():
+    count = Mark.query.count()
     Mark.query.delete()
-    db.session.commit()
-    return jsonify({'ok': True, 'message': 'All marks cleared'})
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'ok': False, 'message': f'Database error: {str(e)}'}), 500
+    return jsonify({'ok': True, 'message': f'All {count} mark records cleared'})
 
 
 @app.route('/api/marks/<sid>', methods=['GET'])
@@ -1927,9 +2009,19 @@ def _public_result_summary_inner():
     subs = temp_subs
 
     # Resolve optional codes
-    selected_optional = stu_marks.get('selectedOptional', '')
     opt_codes = [c.strip() for c in (optional_subject or '').split('/') if c.strip()]
-    if not opt_codes and selected_optional:
+    selected_optional = stu_marks.get('selectedOptional', '')
+    if opt_codes:
+        LEGACY_CODE_MAP = {
+            'Science': {'178': 'scienceBio', '179': 'scienceBio', '265': 'scienceMath', '266': 'scienceMath'},
+            'Humanities': {'121': 'humLogic', '122': 'humLogic', '273': 'humHome', '274': 'humHome'},
+            'Business': {'109': 'busEcon', '110': 'busEcon', '273': 'busHome', '274': 'busHome'},
+        }
+        for c in opt_codes:
+            if c in LEGACY_CODE_MAP.get(group, {}):
+                selected_optional = LEGACY_CODE_MAP[group][c]
+                break
+    elif selected_optional:
         LEGACY_MAP = {
             'scienceBio': ['178', '179'], 'scienceMath': ['265', '266'],
             'humLogic': ['121', '122'],   'humHome': ['273', '274'],
@@ -2048,56 +2140,17 @@ def _public_result_summary_inner():
 
     # Merit position — sorted by GPA descending, then total marks descending as
     # tiebreaker, matching the Result-card.html front-end logic exactly.
-    # Uses the already-fetched peer marks to avoid extra DB queries / timeouts.
+    # Evaluates each peer using their own subject configuration.
     merit_pos   = None
     merit_total = len(peers)
     try:
         peer_scores = []
         for p in peers:
-            pm_all = (all_peer_marks.get(p.id) or {}).get(resolved_exam, {})
-            p_total   = 0
-            p_gpa_sum = 0.0
-            p_cnt     = 0
-            p_has_fail   = False
-            p_has_absent = False
-            for sub in subs:
-                _code = sub['code']
-                _m = pm_all.get(_code, {})
-                if not isinstance(_m, dict):
-                    continue
-                is_opt = _code in [c.strip() for c in (getattr(p, 'optional_subjects', '') or '').split('/') if c.strip()]
-                absent = _m.get('absent', False) or (
-                    (str(_m.get('cq', '')) == '' or _m.get('cq') is None) and
-                    (str(_m.get('mcq', '')) == '' or _m.get('mcq') is None)
-                )
-                if absent:
-                    if not is_opt:
-                        p_has_absent = True
-                    continue
-                _cq   = min(int(_m.get('cq')   or 0), sub.get('cqMax', 70))
-                _mcq  = min(int(_m.get('mcq')  or 0), sub.get('mcqMax', 30))
-                _prac = min(int(_m.get('prac') or 0), 25) if sub.get('hasPrac') else 0
-                _tot  = _cq + _mcq + _prac
-                p_total += _tot
-                _lg, _gp = _grade_letter(_tot)
-                _passed  = _subject_passed(_cq, _mcq, _prac,
-                                           bool(sub.get('hasPrac')),
-                                           sub.get('cqMax', 70),
-                                           sub.get('mcqMax', 30))
-                if not _passed:
-                    _gp = 0.0
-                    _lg = 'F'
-                if is_opt:
-                    if _gp > 2.0:
-                        p_gpa_sum += (_gp - 2.0)
-                else:
-                    p_gpa_sum += _gp
-                    p_cnt     += 1
-                    if _lg == 'F':
-                        p_has_fail = True
-            # GPA is 0 if any compulsory subject failed or student was absent
-            p_gpa = 0.0 if (p_has_fail or p_has_absent) else (
-                min(round(p_gpa_sum / p_cnt, 2), 5.0) if p_cnt else 0.0
+            p_total, p_gpa, _ = _compute_student_result(
+                p.id, all_peer_marks, getattr(p, "group", "Science") or "Science",
+                getattr(p, "optional_subjects", "") or "",
+                cls=getattr(p, "cls", "Class-XI") or "Class-XI",
+                exam_type=resolved_exam, student_obj=p
             )
             peer_scores.append((p.id, p_gpa, p_total))
         # Sort: GPA descending first, then total marks descending (same as Result-card.html)
@@ -2109,12 +2162,17 @@ def _public_result_summary_inner():
 
     # Resolve optional subject label
     OPTIONAL_SUBJECTS_LABELS = {
-        'Science':     [{'id':'scienceBio','label':'Biology (1st & 2nd Paper)'},{'id':'scienceMath','label':'Higher Mathematics (1st & 2nd Paper)'}],
-        'Humanities':  [{'id':'humLogic',  'label':'Logic (1st & 2nd Paper)'},  {'id':'humHome',   'label':'Home Science (1st & 2nd Paper)'}],
-        'Business':    [{'id':'busEcon',   'label':'Economics (1st & 2nd Paper)'},{'id':'busHome',  'label':'Home Science (1st & 2nd Paper)'}],
+        'Science':     [{'id':'scienceBio','codes':['178','179'],'label':'Biology (1st & 2nd Paper)'},{'id':'scienceMath','codes':['265','266'],'label':'Higher Mathematics (1st & 2nd Paper)'}],
+        'Humanities':  [{'id':'humLogic', 'codes':['121','122'],'label':'Logic (1st & 2nd Paper)'},  {'id':'humHome',  'codes':['273','274'],'label':'Home Science (1st & 2nd Paper)'}],
+        'Business':    [{'id':'busEcon',  'codes':['109','110'],'label':'Economics (1st & 2nd Paper)'},{'id':'busHome', 'codes':['273','274'],'label':'Home Science (1st & 2nd Paper)'}],
     }
     opt_label = 'N/A'
-    if selected_optional:
+    if opt_codes:
+        for o in OPTIONAL_SUBJECTS_LABELS.get(group, []):
+            if any(c in o.get('codes', []) for c in opt_codes):
+                opt_label = o['label']
+                break
+    if opt_label == 'N/A' and selected_optional:
         for o in OPTIONAL_SUBJECTS_LABELS.get(group, []):
             if o['id'] == selected_optional:
                 opt_label = o['label']
@@ -2167,7 +2225,12 @@ def public_result_search():
     all_marks = _get_marks_dict(peer_ids)
     peer_scores = []
     for peer in peers:
-        t, g, _ = _compute_student_result(peer.id, all_marks, peer.group, getattr(peer, "optional_subjects", "") or "")
+        t, g, _ = _compute_student_result(
+            peer.id, all_marks, getattr(peer, "group", "Science") or "Science",
+            getattr(peer, "optional_subjects", "") or "",
+            cls=getattr(peer, "cls", "Class-XI") or "Class-XI",
+            student_obj=peer
+        )
         peer_scores.append((peer.id, g, t))
     peer_scores.sort(key=lambda x: (-x[1], -x[2]))
     merit_position = next((i + 1 for i, ps in enumerate(peer_scores) if ps[0] == student.id), None)
@@ -2425,27 +2488,7 @@ def import_marks():
 @app.route('/api/marks/bulk-import', methods=['POST'])
 @require_auth
 def bulk_import_marks():
-    """Bulk import marks from the frontend Excel parser.
-
-    Expected JSON body:
-        {
-            "entries": [
-                {
-                    "studentId": "abc123",
-                    "examType":  "Annual",
-                    "year":      "2024–2025",
-                    "marks": {
-                        "101": {"cq":"65","mcq":"25","prac":"","ey":"2024–2025","year":"2024–2025"},
-                        "102": {"cq":"58","mcq":"22","prac":"","ey":"2024–2025","year":"2024–2025"},
-                        "selectedOptional": "scienceBio"
-                    }
-                },
-                ...
-            ]
-        }
-
-    All entries are saved to PostgreSQL in a single transaction.
-    """
+    """Bulk import marks from the frontend Excel parser."""
     body    = request.get_json(force=True, silent=True) or {}
     entries = body.get('entries', [])
 
@@ -2453,7 +2496,7 @@ def bulk_import_marks():
         return jsonify({'ok': False, 'message': 'No entries provided'}), 400
 
     # Pre-validate: collect all student IDs referenced
-    valid_student_ids = {s.id for s in Student.query.all()}
+    valid_student_ids = {r[0] for r in db.session.query(Student.id).all()}
 
     imported = 0
     skipped  = 0
@@ -3401,7 +3444,7 @@ def export_csv():
 # ANALYTICS — Promotion, Archive, Roll Gen, Detain, TC
 # ─────────────────────────────────────────────
 
-def _compute_student_result(sid, marks_data, group, optional_subject='', cls=None):
+def _compute_student_result(sid, marks_data, group, optional_subject='', cls=None, exam_type=None, student_obj=None):
     """Return (total_marks, gpa, passed) for a student given their marks dict.
     
     Uses optional_subject (e.g. '178/179') from the student record to determine
@@ -3412,11 +3455,22 @@ def _compute_student_result(sid, marks_data, group, optional_subject='', cls=Non
     if not all_exams:
         return 0, 0.0, False
 
-    exam_key  = list(all_exams.keys())[-1]
-    stu_marks = all_exams[exam_key]
+    if exam_type:
+        if exam_type in all_exams:
+            exam_key = exam_type
+        else:
+            return 0, 0.0, False
+    else:
+        exam_key = list(all_exams.keys())[-1]
 
-    if not cls or not optional_subject:
-        stu = Student.query.filter_by(id=sid).first()
+    stu_marks = all_exams.get(exam_key, {})
+    if not stu_marks:
+        return 0, 0.0, False
+
+    stu = student_obj
+    if not cls or not optional_subject or (group == 'Humanities' and not stu):
+        if not stu:
+            stu = Student.query.filter_by(id=sid).first()
         if stu:
             if not cls:
                 cls = stu.cls
@@ -3427,7 +3481,8 @@ def _compute_student_result(sid, marks_data, group, optional_subject='', cls=Non
 
     # Resolve subjects
     if group == 'Humanities':
-        stu = Student.query.filter_by(id=sid).first()
+        if not stu:
+            stu = Student.query.filter_by(id=sid).first()
         subs = _get_humanities_subject_list(stu, cls)
         if subs is None:
             subs = []
@@ -3535,7 +3590,7 @@ def analyze_promotion():
     eligible = []
 
     for stu in students:
-        total, gpa, passed = _compute_student_result(stu.id, marks, stu.group, getattr(stu, "optional_subjects", "") or "")
+        total, gpa, passed = _compute_student_result(stu.id, marks, stu.group, getattr(stu, "optional_subjects", "") or "", cls=stu.cls)
         data = stu.to_dict()
         data.update({
             'total_marks': total,
@@ -3573,7 +3628,7 @@ def execute_promotion():
 
     scored = []
     for stu in to_promote:
-        total, gpa, _ = _compute_student_result(stu.id, marks, stu.group, getattr(stu, "optional_subjects", "") or "")
+        total, gpa, _ = _compute_student_result(stu.id, marks, stu.group, getattr(stu, "optional_subjects", "") or "", cls=stu.cls)
         scored.append((stu, gpa, total))
     scored.sort(key=lambda x: (-x[1], -x[2]))
 
@@ -3624,7 +3679,7 @@ def execute_promotion():
 
 
 @app.route('/api/archive-graduates', methods=['POST'])
-@require_auth
+@require_admin
 def archive_graduates():
     """Move passing Class-XII students to the archive."""
     students = Student.query.filter_by(cls='Class-XII').all()
@@ -3632,7 +3687,7 @@ def archive_graduates():
 
     to_archive = []
     for stu in students:
-        total, gpa, passed = _compute_student_result(stu.id, marks, stu.group, getattr(stu, "optional_subjects", "") or "")
+        total, gpa, passed = _compute_student_result(stu.id, marks, stu.group, getattr(stu, "optional_subjects", "") or "", cls=stu.cls)
         if passed and total > 0:
             db.session.add(Archive(
                 id=stu.id, name=stu.name, roll=stu.roll, reg=stu.reg,
@@ -3684,7 +3739,7 @@ def analyze_archive_candidates():
     candidates = []
 
     for stu in students:
-        total, gpa, passed = _compute_student_result(stu.id, marks, stu.group, getattr(stu, "optional_subjects", "") or "")
+        total, gpa, passed = _compute_student_result(stu.id, marks, stu.group, getattr(stu, "optional_subjects", "") or "", cls=stu.cls)
         if passed:
             data = stu.to_dict()
             data.update({'totalMarks': total, 'gpa': gpa, 'result': 'Pass'})
@@ -3707,7 +3762,7 @@ def generate_rolls():
     marks  = _get_marks_dict()
     scored = []
     for stu in students:
-        total, gpa, _ = _compute_student_result(stu.id, marks, stu.group, getattr(stu, "optional_subjects", "") or "")
+        total, gpa, _ = _compute_student_result(stu.id, marks, stu.group, getattr(stu, "optional_subjects", "") or "", cls=stu.cls)
         data = stu.to_dict()
         data.update({'gpa': gpa, 'totalMarks': total})
         scored.append(data)
@@ -3739,7 +3794,7 @@ def detain_list():
     detained = []
 
     for stu in students:
-        total, gpa, passed = _compute_student_result(stu.id, marks, stu.group, getattr(stu, "optional_subjects", "") or "")
+        total, gpa, passed = _compute_student_result(stu.id, marks, stu.group, getattr(stu, "optional_subjects", "") or "", cls=stu.cls)
         if not passed and total > 0:
             data = stu.to_dict()
             data.update({'total_marks': total, 'gpa': gpa, 'result': 'Fail'})
@@ -3763,7 +3818,11 @@ def re_enroll(sid):
     student.session = new_year
     student.cls    = 'Class-XI'
 
-    db.session.commit()
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'ok': False, 'message': f'Database error: {str(e)}'}), 500
     return jsonify({'ok': True, 'message': f'Student re-enrolled for {new_year}.',
                     'data': student.to_dict()})
 
@@ -3782,7 +3841,7 @@ def generate_certificate(sid):
         return jsonify({'ok': False, 'message': 'Student not found'}), 404
 
     marks           = _get_marks_dict()
-    total, gpa, passed = _compute_student_result(sid, marks, getattr(stu, "group", "Science"), getattr(stu, "optional_subjects", "") or "")
+    total, gpa, passed = _compute_student_result(sid, marks, getattr(stu, "group", "Science"), getattr(stu, "optional_subjects", "") or "", cls=getattr(stu, "cls", "Class-XII"))
 
     settings = {s.key: s.value for s in Setting.query.all()}
 
@@ -3820,11 +3879,10 @@ def method_not_allowed(e):
 
 @app.errorhandler(500)
 def server_error(e):
-    # Include real error detail so we can diagnose deployment issues.
-    # IMPORTANT: Remove the str(e) in production once the bug is confirmed fixed.
     import traceback
-    detail = str(e) if str(e) else repr(e)
-    return jsonify({'ok': False, 'message': f'Internal server error: {detail}'}), 500
+    import logging
+    logging.error(traceback.format_exc())
+    return jsonify({'ok': False, 'message': 'An internal error occurred. Please contact support.'}), 500
 
 
 # Run photo migrations: copy base64 from photo to photo_base64, save to file, and replace with URL
@@ -3897,4 +3955,5 @@ if __name__ == '__main__':
         print("  API Health:      http://localhost:5000/api/health")
         print("=" * 60)
 
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    debug_mode = os.environ.get('FLASK_DEBUG', 'false').lower() == 'true'
+    app.run(debug=debug_mode, host='0.0.0.0', port=5000)

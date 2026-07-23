@@ -71,6 +71,11 @@ class Mark(db.Model):
     The selectedOptional field is stored redundantly on every Mark row for that exam.
     """
     __tablename__ = 'marks'
+    __table_args__ = (
+        db.Index('ix_marks_student_exam',    'student_id', 'exam_type'),
+        db.Index('ix_marks_student_subject', 'student_id', 'subject_code'),
+        db.Index('ix_marks_exam_subject',    'exam_type',  'subject_code'),
+    )
 
     id                = db.Column(db.Integer,     primary_key=True)
     student_id        = db.Column(db.String(50),  db.ForeignKey('students.id'), nullable=False)
