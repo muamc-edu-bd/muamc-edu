@@ -47,9 +47,29 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # Database Configuration
 # Priority: DATABASE_URL env var → local SQLite fallback
 # DATABASE_URL is loaded from .env if python-dotenv is installed.
-_db_url = os.environ.get('DATABASE_URL') or f"sqlite:///{os.path.join(BASE_DIR, 'hsc_academy.db')}"
-if _db_url.startswith('postgres://'):
-    _db_url = _db_url.replace('postgres://', 'postgresql://', 1)
+_db_raw_url = os.environ.get('DATABASE_URL')
+_db_url = None
+
+if _db_raw_url:
+    if _db_raw_url.startswith('postgres://'):
+        _db_raw_url = _db_raw_url.replace('postgres://', 'postgresql://', 1)
+    
+    if _db_raw_url.startswith('postgresql'):
+        try:
+            from sqlalchemy import create_engine, text
+            _test_engine = create_engine(_db_raw_url, connect_args={'connect_timeout': 5})
+            with _test_engine.connect() as _c:
+                _c.execute(text("SELECT 1"))
+            _test_engine.dispose()
+            _db_url = _db_raw_url
+            print(f"[DB] Successfully connected to PostgreSQL database.")
+        except Exception as _err:
+            print(f"[DB] Primary PostgreSQL database connection failed ({_err}).")
+            print("[DB] Falling back to local SQLite database (hsc_academy.db)...")
+
+if not _db_url:
+    _db_url = f"sqlite:///{os.path.join(BASE_DIR, 'hsc_academy.db')}"
+
 app.config['SQLALCHEMY_DATABASE_URI'] = _db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -149,67 +169,44 @@ with app.app_context():
         print(f"[DB] WARNING: Could not create tables: {_e}")
 
     # Run safe column migrations
-    if _db_url.startswith('postgresql'):
-        # Check if migrations are already complete to avoid exclusive table locks at startup
-        # Check whether ALL migration columns already exist.
-        # If any column is missing, run the full migration block.
-        _migration_needed = False
-        try:
-            with db.engine.connect() as _conn:
-                for _tbl, _col, _ in _COLUMN_MIGRATIONS:
-                    _res = _conn.execute(_text(
-                        f"SELECT EXISTS (SELECT 1 FROM information_schema.columns "
-                        f"WHERE table_name='{_tbl}' AND column_name='{_col}');"
-                    )).scalar()
-                    if not _res:
-                        _migration_needed = True
-                        print(f"[DB] Missing column detected: {_tbl}.{_col} — migrations will run.")
-                        break
-        except Exception:
-            _migration_needed = True
-
-        if _migration_needed:
-            with db.engine.connect() as _conn:
-                # Drop global unique roll constraint to allow non-globally unique roll numbers
+    try:
+        with db.engine.connect() as _conn:
+            # Drop global unique roll constraint to allow non-globally unique roll numbers (PostgreSQL)
+            if app.config.get('SQLALCHEMY_DATABASE_URI', '').startswith('postgresql'):
                 try:
                     _conn.execute(_text("ALTER TABLE students DROP CONSTRAINT IF EXISTS students_roll_key;"))
                     _conn.commit()
                     print("[DB] Dropped global unique roll constraint successfully.")
                 except Exception as _ce:
-                    print(f"[DB] Drop unique constraint skipped: {_ce}")
+                    pass
+
+            for _tbl, _col, _col_def in _COLUMN_MIGRATIONS:
+                try:
+                    if app.config.get('SQLALCHEMY_DATABASE_URI', '').startswith('postgresql'):
+                        _conn.execute(_text(f"ALTER TABLE {_tbl} ADD COLUMN IF NOT EXISTS {_col} {_col_def};"))
+                    else:
+                        _conn.execute(_text(f"ALTER TABLE {_tbl} ADD COLUMN {_col} {_col_def};"))
+                    _conn.commit()
+                    print(f"[DB] Column migration OK: {_tbl}.{_col}")
+                except Exception as _me:
                     try:
                         _conn.rollback()
                     except Exception:
                         pass
 
-                for _tbl, _col, _col_def in _COLUMN_MIGRATIONS:
-                    try:
-                        _conn.execute(_text(
-                            f"ALTER TABLE {_tbl} ADD COLUMN IF NOT EXISTS {_col} {_col_def};"
-                        ))
-                        _conn.commit()
-                        print(f"[DB] Column migration OK: {_tbl}.{_col}")
-                    except Exception as _me:
-                        print(f"[DB] Column migration skipped ({_tbl}.{_col}): {_me}")
-                        try:
-                            _conn.rollback()
-                        except Exception:
-                            pass
-
-                # Ensure photo column is TEXT type in both students and archive tables
+            # Ensure photo column is TEXT type in PostgreSQL
+            if app.config.get('SQLALCHEMY_DATABASE_URI', '').startswith('postgresql'):
                 for _tbl in ["students", "archive"]:
                     try:
                         _conn.execute(_text(f"ALTER TABLE {_tbl} ALTER COLUMN photo TYPE TEXT;"))
                         _conn.commit()
-                        print(f"[DB] Altered photo column to TEXT type OK: {_tbl}")
-                    except Exception as _pe:
-                        print(f"[DB] Alter photo column to TEXT skipped ({_tbl}): {_pe}")
+                    except Exception:
                         try:
                             _conn.rollback()
                         except Exception:
                             pass
-        else:
-            print("[DB] Schema up to date. Skipping startup DDL migrations.")
+    except Exception as _m_err:
+        print(f"[DB] WARNING: Column migrations skipped: {_m_err}")
 
 # ─────────────────────────────────────────────
 # Credentials — read from .env; never hard-coded
