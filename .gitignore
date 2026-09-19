@@ -117,6 +117,10 @@ dmypy.json
 photos/
 scratch/
 *.db
+*.bak
 *.sqlite
 *.sqlite3
+*.docx
+Excel/
+PP/
 caveman/

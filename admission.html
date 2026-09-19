@@ -1,0 +1,1605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Online Admission Portal — Moinuddin Adarsha Mohila College</title>
+  <link rel="stylesheet" href="/static/css/all.min.css">
+  <style>
+    :root {
+      --navy: #0d2b45;
+      --navy2: #174070;
+      --navy3: #1f5490;
+      --gold: #a97c28;
+      --gold2: #c9973a;
+      --gold3: #e8b84b;
+      --slate: #f1f4f8;
+      --slate2: #e8ecf2;
+      --white: #ffffff;
+      --txt: #0f172a;
+      --txt2: #334155;
+      --muted: #64748b;
+      --border: #dde3ed;
+      --border2: #c8d2e0;
+      --red: #b91c1c;
+      --red-bg: #fee2e2;
+      --green: #166534;
+      --green-bg: #dcfce7;
+      --amber: #92400e;
+      --amber-bg: #fef3c7;
+      --radius: 8px;
+      --shadow: 0 4px 18px rgba(13, 43, 69, 0.08);
+      --shadow-lg: 0 10px 30px rgba(13, 43, 69, 0.14);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Kalpurush', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+      background: var(--slate);
+      color: var(--txt);
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Institutional Header */
+    .portal-header {
+      background: linear-gradient(180deg, var(--navy) 0%, #081c2f 100%);
+      color: var(--white);
+      padding: 20px 24px;
+      border-bottom: 3px solid var(--gold2);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .portal-header-inner {
+      max-width: 1040px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .header-branding {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .college-logo-img {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      border: 2px solid var(--gold2);
+      background: #fff;
+      object-fit: contain;
+    }
+
+    .header-text h1 {
+      font-size: 1.45rem;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      color: #fff;
+    }
+
+    .header-text p {
+      font-size: 0.85rem;
+      color: var(--gold3);
+      font-weight: 500;
+    }
+
+    .header-badge {
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 20px;
+      background: rgba(201, 151, 58, 0.2);
+      border: 1px solid var(--gold2);
+      color: var(--gold3);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    /* Portal Container */
+    .portal-container {
+      max-width: 1040px;
+      width: 100%;
+      margin: 24px auto 40px;
+      padding: 0 16px;
+      flex: 1;
+    }
+
+    /* Portal Navigation Tabs (No icons) */
+    .portal-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .portal-tab-btn {
+      padding: 12px 24px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s ease;
+      border-top-left-radius: 6px;
+      border-top-right-radius: 6px;
+    }
+
+    .portal-tab-btn:hover {
+      color: var(--navy);
+      background: rgba(13, 43, 69, 0.03);
+    }
+
+    .portal-tab-btn.active {
+      color: var(--navy);
+      background: var(--white);
+      border-bottom: 3px solid var(--navy);
+      margin-bottom: -2px;
+    }
+
+    /* Card Panels */
+    .portal-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+
+    .portal-card-header {
+      padding: 18px 24px;
+      background: linear-gradient(180deg, #f8faff 0%, #fff 100%);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .portal-card-header h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--navy);
+    }
+
+    .portal-card-header p {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .portal-card-body {
+      padding: 24px;
+    }
+
+    /* Form Section Dividers */
+    .form-section-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--navy2);
+      padding-bottom: 8px;
+      margin-bottom: 16px;
+      border-bottom: 1.5px solid var(--slate2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .form-section-title span.badge {
+      font-size: 0.72rem;
+      font-weight: 600;
+      background: var(--slate);
+      color: var(--muted);
+      padding: 3px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 18px 20px;
+      margin-bottom: 24px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group.span-2 {
+      grid-column: span 2;
+    }
+
+    .form-group.span-full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: var(--txt2);
+    }
+
+    label .req {
+      color: var(--red);
+      margin-left: 2px;
+    }
+
+    .help-text {
+      font-size: 0.76rem;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="date"],
+    input[type="number"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 10px 14px;
+      font-size: 0.9rem;
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      background: var(--white);
+      color: var(--txt);
+      font-family: inherit;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--navy2);
+      box-shadow: 0 0 0 3px rgba(23, 64, 112, 0.12);
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: #94a3b8;
+    }
+
+    select {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23334155' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      background-size: 14px;
+      padding-right: 36px;
+    }
+
+    /* Photo Upload Box (No icons) */
+    .photo-upload-container {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .photo-preview-box {
+      width: 130px;
+      height: 160px;
+      border: 2px dashed var(--border2);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--slate);
+      overflow: hidden;
+      position: relative;
+      flex-shrink: 0;
+      text-align: center;
+      padding: 6px;
+    }
+
+    .photo-preview-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+    }
+
+    .photo-preview-placeholder {
+      font-size: 0.78rem;
+      color: var(--muted);
+      font-weight: 500;
+      line-height: 1.4;
+    }
+
+    .photo-upload-controls {
+      flex: 1;
+      min-width: 220px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .btn-file-upload {
+      display: inline-block;
+      padding: 9px 18px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--navy);
+      background: var(--slate2);
+      border: 1.5px solid var(--border2);
+      border-radius: 6px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s ease;
+      align-self: flex-start;
+    }
+
+    .btn-file-upload:hover {
+      background: #dfe5ee;
+      border-color: #b0c0d4;
+    }
+
+    /* Buttons (Text Only, No Icons) */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 11px 24px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+
+    .btn-primary {
+      background: var(--navy);
+      color: var(--white);
+    }
+
+    .btn-primary:hover {
+      background: var(--navy2);
+      box-shadow: 0 4px 12px rgba(13, 43, 69, 0.2);
+    }
+
+    .btn-secondary {
+      background: var(--slate2);
+      color: var(--txt);
+      border: 1px solid var(--border2);
+    }
+
+    .btn-secondary:hover {
+      background: #e2e8f0;
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--navy);
+      border: 1.5px solid var(--navy);
+    }
+
+    .btn-outline:hover {
+      background: var(--navy);
+      color: var(--white);
+    }
+
+    .btn-gold {
+      background: var(--gold);
+      color: var(--white);
+    }
+
+    .btn-gold:hover {
+      background: var(--gold2);
+    }
+
+    .btn-danger {
+      background: var(--red);
+      color: var(--white);
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      margin-top: 10px;
+    }
+
+    /* Alerts */
+    .alert-banner {
+      padding: 14px 18px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      font-size: 0.88rem;
+      display: none;
+    }
+
+    .alert-banner.error {
+      display: block;
+      background: var(--red-bg);
+      color: var(--red);
+      border: 1px solid #fca5a5;
+    }
+
+    .alert-banner.success {
+      display: block;
+      background: var(--green-bg);
+      color: var(--green);
+      border: 1px solid #86efac;
+    }
+
+    .alert-banner.info {
+      display: block;
+      background: var(--slate2);
+      color: var(--navy);
+      border: 1px solid var(--border2);
+    }
+
+    /* Confirmation Voucher / Printable Form View */
+    #confirmation-panel {
+      display: none;
+    }
+
+    .voucher-card {
+      background: #fff;
+      border: 2px solid var(--navy);
+      border-radius: 8px;
+      padding: 32px;
+      box-shadow: var(--shadow-lg);
+      margin-bottom: 24px;
+      position: relative;
+    }
+
+    .voucher-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 2px solid var(--navy);
+      padding-bottom: 18px;
+      margin-bottom: 24px;
+      gap: 20px;
+    }
+
+    .voucher-college-info h2 {
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: var(--navy);
+      margin-bottom: 4px;
+    }
+
+    .voucher-college-info p {
+      font-size: 0.88rem;
+      color: var(--txt2);
+    }
+
+    .voucher-badge-doc {
+      display: inline-block;
+      margin-top: 8px;
+      background: var(--navy);
+      color: #fff;
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 4px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .voucher-top-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 12px;
+    }
+
+    /* Barcode container */
+    .barcode-box {
+      text-align: center;
+      background: #fff;
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+
+    .barcode-box svg {
+      max-width: 240px;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+    }
+
+    .voucher-photo {
+      width: 110px;
+      height: 135px;
+      border: 1px solid var(--border2);
+      background: var(--slate);
+      object-fit: cover;
+      border-radius: 4px;
+    }
+
+    .voucher-app-number-bar {
+      background: var(--slate);
+      border: 1px solid var(--border);
+      padding: 10px 18px;
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      font-size: 0.92rem;
+    }
+
+    .voucher-app-number-bar strong {
+      color: var(--navy);
+      font-size: 1.15rem;
+      letter-spacing: 0.03em;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .status-badge.pending {
+      background: var(--amber-bg);
+      color: var(--amber);
+      border: 1px solid #fcd34d;
+    }
+
+    .status-badge.approved {
+      background: var(--green-bg);
+      color: var(--green);
+      border: 1px solid #86efac;
+    }
+
+    .status-badge.rejected {
+      background: var(--red-bg);
+      color: var(--red);
+      border: 1px solid #fca5a5;
+    }
+
+    /* Detail tables in voucher */
+    .voucher-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+      font-size: 0.88rem;
+    }
+
+    .voucher-table th,
+    .voucher-table td {
+      border: 1px solid var(--border);
+      padding: 8px 14px;
+      text-align: left;
+    }
+
+    .voucher-table th {
+      background: var(--slate);
+      width: 25%;
+      font-weight: 600;
+      color: var(--navy);
+    }
+
+    .voucher-table td {
+      color: var(--txt);
+    }
+
+    .voucher-signatures {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 60px;
+      padding: 0 20px;
+    }
+
+    .sig-line {
+      width: 220px;
+      border-top: 1.5px dashed var(--txt2);
+      text-align: center;
+      padding-top: 6px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: var(--txt2);
+    }
+
+    .voucher-note {
+      font-size: 0.78rem;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+      margin-top: 24px;
+      text-align: center;
+    }
+
+    /* Track Application Panel */
+    .track-search-box {
+      display: flex;
+      gap: 10px;
+      max-width: 580px;
+      margin: 10px 0 24px;
+    }
+
+    .status-result-card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      background: var(--slate);
+      margin-top: 16px;
+      display: none;
+    }
+
+    /* Footer */
+    .portal-footer {
+      background: #081c2f;
+      color: #94a3b8;
+      text-align: center;
+      padding: 20px 16px;
+      font-size: 0.82rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* Print Stylesheet */
+    @media print {
+      body {
+        background: #fff !important;
+        color: #000 !important;
+      }
+
+      .portal-header,
+      .portal-tabs,
+      .portal-footer,
+      .no-print,
+      .btn,
+      .alert-banner {
+        display: none !important;
+      }
+
+      .portal-container {
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+
+      .voucher-card {
+        border: 1.5px solid #000 !important;
+        box-shadow: none !important;
+        padding: 16px !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+      }
+
+      .voucher-header {
+        border-bottom: 1.5px solid #000 !important;
+      }
+
+      .voucher-table th,
+      .voucher-table td {
+        border: 1px solid #777 !important;
+        padding: 6px 10px !important;
+        font-size: 0.82rem !important;
+      }
+
+      .voucher-app-number-bar {
+        border: 1px solid #777 !important;
+        background: #f5f5f5 !important;
+      }
+
+      .barcode-box {
+        border: none !important;
+        padding: 0 !important;
+      }
+
+      .barcode-box svg {
+        max-width: 220px !important;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .form-group.span-2 {
+        grid-column: span 1;
+      }
+
+      .voucher-header {
+        flex-direction: column;
+      }
+
+      .voucher-top-right {
+        align-items: flex-start;
+      }
+
+      .voucher-signatures {
+        flex-direction: column;
+        gap: 40px;
+        align-items: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Institution Top Header -->
+  <header class="portal-header">
+    <div class="portal-header-inner">
+      <div class="header-branding">
+        <img class="college-logo-img" src="https://www.muamc.edu.bd/wp-content/uploads/2025/01/logo-muam-scaled.jpeg" alt="College Logo" onerror="this.style.display='none'">
+        <div class="header-text">
+          <h1 id="college-name-display">Moinuddin Adarsha Mohila College</h1>
+          <p>Higher Secondary Certificate (HSC) Online Admission Portal</p>
+        </div>
+      </div>
+      <div class="header-badge">Session 2025–2026</div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <div class="portal-container">
+
+    <!-- Tab Bar (No icons) -->
+    <div class="portal-tabs no-print">
+      <button type="button" class="portal-tab-btn active" id="tab-apply-btn" onclick="switchTab('apply')">New Admission Application</button>
+      <button type="button" class="portal-tab-btn" id="tab-track-btn" onclick="switchTab('track')">Track Application Status</button>
+    </div>
+
+    <!-- Alert Banner -->
+    <div id="portal-alert" class="alert-banner"></div>
+
+    <!-- TAB 1: APPLICATION FORM -->
+    <div id="apply-panel">
+      <div class="portal-card">
+        <div class="portal-card-header">
+          <div>
+            <h2>Student Admission Application Form</h2>
+            <p>Please provide accurate student details required for official enrollment into the college database.</p>
+          </div>
+          <span style="font-size:0.8rem; color:var(--red); font-weight:600;">* Required fields</span>
+        </div>
+
+        <div class="portal-card-body">
+          <form id="admission-form" action="javascript:void(0)" onsubmit="handleFormSubmit(event)">
+
+            <!-- SECTION 1: ACADEMIC PROGRAM ENROLLMENT -->
+            <div class="form-section-title">
+              <span>1. Academic Enrollment Details</span>
+              <span class="badge">Program</span>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="adm-class">Admission Class <span class="req">*</span></label>
+                <select id="adm-class" required onchange="onClassOrGroupChange()">
+                  <option value="">-- Select Class --</option>
+                  <option value="Class-XI" selected>Class-XI (1st Year)</option>
+                  <option value="Class-XII">Class-XII (2nd Year)</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="adm-group">Group / Department <span class="req">*</span></label>
+                <select id="adm-group" required onchange="onClassOrGroupChange()">
+                  <option value="">-- Select Group --</option>
+                  <option value="Science">Science</option>
+                  <option value="Humanities">Humanities</option>
+                  <option value="Business">Business Studies</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="adm-session">Academic Session <span class="req">*</span></label>
+                <select id="adm-session" required>
+                </select>
+                <script>
+                  (function(){
+                    var sel = document.getElementById('adm-session');
+                    var y = new Date().getFullYear();
+                    for (var i = -1; i <= 1; i++) {
+                      var s = (y+i) + '-' + (y+i+1);
+                      var o = document.createElement('option');
+                      o.value = s; o.textContent = s;
+                      if (i === 0) o.selected = true;
+                      sel.appendChild(o);
+                    }
+                  })();
+                </script>
+              </div>
+
+              <div class="form-group">
+                <label for="adm-year">Academic Year</label>
+                <input type="text" id="adm-year" placeholder="e.g. 2026">
+                <script>document.getElementById('adm-year').value = new Date().getFullYear();</script>
+              </div>
+            </div>
+
+            <!-- Subject Selection -->
+            <div class="form-grid">
+              <div class="form-group span-2" id="optional-subject-wrapper" style="display:none;">
+                <label for="adm-optional">Optional (4th) Subject Choice</label>
+                <select id="adm-optional">
+                  <option value="">-- Select Optional Subject --</option>
+                </select>
+                <span class="help-text">Choose your preferred optional 4th subject for this group</span>
+              </div>
+
+              <div class="form-group span-full" id="humanities-main-wrapper" style="display:none;">
+                <label for="adm-humanities-main">Humanities Elective Subject Selection</label>
+                <input type="text" id="adm-humanities-main" placeholder="e.g. Civics & Good Governance, Economics, Social Work">
+                <span class="help-text">Mention chosen elective group subjects for Humanities</span>
+              </div>
+            </div>
+
+            <!-- SECTION 2: STUDENT PERSONAL INFORMATION -->
+            <div class="form-section-title">
+              <span>2. Student Personal Information</span>
+              <span class="badge">Biodata</span>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group span-2">
+                <label for="adm-name">Full Name (English Block Letters) <span class="req">*</span></label>
+                <input type="text" id="adm-name" required placeholder="e.g. FATIMA BEGUM" style="text-transform:uppercase;">
+              </div>
+
+              <div class="form-group">
+                <label for="adm-dob">Date of Birth</label>
+                <input type="date" id="adm-dob">
+              </div>
+
+              <div class="form-group">
+                <label for="adm-gender">Gender</label>
+                <select id="adm-gender">
+                  <option value="Female" selected>Female</option>
+                  <option value="Male">Male</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="adm-religion">Religion</label>
+                <select id="adm-religion">
+                  <option value="Islam" selected>Islam</option>
+                  <option value="Hinduism">Hinduism</option>
+                  <option value="Buddhism">Buddhism</option>
+                  <option value="Christianity">Christianity</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="adm-blood">Blood Group</label>
+                <select id="adm-blood">
+                  <option value="">-- Select Blood Group --</option>
+                  <option value="A+">A+</option>
+                  <option value="A-">A-</option>
+                  <option value="B+">B+</option>
+                  <option value="B-">B-</option>
+                  <option value="O+">O+</option>
+                  <option value="O-">O-</option>
+                  <option value="AB+">AB+</option>
+                  <option value="AB-">AB-</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="adm-phone">Student / Contact Mobile Number <span class="req">*</span></label>
+                <input type="tel" id="adm-phone" required placeholder="e.g. 017xxxxxxxx">
+              </div>
+
+              <div class="form-group">
+                <label for="adm-nationality">Nationality</label>
+                <input type="text" id="adm-nationality" value="Bangladeshi">
+              </div>
+
+              <div class="form-group span-full">
+                <label for="adm-address">Present & Permanent Address</label>
+                <textarea id="adm-address" rows="2" placeholder="Village / House, Post Office, Upazila / Thana, District"></textarea>
+              </div>
+            </div>
+
+            <!-- SECTION 3: PARENT & GUARDIAN DETAILS -->
+            <div class="form-section-title">
+              <span>3. Parent & Guardian Information</span>
+              <span class="badge">Family</span>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="adm-father">Father's Full Name <span class="req">*</span></label>
+                <input type="text" id="adm-father" required placeholder="Father's Name">
+              </div>
+
+              <div class="form-group">
+                <label for="adm-mother">Mother's Full Name <span class="req">*</span></label>
+                <input type="text" id="adm-mother" required placeholder="Mother's Name">
+              </div>
+
+              <div class="form-group">
+                <label for="adm-guardian-name">Legal Guardian's Name (if applicable)</label>
+                <input type="text" id="adm-guardian-name" placeholder="Optional guardian name">
+              </div>
+
+              <div class="form-group">
+                <label for="adm-guardian-phone">Guardian's Mobile Number</label>
+                <input type="tel" id="adm-guardian-phone" placeholder="e.g. 018xxxxxxxx">
+              </div>
+            </div>
+
+            <!-- SECTION 4: PREVIOUS ACADEMIC RECORD (SSC) -->
+            <div class="form-section-title">
+              <span>4. Previous Academic Background (SSC / Equivalent)</span>
+              <span class="badge">SSC Record</span>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="adm-ssc-roll">SSC Roll Number</label>
+                <input type="text" id="adm-ssc-roll" placeholder="e.g. 123456">
+              </div>
+
+              <div class="form-group">
+                <label for="adm-ssc-reg">SSC Registration Number</label>
+                <input type="text" id="adm-ssc-reg" placeholder="e.g. 1234567890">
+              </div>
+
+              <div class="form-group">
+                <label for="adm-ssc-board">Education Board</label>
+                <select id="adm-ssc-board">
+                  <option value="Sylhet" selected>Sylhet</option>
+                  <option value="Dhaka">Dhaka</option>
+                  <option value="Chittagong">Chittagong</option>
+                  <option value="Rajshahi">Rajshahi</option>
+                  <option value="Comilla">Comilla</option>
+                  <option value="Barisal">Barisal</option>
+                  <option value="Jessore">Jessore</option>
+                  <option value="Dinajpur">Dinajpur</option>
+                  <option value="Mymensingh">Mymensingh</option>
+                  <option value="Madrasah">Madrasah</option>
+                  <option value="Technical">Technical</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="adm-ssc-year">Passing Year</label>
+                <input type="text" id="adm-ssc-year" placeholder="e.g. 2025" value="2025">
+              </div>
+
+              <div class="form-group">
+                <label for="adm-ssc-gpa">SSC GPA (Grade Point Average)</label>
+                <input type="text" id="adm-ssc-gpa" placeholder="e.g. 4.85 or 5.00">
+              </div>
+
+              <div class="form-group">
+                <label for="adm-ssc-group">SSC Group</label>
+                <select id="adm-ssc-group">
+                  <option value="Science">Science</option>
+                  <option value="Humanities" selected>Humanities</option>
+                  <option value="Business">Business Studies</option>
+                  <option value="Vocational">Vocational</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- SECTION 5: STUDENT PHOTOGRAPH -->
+            <div class="form-section-title">
+              <span>5. Student Photograph Upload</span>
+              <span class="badge">Photo</span>
+            </div>
+
+            <div class="photo-upload-container">
+              <div class="photo-preview-box" id="photo-box">
+                <img id="preview-img" alt="Student Photograph">
+                <div class="photo-preview-placeholder" id="preview-text">
+                  Passport Size<br>Photograph<br>(JPG / PNG)
+                </div>
+              </div>
+
+              <div class="photo-upload-controls">
+                <label class="btn-file-upload">
+                  Choose Photo File
+                  <input type="file" id="photo-input" accept="image/*" style="display:none;" onchange="handlePhotoUpload(this)">
+                </label>
+                <p class="help-text">Upload a clear formal passport-size photo (under 2MB). This photograph will be stored in the student database and printed on the admission voucher.</p>
+                <button type="button" class="btn btn-secondary" style="padding:6px 14px; font-size:0.8rem; align-self:flex-start;" onclick="clearPhoto()">Clear Photo</button>
+              </div>
+            </div>
+
+            <!-- Submission Actions (Text only, no icons) -->
+            <div class="form-actions">
+              <button type="reset" class="btn btn-secondary" onclick="resetAdmissionForm()">Reset Form</button>
+              <button type="submit" class="btn btn-primary" id="btn-submit-app">Submit Admission Application</button>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </div><!-- /#apply-panel -->
+
+    <!-- TAB 2: TRACK APPLICATION STATUS -->
+    <div id="track-panel" style="display:none;">
+      <div class="portal-card">
+        <div class="portal-card-header">
+          <div>
+            <h2>Track Your Admission Application</h2>
+            <p>Enter your unique Application Number (e.g. ADM-2025-0001) to verify submission status.</p>
+          </div>
+        </div>
+
+        <div class="portal-card-body">
+          <div class="track-search-box">
+            <input type="text" id="track-input" placeholder="Enter Application Number (e.g. ADM-2025-0001)" style="font-size:1rem; text-transform:uppercase;">
+            <button type="button" class="btn btn-primary" onclick="trackApplication()">Check Status</button>
+          </div>
+
+          <!-- Status Result Card -->
+          <div id="status-result" class="status-result-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
+              <div>
+                <span style="font-size:0.8rem; color:var(--muted); text-transform:uppercase; font-weight:600;">Application Number</span>
+                <div id="st-app-no" style="font-size:1.2rem; font-weight:700; color:var(--navy);"></div>
+              </div>
+              <div>
+                <span id="st-status-badge" class="status-badge"></span>
+              </div>
+            </div>
+
+            <table class="voucher-table" style="margin-bottom:16px;">
+              <tbody>
+                <tr>
+                  <th>Student Name</th>
+                  <td id="st-name"></td>
+                  <th>Class & Group</th>
+                  <td id="st-class-group"></td>
+                </tr>
+                <tr>
+                  <th>Session</th>
+                  <td id="st-session"></td>
+                  <th>Assigned Roll</th>
+                  <td id="st-roll"></td>
+                </tr>
+                <tr>
+                  <th>Submitted At</th>
+                  <td id="st-date"></td>
+                  <th>Contact Phone</th>
+                  <td id="st-phone"></td>
+                </tr>
+                <tr id="st-remarks-row" style="display:none;">
+                  <th>Admin Remarks</th>
+                  <td colspan="3" id="st-remarks" style="color:var(--red); font-weight:600;"></td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div style="display:flex; gap:12px; justify-content:flex-end;">
+              <button type="button" class="btn btn-primary" onclick="viewVoucherFromStatus()">View & Print Admission Voucher</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /#track-panel -->
+
+    <!-- CONFIRMATION / PRINTABLE VOUCHER PANEL -->
+    <div id="confirmation-panel">
+      <!-- Action Bar (No Print) -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;" class="no-print">
+        <button type="button" class="btn btn-secondary" onclick="returnToNewApplication()">Submit Another Application</button>
+        <div style="display:flex; gap:10px;">
+          <button type="button" class="btn btn-primary" onclick="window.print()">Print Application Form</button>
+        </div>
+      </div>
+
+      <!-- Printable Voucher Card -->
+      <div class="voucher-card" id="printable-voucher">
+        <div class="voucher-header">
+          <div class="voucher-college-info">
+            <h2>MOINUDDIN ADARSHA MOHILA COLLEGE</h2>
+            <p>Sylhet, Bangladesh | EIIN: 130456 | College Code: 1122</p>
+            <span class="voucher-badge-doc">HSC Admission Application Form & Admit Voucher</span>
+          </div>
+          <div class="voucher-top-right">
+            <div class="barcode-box">
+              <svg id="voucher-barcode"></svg>
+            </div>
+            <img id="voucher-photo-img" class="voucher-photo" alt="Candidate Photo" style="display:none;">
+          </div>
+        </div>
+
+        <div class="voucher-app-number-bar">
+          <div>
+            Application Tracking No: <strong id="v-app-no"></strong>
+          </div>
+          <div>
+            Status: <span id="v-status-badge" class="status-badge pending">Pending Review</span>
+          </div>
+        </div>
+
+        <!-- Academic Information Table -->
+        <h4 style="font-size:0.95rem; margin-bottom:8px; color:var(--navy); font-weight:700;">1. Academic Program</h4>
+        <table class="voucher-table">
+          <tbody>
+            <tr>
+              <th>Admission Class</th>
+              <td id="v-class"></td>
+              <th>Department / Group</th>
+              <td id="v-group"></td>
+            </tr>
+            <tr>
+              <th>Academic Session</th>
+              <td id="v-session"></td>
+              <th>Academic Year</th>
+              <td id="v-year"></td>
+            </tr>
+            <tr>
+              <th>Assigned Class Roll</th>
+              <td id="v-roll"></td>
+              <th>Section</th>
+              <td id="v-section"></td>
+            </tr>
+            <tr>
+              <th>Optional (4th) Subject</th>
+              <td id="v-optional" colspan="3"></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Student Biodata Table -->
+        <h4 style="font-size:0.95rem; margin-bottom:8px; color:var(--navy); font-weight:700;">2. Student Biodata</h4>
+        <table class="voucher-table">
+          <tbody>
+            <tr>
+              <th>Student Full Name</th>
+              <td id="v-name" colspan="3" style="font-weight:700; text-transform:uppercase;"></td>
+            </tr>
+            <tr>
+              <th>Father's Name</th>
+              <td id="v-father"></td>
+              <th>Mother's Name</th>
+              <td id="v-mother"></td>
+            </tr>
+            <tr>
+              <th>Date of Birth</th>
+              <td id="v-dob"></td>
+              <th>Contact Phone</th>
+              <td id="v-phone"></td>
+            </tr>
+            <tr>
+              <th>Religion</th>
+              <td id="v-religion"></td>
+              <th>Blood Group / Gender</th>
+              <td id="v-blood-gender"></td>
+            </tr>
+            <tr>
+              <th>Address</th>
+              <td id="v-address" colspan="3"></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- SSC Academic History -->
+        <h4 style="font-size:0.95rem; margin-bottom:8px; color:var(--navy); font-weight:700;">3. Previous SSC Examination Information</h4>
+        <table class="voucher-table">
+          <tbody>
+            <tr>
+              <th>SSC Roll Number</th>
+              <td id="v-ssc-roll"></td>
+              <th>SSC Registration</th>
+              <td id="v-ssc-reg"></td>
+            </tr>
+            <tr>
+              <th>Education Board</th>
+              <td id="v-ssc-board"></td>
+              <th>Passing Year</th>
+              <td id="v-ssc-year"></td>
+            </tr>
+            <tr>
+              <th>SSC GPA</th>
+              <td id="v-ssc-gpa" style="font-weight:700;"></td>
+              <th>SSC Group</th>
+              <td id="v-ssc-group"></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Official Signatures -->
+        <div class="voucher-signatures">
+          <div class="sig-line">Candidate / Guardian Signature</div>
+          <div class="sig-line">Convener, Admission Committee</div>
+          <div class="sig-line">Principal Signature & Seal</div>
+        </div>
+
+        <div class="voucher-note">
+          Please preserve this printed application form and barcode for admission verification and roll card issuance at the college office.
+        </div>
+      </div>
+    </div><!-- /#confirmation-panel -->
+
+  </div><!-- /.portal-container -->
+
+  <!-- Institutional Footer -->
+  <footer class="portal-footer">
+    <p>Moinuddin Adarsha Mohila College, Sylhet, Bangladesh. All rights reserved.</p>
+  </footer>
+
+  <!-- Local JsBarcode library (stored locally in static/js) -->
+  <script src="/static/js/JsBarcode.all.min.js"></script>
+
+  <script>
+    let photoBase64 = '';
+    let currentApplicationData = null;
+
+    // Optional subjects dictionary mapped by group
+    const OPTIONAL_SUBJECTS = {
+      'Science': [
+        { code: '178/179', name: 'Biology (178/179)' },
+        { code: '265/266', name: 'Higher Mathematics (265/266)' }
+      ],
+      'Humanities': [
+        { code: '121/122', name: 'Logic (121/122)' },
+        { code: '273/274', name: 'Home Science (273/274)' },
+        { code: '109/110', name: 'Economics (109/110)' }
+      ],
+      'Business': [
+        { code: '109/110', name: 'Economics (109/110)' },
+        { code: '273/274', name: 'Home Science (273/274)' }
+      ]
+    };
+
+    function onClassOrGroupChange() {
+      const grp = document.getElementById('adm-group').value;
+      const optWrap = document.getElementById('optional-subject-wrapper');
+      const optSelect = document.getElementById('adm-optional');
+      const humWrap = document.getElementById('humanities-main-wrapper');
+
+      if (grp && OPTIONAL_SUBJECTS[grp]) {
+        optWrap.style.display = 'flex';
+        optSelect.innerHTML = '<option value="">-- Select Optional Subject --</option>';
+        OPTIONAL_SUBJECTS[grp].forEach(s => {
+          const opt = document.createElement('option');
+          opt.value = s.code;
+          opt.textContent = s.name;
+          optSelect.appendChild(opt);
+        });
+      } else {
+        optWrap.style.display = 'none';
+        optSelect.innerHTML = '<option value="">-- Select Optional Subject --</option>';
+      }
+
+      if (grp === 'Humanities') {
+        humWrap.style.display = 'flex';
+      } else {
+        humWrap.style.display = 'none';
+      }
+    }
+
+    function handlePhotoUpload(input) {
+      if (input.files && input.files[0]) {
+        const file = input.files[0];
+        if (file.size > 2 * 1024 * 1024) {
+          showAlert('Photo file size must be under 2MB.', 'error');
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          photoBase64 = e.target.result;
+          const img = document.getElementById('preview-img');
+          const placeholder = document.getElementById('preview-text');
+          img.src = photoBase64;
+          img.style.display = 'block';
+          placeholder.style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function clearPhoto() {
+      photoBase64 = '';
+      const img = document.getElementById('preview-img');
+      const placeholder = document.getElementById('preview-text');
+      const input = document.getElementById('photo-input');
+      img.src = '';
+      img.style.display = 'none';
+      placeholder.style.display = 'block';
+      if (input) input.value = '';
+    }
+
+    function resetAdmissionForm() {
+      clearPhoto();
+      document.getElementById('optional-subject-wrapper').style.display = 'none';
+      document.getElementById('humanities-main-wrapper').style.display = 'none';
+      hideAlert();
+    }
+
+    function showAlert(msg, type) {
+      const el = document.getElementById('portal-alert');
+      el.className = 'alert-banner ' + type;
+      el.textContent = msg;
+      el.style.display = 'block';
+      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function hideAlert() {
+      const el = document.getElementById('portal-alert');
+      el.style.display = 'none';
+    }
+
+    function switchTab(tab) {
+      hideAlert();
+      const applyBtn = document.getElementById('tab-apply-btn');
+      const trackBtn = document.getElementById('tab-track-btn');
+      const applyPanel = document.getElementById('apply-panel');
+      const trackPanel = document.getElementById('track-panel');
+      const confirmPanel = document.getElementById('confirmation-panel');
+
+      confirmPanel.style.display = 'none';
+
+      if (tab === 'apply') {
+        applyBtn.classList.add('active');
+        trackBtn.classList.remove('active');
+        applyPanel.style.display = 'block';
+        trackPanel.style.display = 'none';
+      } else {
+        trackBtn.classList.add('active');
+        applyBtn.classList.remove('active');
+        applyPanel.style.display = 'none';
+        trackPanel.style.display = 'block';
+      }
+    }
+
+    async function handleFormSubmit(e) {
+      e.preventDefault();
+      hideAlert();
+
+      const btn = document.getElementById('btn-submit-app');
+
+      // Client-side validation
+      const phoneVal = document.getElementById('adm-phone').value.trim();
+      if (phoneVal && !/^01[3-9]\d{8}$/.test(phoneVal)) {
+        showAlert('Please enter a valid Bangladeshi mobile number (11 digits starting with 01).', 'error');
+        return;
+      }
+      const gpaVal = document.getElementById('adm-ssc-gpa').value.trim();
+      if (gpaVal && (isNaN(parseFloat(gpaVal)) || parseFloat(gpaVal) < 1.0 || parseFloat(gpaVal) > 5.0)) {
+        showAlert('SSC GPA must be between 1.00 and 5.00.', 'error');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Submitting Application...';
+
+      const payload = {
+        name: document.getElementById('adm-name').value.trim(),
+        cls: document.getElementById('adm-class').value,
+        group: document.getElementById('adm-group').value,
+        session: document.getElementById('adm-session').value.trim(),
+        year: document.getElementById('adm-year').value.trim(),
+        roll: '',
+        section: '',
+        optional_subject: document.getElementById('adm-optional').value,
+        humanities_main_subjects: document.getElementById('adm-humanities-main').value.trim(),
+        father: document.getElementById('adm-father').value.trim(),
+        mother: document.getElementById('adm-mother').value.trim(),
+        dob: document.getElementById('adm-dob').value,
+        gender: document.getElementById('adm-gender').value,
+        religion: document.getElementById('adm-religion').value,
+        blood_group: document.getElementById('adm-blood').value,
+        phone: document.getElementById('adm-phone').value.trim(),
+        nationality: document.getElementById('adm-nationality').value.trim(),
+        address: document.getElementById('adm-address').value.trim(),
+        guardian_name: document.getElementById('adm-guardian-name').value.trim(),
+        guardian_phone: document.getElementById('adm-guardian-phone').value.trim(),
+        ssc_roll: document.getElementById('adm-ssc-roll').value.trim(),
+        ssc_reg: document.getElementById('adm-ssc-reg').value.trim(),
+        ssc_board: document.getElementById('adm-ssc-board').value,
+        ssc_passing_year: document.getElementById('adm-ssc-year').value.trim(),
+        ssc_gpa: document.getElementById('adm-ssc-gpa').value.trim(),
+        ssc_group: document.getElementById('adm-ssc-group').value,
+        photo: photoBase64
+      };
+
+      try {
+        const res = await fetch('/api/admission/apply', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (!res.ok || !data.ok) {
+          throw new Error(data.message || 'Failed to submit application.');
+        }
+
+        currentApplicationData = data.data;
+        displayConfirmationVoucher(data.data);
+      } catch (err) {
+        showAlert(err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Submit Admission Application';
+      }
+    }
+
+    function displayConfirmationVoucher(app) {
+      document.getElementById('apply-panel').style.display = 'none';
+      document.getElementById('track-panel').style.display = 'none';
+      document.getElementById('tab-apply-btn').classList.remove('active');
+      document.getElementById('tab-track-btn').classList.remove('active');
+      const confirmPanel = document.getElementById('confirmation-panel');
+      confirmPanel.style.display = 'block';
+
+      // Populate voucher details
+      document.getElementById('v-app-no').textContent = app.applicationNo;
+      document.getElementById('v-class').textContent = app.cls;
+      document.getElementById('v-group').textContent = app.group;
+      document.getElementById('v-session').textContent = app.session || '—';
+      document.getElementById('v-year').textContent = app.year || '—';
+      document.getElementById('v-roll').textContent = app.roll || 'Pending Assignment';
+      document.getElementById('v-section').textContent = app.section || '—';
+      let optDisplay = app.optionalSubjects || 'None selected';
+      if (app.group && OPTIONAL_SUBJECTS[app.group]) {
+        const foundOpt = OPTIONAL_SUBJECTS[app.group].find(s => s.code === app.optionalSubjects);
+        if (foundOpt) optDisplay = foundOpt.name;
+      }
+      document.getElementById('v-optional').textContent = optDisplay;
+      document.getElementById('v-name').textContent = app.name;
+      document.getElementById('v-father').textContent = app.father || '—';
+      document.getElementById('v-mother').textContent = app.mother || '—';
+      document.getElementById('v-dob').textContent = app.dob || '—';
+      document.getElementById('v-phone').textContent = app.phone || '—';
+      document.getElementById('v-religion').textContent = app.religion || '—';
+      document.getElementById('v-blood-gender').textContent = (app.bloodGroup ? app.bloodGroup + ' / ' : '') + (app.gender || '—');
+      document.getElementById('v-address').textContent = app.address || '—';
+
+      document.getElementById('v-ssc-roll').textContent = app.sscRoll || '—';
+      document.getElementById('v-ssc-reg').textContent = app.sscReg || '—';
+      document.getElementById('v-ssc-board').textContent = app.sscBoard || '—';
+      document.getElementById('v-ssc-year').textContent = app.sscPassingYear || '—';
+      document.getElementById('v-ssc-gpa').textContent = app.sscGpa || '—';
+      document.getElementById('v-ssc-group').textContent = app.sscGroup || '—';
+
+      // Status badge
+      const stBadge = document.getElementById('v-status-badge');
+      stBadge.className = 'status-badge ' + (app.status || 'pending');
+      stBadge.textContent = (app.status || 'pending').toUpperCase();
+
+      // Photo
+      const photoEl = document.getElementById('voucher-photo-img');
+      if (app.photo || photoBase64) {
+        photoEl.src = app.photo || photoBase64;
+        photoEl.style.display = 'block';
+      } else {
+        photoEl.style.display = 'none';
+      }
+
+      // Render Barcode
+      renderBarcode('voucher-barcode', app.applicationNo);
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function renderBarcode(targetId, codeValue) {
+      const svg = document.getElementById(targetId);
+      if (!svg || !codeValue) return;
+
+      if (window.JsBarcode) {
+        try {
+          JsBarcode('#' + targetId, codeValue, {
+            format: 'CODE128',
+            width: 2,
+            height: 48,
+            displayValue: true,
+            fontSize: 13,
+            textMargin: 4,
+            font: 'monospace',
+            lineColor: '#000000',
+            background: '#ffffff'
+          });
+        } catch (e) {
+          console.error('Barcode generation error:', e);
+        }
+      }
+    }
+
+    function returnToNewApplication() {
+      document.getElementById('confirmation-panel').style.display = 'none';
+      switchTab('apply');
+      document.getElementById('admission-form').reset();
+      resetAdmissionForm();
+      currentApplicationData = null;
+      photoBase64 = '';
+    }
+
+    async function trackApplication() {
+      hideAlert();
+      const input = document.getElementById('track-input');
+      const val = input.value.trim().toUpperCase();
+      if (!val) {
+        showAlert('Please enter your Application Number.', 'error');
+        return;
+      }
+
+      const resCard = document.getElementById('status-result');
+      resCard.style.display = 'none';
+
+      try {
+        const res = await fetch('/api/admission/status/' + encodeURIComponent(val));
+        const data = await res.json();
+        if (!res.ok || !data.ok) {
+          throw new Error(data.message || 'No application found with this number.');
+        }
+
+        const app = data.data;
+        currentApplicationData = app;
+
+        document.getElementById('st-app-no').textContent = app.applicationNo;
+        document.getElementById('st-name').textContent = app.name;
+        document.getElementById('st-class-group').textContent = app.cls + ' (' + app.group + ')';
+        document.getElementById('st-session').textContent = app.session || '—';
+        document.getElementById('st-roll').textContent = app.roll || 'Pending Assignment';
+        document.getElementById('st-date').textContent = app.submittedAt || '—';
+        document.getElementById('st-phone').textContent = app.phone || '—';
+
+        const stBadge = document.getElementById('st-status-badge');
+        stBadge.className = 'status-badge ' + (app.status || 'pending');
+        stBadge.textContent = (app.status === 'approved' ? 'Approved & Enrolled' : app.status === 'rejected' ? 'Application Rejected' : 'Pending Review');
+
+        const remarksRow = document.getElementById('st-remarks-row');
+        if (app.adminRemarks) {
+          remarksRow.style.display = 'table-row';
+          document.getElementById('st-remarks').textContent = app.adminRemarks;
+        } else {
+          remarksRow.style.display = 'none';
+        }
+
+        resCard.style.display = 'block';
+      } catch (err) {
+        showAlert(err.message, 'error');
+      }
+    }
+
+    function viewVoucherFromStatus() {
+      if (currentApplicationData) {
+        displayConfirmationVoucher(currentApplicationData);
+      }
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      onClassOrGroupChange();
+
+      // Check if application number in URL parameters
+      const urlParams = new URLSearchParams(window.location.search);
+      const appNo = urlParams.get('app');
+      if (appNo) {
+        switchTab('track');
+        document.getElementById('track-input').value = appNo;
+        trackApplication();
+      }
+    });
+  </script>
+</body>
+</html>

@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from sqlalchemy import inspect, text
 from app import app, db
-from models import Student, Mark, Teacher, Setting, Archive, PromotionLog
+from models import Student, Mark, Teacher, Setting, Archive, PromotionLog, AdmissionApplication
 
 
 def load_json_file(file_path):

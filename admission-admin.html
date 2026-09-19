@@ -1,0 +1,1878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admission Management — Moinuddin Adarsha Mohila College</title>
+  <style>
+    :root {
+      --navy: #0d2b45;
+      --navy2: #174070;
+      --navy3: #1f5490;
+      --gold: #a97c28;
+      --gold2: #c9973a;
+      --gold3: #e8b84b;
+      --slate: #f1f4f8;
+      --slate2: #e8ecf2;
+      --white: #ffffff;
+      --txt: #0f172a;
+      --txt2: #334155;
+      --muted: #64748b;
+      --border: #dde3ed;
+      --border2: #c8d2e0;
+      --red: #b91c1c;
+      --red-bg: #fee2e2;
+      --green: #166534;
+      --green-bg: #dcfce7;
+      --amber: #92400e;
+      --amber-bg: #fef3c7;
+      --radius: 8px;
+      --shadow: 0 4px 16px rgba(13, 43, 69, 0.08);
+      --shadow-lg: 0 10px 30px rgba(13, 43, 69, 0.14);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Kalpurush', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+      background: var(--slate);
+      color: var(--txt);
+      min-height: 100vh;
+    }
+
+    /* ═══════════ TOP NAVIGATION BAR ═══════════ */
+    .top-nav-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 70px;
+      z-index: 201;
+      background: linear-gradient(180deg, #0d2b45 0%, #0a2138 100%);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .top-nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-shrink: 0;
+    }
+
+    .top-nav-logo-img {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: #fff;
+      border: 2px solid var(--gold2);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .top-nav-logo-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .top-nav-logo-text h1 {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.2;
+    }
+
+    .top-nav-logo-text p {
+      font-size: 0.65rem;
+      color: var(--gold3);
+      margin-top: 2px;
+    }
+
+    .top-nav-admin {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-shrink: 0;
+    }
+
+    .top-nav-admin-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .top-nav-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: var(--gold2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .top-nav-name {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .top-nav-role {
+      font-size: 0.68rem;
+      color: var(--gold3);
+    }
+
+    .logout-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      padding: 7px 14px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .logout-btn:hover {
+      background: var(--red);
+      border-color: var(--red);
+    }
+
+    .hdr-hamburger {
+      display: none;
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      padding: 6px 12px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    /* ═══════════ SIDEBAR NAVIGATION (NO ICONS) ═══════════ */
+    .site-header {
+      position: fixed;
+      top: 70px;
+      left: 0;
+      bottom: 0;
+      width: 220px;
+      z-index: 100;
+      background: #0d2b45;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .nav-strip {
+      display: flex;
+      flex-direction: column;
+      padding: 16px 0;
+      background: rgba(0, 0, 0, 0.2);
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .nt {
+      padding: 12px 18px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      letter-spacing: 0.2px;
+      border-left: 3px solid transparent;
+      color: rgba(255, 255, 255, 0.65);
+      transition: all 0.15s ease;
+      text-decoration: none;
+      display: block;
+    }
+
+    .nt:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .nt.active {
+      color: var(--gold3);
+      border-left-color: var(--gold2);
+      background: rgba(255, 255, 255, 0.08);
+      font-weight: 700;
+    }
+
+    .sidebar-divider {
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      margin: 8px 0;
+      padding-top: 8px;
+    }
+
+    /* ═══════════ MAIN CONTENT AREA ═══════════ */
+    .main {
+      margin-left: 220px;
+      padding: 94px 28px 40px;
+      min-height: 100vh;
+    }
+
+    .main-container {
+      max-width: 1320px;
+      margin: 0 auto;
+    }
+
+    .pg-hd {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .pg-hd h2 {
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: var(--navy);
+    }
+
+    .pg-hd p {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* Metric summary cards (No icons) */
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .metric-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 16px 20px;
+      box-shadow: var(--shadow);
+      border-left: 4px solid var(--navy);
+    }
+
+    .metric-card.pending {
+      border-left-color: var(--gold2);
+    }
+
+    .metric-card.approved {
+      border-left-color: var(--green);
+    }
+
+    .metric-card.rejected {
+      border-left-color: var(--red);
+    }
+
+    .metric-card span.label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .metric-card h3 {
+      font-size: 1.65rem;
+      font-weight: 800;
+      color: var(--navy);
+      margin-top: 4px;
+    }
+
+    /* Filters Bar */
+    .filter-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 18px 20px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .filter-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px 16px;
+      align-items: flex-end;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .filter-group label {
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: var(--txt2);
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+
+    select, input[type="text"] {
+      width: 100%;
+      padding: 9px 12px;
+      font-size: 0.85rem;
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--txt);
+      font-family: inherit;
+    }
+
+    select:focus, input:focus {
+      outline: none;
+      border-color: var(--navy2);
+      box-shadow: 0 0 0 3px rgba(13, 43, 69, 0.08);
+    }
+
+    .filter-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    /* Action Buttons (Text only, no icons) */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 9px 16px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.15s ease;
+      font-family: inherit;
+      white-space: nowrap;
+    }
+
+    .btn-sm {
+      padding: 5px 10px;
+      font-size: 0.76rem;
+      border-radius: 4px;
+    }
+
+    .btn-primary {
+      background: var(--navy);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: var(--navy2);
+    }
+
+    .btn-success {
+      background: var(--green);
+      color: #fff;
+    }
+
+    .btn-success:hover {
+      background: #15803d;
+    }
+
+    .btn-danger {
+      background: var(--red);
+      color: #fff;
+    }
+
+    .btn-danger:hover {
+      background: #991b1b;
+    }
+
+    .btn-secondary {
+      background: var(--slate2);
+      color: var(--txt);
+      border: 1px solid var(--border2);
+    }
+
+    .btn-secondary:hover {
+      background: #dfe5ee;
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--navy);
+      border: 1.5px solid var(--navy);
+    }
+
+    .btn-outline:hover {
+      background: var(--navy);
+      color: #fff;
+    }
+
+    /* Applications Table */
+    .table-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .table-header-bar {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #fbfcfe;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .table-header-bar h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--navy);
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.84rem;
+      text-align: left;
+    }
+
+    table.data-table th {
+      background: var(--slate);
+      color: var(--navy);
+      font-weight: 700;
+      padding: 12px 14px;
+      border-bottom: 2px solid var(--border);
+      white-space: nowrap;
+    }
+
+    table.data-table td {
+      padding: 11px 14px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+      color: var(--txt);
+    }
+
+    table.data-table tbody tr:hover {
+      background: #f8fafc;
+    }
+
+    .app-no-tag {
+      font-weight: 700;
+      color: var(--navy);
+      cursor: pointer;
+    }
+
+    .app-no-tag:hover {
+      text-decoration: underline;
+    }
+
+    .thumb-img {
+      width: 36px;
+      height: 44px;
+      object-fit: cover;
+      border-radius: 3px;
+      border: 1px solid var(--border2);
+      background: var(--slate);
+      display: block;
+    }
+
+    .thumb-placeholder {
+      width: 36px;
+      height: 44px;
+      border-radius: 3px;
+      border: 1px solid var(--border2);
+      background: var(--slate2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* Status Badges (Text only) */
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+
+    .badge-pending {
+      background: var(--amber-bg);
+      color: var(--amber);
+      border: 1px solid #fcd34d;
+    }
+
+    .badge-approved {
+      background: var(--green-bg);
+      color: var(--green);
+      border: 1px solid #86efac;
+    }
+
+    .badge-rejected {
+      background: var(--red-bg);
+      color: var(--red);
+      border: 1px solid #fca5a5;
+    }
+
+    .tbl-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: nowrap;
+    }
+
+    /* Empty state */
+    .empty-state {
+      padding: 40px 20px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    /* Alerts */
+    .alert-banner {
+      padding: 12px 16px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: none;
+    }
+
+    .alert-banner.success {
+      display: block;
+      background: var(--green-bg);
+      color: var(--green);
+      border: 1px solid #86efac;
+    }
+
+    .alert-banner.error {
+      display: block;
+      background: var(--red-bg);
+      color: var(--red);
+      border: 1px solid #fca5a5;
+    }
+
+    /* ═══════════ MODALS ═══════════ */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      z-index: 999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .modal-card {
+      background: var(--white);
+      border-radius: 10px;
+      width: 100%;
+      max-width: 780px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-lg);
+      border: 1px solid var(--border);
+      position: relative;
+    }
+
+    .modal-card.sm {
+      max-width: 480px;
+    }
+
+    .modal-header {
+      padding: 16px 22px;
+      background: #f8faff;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .modal-header h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--navy);
+    }
+
+    .modal-close-btn {
+      background: transparent;
+      border: none;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+
+    .modal-close-btn:hover {
+      background: var(--slate2);
+      color: var(--txt);
+    }
+
+    .modal-body {
+      padding: 22px;
+    }
+
+    .modal-footer {
+      padding: 14px 22px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      background: var(--slate);
+      position: sticky;
+      bottom: 0;
+      z-index: 10;
+    }
+
+    /* View Modal Specifics */
+    .modal-barcode-container {
+      text-align: center;
+      padding: 12px;
+      background: var(--slate);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin-bottom: 18px;
+    }
+
+    .modal-barcode-container svg {
+      max-width: 250px;
+      height: auto;
+      margin: 0 auto;
+      display: block;
+    }
+
+    .detail-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.84rem;
+      margin-bottom: 16px;
+    }
+
+    .detail-table th, .detail-table td {
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      text-align: left;
+    }
+
+    .detail-table th {
+      background: var(--slate);
+      width: 25%;
+      color: var(--navy);
+      font-weight: 600;
+    }
+
+    .modal-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px 16px;
+    }
+
+    .modal-grid .form-group.full {
+      grid-column: 1 / -1;
+    }
+
+    .modal-grid label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--txt2);
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 900px) {
+      .site-header {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+      }
+
+      .site-header.open {
+        transform: translateX(0);
+      }
+
+      .main {
+        margin-left: 0;
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+
+      .hdr-hamburger {
+        display: inline-block;
+      }
+
+      .top-nav-admin-info {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <div class="top-nav-bar">
+    <div class="top-nav-logo">
+      <div class="top-nav-logo-img">
+        <img src="https://www.muamc.edu.bd/wp-content/uploads/2025/01/logo-muam-scaled.jpeg" alt="Logo" onerror="this.style.display='none'">
+      </div>
+      <div class="top-nav-logo-text">
+        <h1>Moinuddin Adarsha Mohila College</h1>
+        <p>Administration Panel — HSC Academic Management</p>
+      </div>
+    </div>
+    <div class="top-nav-admin">
+      <div class="top-nav-admin-info">
+        <div class="top-nav-avatar" id="nav-avatar">A</div>
+        <div>
+          <div class="top-nav-name" id="nav-name">Administrator</div>
+          <div class="top-nav-role" id="nav-role">System Admin</div>
+        </div>
+      </div>
+      <button type="button" class="hdr-hamburger" onclick="toggleSidebar()">Menu</button>
+      <button type="button" class="logout-btn" onclick="doLogout()">Logout</button>
+    </div>
+  </div>
+
+  <!-- Sidebar Navigation (Text Only, No Icons) -->
+  <aside class="site-header" id="sidebar">
+    <nav class="nav-strip" id="nav-strip">
+      <a class="nt" href="/">Dashboard</a>
+      <a class="nt" href="/student-list.html">Student Management</a>
+      <a class="nt active" href="/admission-admin.html">Admission</a>
+      <a class="nt" href="/marks-entry.html">Mark Entry</a>
+      <a class="nt" href="/Teachers.html">Teachers</a>
+      <a class="nt" href="/Result-card.html">Result Card</a>
+      <a class="nt" href="/Admit-card.html">Admit Card</a>
+      <a class="nt" href="/bulk-photo.html">Bulk Photo Upload</a>
+      <div class="sidebar-divider"></div>
+      <a class="nt" href="/analytics.html">Analytics</a>
+      <a class="nt" href="/result_analytics.html">Result Analytics</a>
+      <a class="nt" href="/group-results.html">Group-wise Results</a>
+      <a class="nt" href="/seat-plan.html">Seat Plan</a>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main">
+    <div class="main-container">
+
+      <!-- Page Header -->
+      <div class="pg-hd">
+        <div>
+          <h2>Student Admission Applications</h2>
+          <p>Review candidate applications, verify credentials, edit student data, and approve admissions into the main student database.</p>
+        </div>
+        <div style="display:flex; gap:10px;">
+          <a href="/admission.html" target="_blank" class="btn btn-outline">Open Public Admission Form</a>
+          <button type="button" class="btn btn-primary" onclick="loadApplications()">Refresh List</button>
+        </div>
+      </div>
+
+      <!-- Alert Banner -->
+      <div id="admin-alert" class="alert-banner"></div>
+
+      <!-- Metric Summary Cards (No Icons) -->
+      <div class="metric-grid">
+        <div class="metric-card">
+          <span class="label">Total Applications</span>
+          <h3 id="cnt-total">0</h3>
+        </div>
+        <div class="metric-card pending">
+          <span class="label">Pending Review</span>
+          <h3 id="cnt-pending">0</h3>
+        </div>
+        <div class="metric-card approved">
+          <span class="label">Approved & Enrolled</span>
+          <h3 id="cnt-approved">0</h3>
+        </div>
+        <div class="metric-card rejected">
+          <span class="label">Rejected</span>
+          <h3 id="cnt-rejected">0</h3>
+        </div>
+      </div>
+
+      <!-- Filter Bar -->
+      <div class="filter-card">
+        <div class="filter-grid">
+          <div class="filter-group">
+            <label for="filter-status">Review Status</label>
+            <select id="filter-status" onchange="loadApplications()">
+              <option value="all">All Applications</option>
+              <option value="pending" selected>Pending Review</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label for="filter-class">Admission Class</label>
+            <select id="filter-class" onchange="loadApplications()">
+              <option value="">All Classes</option>
+              <option value="Class-XI">Class-XI</option>
+              <option value="Class-XII">Class-XII</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label for="filter-group">Group / Department</label>
+            <select id="filter-group" onchange="loadApplications()">
+              <option value="">All Groups</option>
+              <option value="Science">Science</option>
+              <option value="Humanities">Humanities</option>
+              <option value="Business">Business Studies</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label for="filter-session">Session</label>
+            <select id="filter-session" onchange="loadApplications()">
+              <option value="">All Sessions</option>
+            </select>
+            <script>
+              (function(){
+                var sel = document.getElementById('filter-session');
+                var y = new Date().getFullYear();
+                for (var i = -1; i <= 1; i++) {
+                  var s = (y+i) + '-' + (y+i+1);
+                  var o = document.createElement('option');
+                  o.value = s; o.textContent = s;
+                  sel.appendChild(o);
+                }
+              })();
+            </script>
+          </div>
+
+          <div class="filter-group" style="grid-column: span 2;">
+            <label for="filter-search">Search Candidates</label>
+            <input type="text" id="filter-search" placeholder="Search by Application No, Name, Phone, Roll, SSC Roll" onkeydown="if(event.key==='Enter') loadApplications()">
+          </div>
+
+          <div class="filter-actions">
+            <button type="button" class="btn btn-primary" onclick="loadApplications()">Filter</button>
+            <button type="button" class="btn btn-secondary" onclick="resetFilters()">Reset</button>
+            <button type="button" class="btn btn-outline" onclick="exportToCSV()">Export CSV</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Applications Data Table -->
+      <div class="table-card">
+        <div class="table-header-bar">
+          <h3>Candidate Applications List (<span id="results-count">0</span>)</h3>
+          <span style="font-size:0.8rem; color:var(--muted);">Click an Application Number to view the complete file and barcode</span>
+        </div>
+
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>App No</th>
+                <th>Photo</th>
+                <th>Candidate Name</th>
+                <th>Class & Group</th>
+                <th>Session</th>
+                <th>Roll No</th>
+                <th>Mobile</th>
+                <th>SSC GPA</th>
+                <th>Status</th>
+                <th>Submission Date</th>
+                <th style="text-align:center;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="applications-table-body">
+              <tr>
+                <td colspan="11" class="empty-state">Loading admission applications...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ═══════════ MODAL 1: VIEW APPLICATION DETAILS ═══════════ -->
+  <div class="modal-overlay" id="modal-view">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="view-title">Admission Application Details</h3>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modal-view')">Close</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Barcode section -->
+        <div class="modal-barcode-container">
+          <svg id="view-barcode-svg"></svg>
+          <div style="font-size:0.75rem; color:var(--muted); margin-top:4px;">Unique Application Tracking Barcode (Code 128)</div>
+        </div>
+
+        <!-- Header info -->
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; gap:16px; flex-wrap:wrap;">
+          <div>
+            <div id="v-app-num" style="font-size:1.25rem; font-weight:800; color:var(--navy);"></div>
+            <div id="v-submit-date" style="font-size:0.8rem; color:var(--muted);"></div>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <span id="v-status-badge" class="badge"></span>
+            <img id="v-photo-view" src="" class="thumb-img" style="width:54px; height:68px; display:none;" alt="Student Photo" onerror="this.style.display='none'">
+          </div>
+        </div>
+
+        <!-- Details Tables -->
+        <h4 style="font-size:0.88rem; color:var(--navy); margin-bottom:6px; font-weight:700;">1. Academic Information</h4>
+        <table class="detail-table">
+          <tbody>
+            <tr>
+              <th>Class</th>
+              <td id="dt-cls"></td>
+              <th>Group / Department</th>
+              <td id="dt-group"></td>
+            </tr>
+            <tr>
+              <th>Session</th>
+              <td id="dt-session"></td>
+              <th>Academic Year</th>
+              <td id="dt-year"></td>
+            </tr>
+            <tr>
+              <th>Class Roll</th>
+              <td id="dt-roll"></td>
+              <th>Section</th>
+              <td id="dt-section"></td>
+            </tr>
+            <tr>
+              <th>Optional 4th Subject</th>
+              <td id="dt-opt" colspan="3"></td>
+            </tr>
+            <tr id="dt-hum-row" style="display:none;">
+              <th>Humanities Subjects</th>
+              <td id="dt-hum" colspan="3"></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h4 style="font-size:0.88rem; color:var(--navy); margin-bottom:6px; font-weight:700;">2. Student Biodata & Contact</h4>
+        <table class="detail-table">
+          <tbody>
+            <tr>
+              <th>Full Name</th>
+              <td id="dt-name" colspan="3" style="font-weight:700;"></td>
+            </tr>
+            <tr>
+              <th>Father's Name</th>
+              <td id="dt-father"></td>
+              <th>Mother's Name</th>
+              <td id="dt-mother"></td>
+            </tr>
+            <tr>
+              <th>Date of Birth</th>
+              <td id="dt-dob"></td>
+              <th>Phone Number</th>
+              <td id="dt-phone"></td>
+            </tr>
+            <tr>
+              <th>Religion / Gender</th>
+              <td id="dt-rel-gen"></td>
+              <th>Blood Group</th>
+              <td id="dt-blood"></td>
+            </tr>
+            <tr>
+              <th>Guardian Info</th>
+              <td id="dt-guardian" colspan="3"></td>
+            </tr>
+            <tr>
+              <th>Address</th>
+              <td id="dt-address" colspan="3"></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h4 style="font-size:0.88rem; color:var(--navy); margin-bottom:6px; font-weight:700;">3. Previous SSC Examination</h4>
+        <table class="detail-table">
+          <tbody>
+            <tr>
+              <th>SSC Roll</th>
+              <td id="dt-ssc-roll"></td>
+              <th>SSC Registration</th>
+              <td id="dt-ssc-reg"></td>
+            </tr>
+            <tr>
+              <th>Board</th>
+              <td id="dt-ssc-board"></td>
+              <th>Passing Year</th>
+              <td id="dt-ssc-year"></td>
+            </tr>
+            <tr>
+              <th>SSC GPA</th>
+              <td id="dt-ssc-gpa" style="font-weight:700;"></td>
+              <th>SSC Group</th>
+              <td id="dt-ssc-grp"></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div id="v-remarks-block" style="display:none; background:var(--slate2); padding:10px 14px; border-radius:6px; font-size:0.82rem;">
+          <strong>Admin Remarks / Notes:</strong>
+          <span id="dt-admin-remarks"></span>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-view')">Close</button>
+        <button type="button" class="btn btn-outline" id="btn-view-edit" onclick="openEditFromView()">Edit Details</button>
+        <button type="button" class="btn btn-success" id="btn-view-approve" onclick="openApproveFromView()">Approve & Enroll</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ MODAL 2: EDIT APPLICATION DETAILS ═══════════ -->
+  <div class="modal-overlay" id="modal-edit">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Edit Admission Application</h3>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modal-edit')">Close</button>
+      </div>
+
+      <form id="edit-form" onsubmit="saveEditedApplication(event)">
+        <div class="modal-body">
+          <input type="hidden" id="edit-id">
+
+          <div class="modal-grid">
+            <div class="form-group full">
+              <label>Student Full Name *</label>
+              <input type="text" id="ed-name" required>
+            </div>
+
+            <div class="form-group">
+              <label>Class *</label>
+              <select id="ed-cls" required>
+                <option value="Class-XI">Class-XI</option>
+                <option value="Class-XII">Class-XII</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Group / Department *</label>
+              <select id="ed-group" required>
+                <option value="Science">Science</option>
+                <option value="Humanities">Humanities</option>
+                <option value="Business">Business Studies</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Academic Session *</label>
+              <input type="text" id="ed-session" required>
+            </div>
+
+            <div class="form-group">
+              <label>Assigned Class Roll Number</label>
+              <input type="text" id="ed-roll" placeholder="e.g. 101">
+            </div>
+
+            <div class="form-group">
+              <label>Section</label>
+              <input type="text" id="ed-section" placeholder="e.g. A">
+            </div>
+
+            <div class="form-group">
+              <label>Mobile Number *</label>
+              <input type="text" id="ed-phone" required>
+            </div>
+
+            <div class="form-group">
+              <label>Father's Name *</label>
+              <input type="text" id="ed-father" required>
+            </div>
+
+            <div class="form-group">
+              <label>Mother's Name *</label>
+              <input type="text" id="ed-mother" required>
+            </div>
+
+            <div class="form-group">
+              <label>Date of Birth</label>
+              <input type="date" id="ed-dob">
+            </div>
+
+            <div class="form-group">
+              <label>Religion</label>
+              <select id="ed-religion">
+                <option value="Islam">Islam</option>
+                <option value="Hinduism">Hinduism</option>
+                <option value="Buddhism">Buddhism</option>
+                <option value="Christianity">Christianity</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Gender</label>
+              <select id="ed-gender">
+                <option value="Female">Female</option>
+                <option value="Male">Male</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Blood Group</label>
+              <select id="ed-blood">
+                <option value="">-- None --</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Optional 4th Subject (Code)</label>
+              <input type="text" id="ed-opt" placeholder="e.g. 178/179">
+            </div>
+
+            <div class="form-group">
+              <label>SSC Roll</label>
+              <input type="text" id="ed-ssc-roll">
+            </div>
+
+            <div class="form-group">
+              <label>SSC GPA</label>
+              <input type="text" id="ed-ssc-gpa">
+            </div>
+
+            <div class="form-group">
+              <label>SSC Registration</label>
+              <input type="text" id="ed-ssc-reg">
+            </div>
+
+            <div class="form-group">
+              <label>SSC Board</label>
+              <select id="ed-ssc-board">
+                <option value="">-- Select --</option>
+                <option value="Sylhet">Sylhet</option>
+                <option value="Dhaka">Dhaka</option>
+                <option value="Comilla">Comilla</option>
+                <option value="Rajshahi">Rajshahi</option>
+                <option value="Chittagong">Chittagong</option>
+                <option value="Jessore">Jessore</option>
+                <option value="Barishal">Barishal</option>
+                <option value="Dinajpur">Dinajpur</option>
+                <option value="Mymensingh">Mymensingh</option>
+                <option value="Madrasah">Madrasah</option>
+                <option value="Technical">Technical</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>SSC Passing Year</label>
+              <input type="text" id="ed-ssc-year">
+            </div>
+
+            <div class="form-group">
+              <label>SSC Group</label>
+              <select id="ed-ssc-group">
+                <option value="">-- Select --</option>
+                <option value="Science">Science</option>
+                <option value="Humanities">Humanities</option>
+                <option value="Business">Business Studies</option>
+                <option value="Dakhil">Dakhil</option>
+                <option value="Vocational">Vocational</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Guardian Name</label>
+              <input type="text" id="ed-guardian-name">
+            </div>
+
+            <div class="form-group">
+              <label>Guardian Phone</label>
+              <input type="text" id="ed-guardian-phone">
+            </div>
+
+            <div class="form-group">
+              <label>Academic Year</label>
+              <input type="text" id="ed-year">
+            </div>
+
+            <div class="form-group">
+              <label>Humanities Main Subjects</label>
+              <input type="text" id="ed-hum-main" placeholder="e.g. 269/109">
+            </div>
+
+            <div class="form-group full">
+              <label>Address</label>
+              <input type="text" id="ed-address">
+            </div>
+
+            <div class="form-group full">
+              <label>Admin Remarks / Internal Notes</label>
+              <input type="text" id="ed-remarks" placeholder="Optional notes about this application">
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-edit')">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-save-edit">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ═══════════ MODAL 3: APPROVE & ENROLL CANDIDATE ═══════════ -->
+  <div class="modal-overlay" id="modal-approve">
+    <div class="modal-card sm">
+      <div class="modal-header">
+        <h3>Approve Admission & Enroll</h3>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modal-approve')">Close</button>
+      </div>
+
+      <form id="approve-form" onsubmit="executeApproval(event)">
+        <div class="modal-body">
+          <input type="hidden" id="appr-id">
+
+          <div style="background:var(--slate2); padding:14px; border-radius:6px; margin-bottom:18px; font-size:0.84rem;">
+            <p><strong>Candidate:</strong> <span id="appr-candidate-name"></span></p>
+            <p><strong>Department / Group:</strong> <span id="appr-candidate-group"></span></p>
+            <p><strong>Class & Session:</strong> <span id="appr-candidate-cls-sess"></span></p>
+          </div>
+
+          <div class="form-group" style="margin-bottom:16px;">
+            <label style="font-size:0.82rem; font-weight:700; color:var(--navy); display:block; margin-bottom:4px;">
+              Class Roll Number <span style="color:var(--green); font-size:0.75rem; font-weight:600;">(Auto-generated Serial)</span>
+            </label>
+            <input type="text" id="appr-roll" placeholder="Auto-generating next serial roll..." style="font-size:1rem; font-weight:700;">
+            <span style="font-size:0.75rem; color:var(--muted); display:block; margin-top:3px;">
+              Auto-generated sequentially for this Class, Group, and Session. You can keep this or customize it.
+            </span>
+          </div>
+
+          <div class="form-group" style="margin-bottom:16px;">
+            <label style="font-size:0.82rem; font-weight:700; color:var(--txt2); display:block; margin-bottom:4px;">
+              Assign Section (Optional)
+            </label>
+            <input type="text" id="appr-section" placeholder="e.g. A, B, or leave empty">
+          </div>
+
+          <div style="font-size:0.78rem; color:var(--navy2); background:var(--green-bg); border:1px solid #86efac; padding:10px 12px; border-radius:6px;">
+            Upon clicking "Confirm & Enroll", this candidate's information will be permanently transferred to the active <strong>students</strong> database, organized by class, department, session, and roll number.
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-approve')">Cancel</button>
+          <button type="submit" class="btn btn-success" id="btn-confirm-approve">Confirm & Enroll Student</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ═══════════ MODAL 4: REJECT CANDIDATE ═══════════ -->
+  <div class="modal-overlay" id="modal-reject">
+    <div class="modal-card sm">
+      <div class="modal-header">
+        <h3>Reject Admission Application</h3>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modal-reject')">Close</button>
+      </div>
+
+      <form id="reject-form" onsubmit="executeRejection(event)">
+        <div class="modal-body">
+          <input type="hidden" id="rej-id">
+          <p style="font-size:0.88rem; margin-bottom:14px; color:var(--txt2);">
+            Are you sure you want to reject the application for <strong id="rej-candidate-name"></strong>?
+          </p>
+
+          <div class="form-group">
+            <label style="font-size:0.8rem; font-weight:700; margin-bottom:4px; display:block;">Reason for Rejection / Remarks</label>
+            <textarea id="rej-remarks" rows="3" style="width:100%; font-family:inherit; padding:8px 10px; font-size:0.85rem;" placeholder="e.g. Ineligible SSC GPA, missing documentation, seat quota filled"></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-reject')">Cancel</button>
+          <button type="submit" class="btn btn-danger" id="btn-confirm-reject">Reject Application</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Local JsBarcode library -->
+  <script src="/static/js/JsBarcode.all.min.js"></script>
+
+  <script>
+    let allApplications = [];
+    let activeApplication = null;
+
+    function toggleSidebar() {
+      const sb = document.getElementById('sidebar');
+      sb.classList.toggle('open');
+    }
+
+    function showAlert(msg, type) {
+      const el = document.getElementById('admin-alert');
+      el.className = 'alert-banner ' + type;
+      el.textContent = msg;
+      el.style.display = 'block';
+      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function hideAlert() {
+      const el = document.getElementById('admin-alert');
+      el.style.display = 'none';
+    }
+
+    function openModal(id) {
+      document.getElementById(id).style.display = 'flex';
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).style.display = 'none';
+    }
+
+    async function checkAuth() {
+      try {
+        const res = await fetch('/api/auth-status');
+        const d = await res.json();
+        if (!d.authenticated) {
+          window.location.href = '/login';
+          return;
+        }
+        if (d.role) {
+          document.getElementById('nav-role').textContent = d.role === 'admin' ? 'System Admin' : d.role;
+        }
+      } catch (e) {
+        console.error('Auth status check error:', e);
+        window.location.href = '/login';
+      }
+    }
+
+    async function doLogout() {
+      try {
+        await fetch('/api/logout', { method: 'POST' });
+        window.location.href = '/login';
+      } catch (e) {
+        window.location.href = '/login';
+      }
+    }
+
+    function resetFilters() {
+      document.getElementById('filter-status').value = 'all';
+      document.getElementById('filter-class').value = '';
+      document.getElementById('filter-group').value = '';
+      document.getElementById('filter-session').value = '';
+      document.getElementById('filter-search').value = '';
+      loadApplications();
+    }
+
+    async function loadApplications() {
+      hideAlert();
+      const status = document.getElementById('filter-status').value;
+      const cls = document.getElementById('filter-class').value;
+      const grp = document.getElementById('filter-group').value;
+      const sess = document.getElementById('filter-session').value;
+      const q = document.getElementById('filter-search').value.trim();
+
+      const params = new URLSearchParams();
+      if (status && status !== 'all') params.append('status', status);
+      if (cls) params.append('cls', cls);
+      if (grp) params.append('group', grp);
+      if (sess) params.append('session', sess);
+      if (q) params.append('q', q);
+
+      const tbody = document.getElementById('applications-table-body');
+      tbody.innerHTML = '<tr><td colspan="11" class="empty-state">Loading applications...</td></tr>';
+
+      try {
+        const res = await fetch('/api/admission/applications?' + params.toString());
+        const data = await res.json();
+        if (!res.ok || !data.ok) {
+          throw new Error(data.message || 'Failed to fetch admission applications');
+        }
+
+        allApplications = data.data || [];
+        renderTable(allApplications);
+
+        if (data.counts) {
+          document.getElementById('cnt-total').textContent = data.counts.total || 0;
+          document.getElementById('cnt-pending').textContent = data.counts.pending || 0;
+          document.getElementById('cnt-approved').textContent = data.counts.approved || 0;
+          document.getElementById('cnt-rejected').textContent = data.counts.rejected || 0;
+        }
+      } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="11" class="empty-state" style="color:var(--red);">Error: ' + escapeHtml(err.message) + '</td></tr>';
+      }
+    }
+
+    function renderTable(apps) {
+      const tbody = document.getElementById('applications-table-body');
+      document.getElementById('results-count').textContent = apps.length;
+
+      if (!apps || apps.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="11" class="empty-state">No admission applications found matching the selected filters.</td></tr>';
+        return;
+      }
+
+      let html = '';
+      apps.forEach(a => {
+        let statusBadge = '';
+        if (a.status === 'approved') {
+          statusBadge = '<span class="badge badge-approved">Approved</span>';
+        } else if (a.status === 'rejected') {
+          statusBadge = '<span class="badge badge-rejected">Rejected</span>';
+        } else {
+          statusBadge = '<span class="badge badge-pending">Pending</span>';
+        }
+
+        let photoHtml = '';
+        if (a.photo) {
+          photoHtml = '<img src="' + escapeHtml(a.photo) + '" class="thumb-img" alt="Photo" onerror="this.outerHTML=\'<div class=\\\'thumb-placeholder\\\'>No Photo</div>\'">';
+        } else {
+          photoHtml = '<div class="thumb-placeholder">No Photo</div>';
+        }
+
+        html += '<tr>' +
+          '<td><span class="app-no-tag" onclick="viewApplication(' + a.id + ')">' + escapeHtml(a.applicationNo) + '</span></td>' +
+          '<td>' + photoHtml + '</td>' +
+          '<td><strong>' + escapeHtml(a.name) + '</strong></td>' +
+          '<td>' + escapeHtml(a.cls) + ' (' + escapeHtml(a.group) + ')</td>' +
+          '<td>' + escapeHtml(a.session || '—') + '</td>' +
+          '<td><strong>' + (a.roll ? escapeHtml(a.roll) : '<span style="color:var(--muted); font-weight:normal;">Pending</span>') + '</strong></td>' +
+          '<td>' + escapeHtml(a.phone || '—') + '</td>' +
+          '<td>' + (a.sscGpa ? escapeHtml(a.sscGpa) + ' (' + escapeHtml(a.sscBoard || '') + ')' : '—') + '</td>' +
+          '<td>' + statusBadge + '</td>' +
+          '<td style="white-space:nowrap; font-size:0.78rem;">' + escapeHtml(a.submittedAt || '—') + '</td>' +
+          '<td>' +
+            '<div class="tbl-actions">' +
+              '<button type="button" class="btn btn-sm btn-outline" onclick="viewApplication(' + a.id + ')">View</button>' +
+              '<button type="button" class="btn btn-sm btn-secondary" onclick="editApplication(' + a.id + ')">Edit</button>' +
+              (a.status !== 'approved' ? '<button type="button" class="btn btn-sm btn-success" onclick="openApproveModal(' + a.id + ')">Approve</button>' : '') +
+              (a.status === 'pending' ? '<button type="button" class="btn btn-sm btn-danger" onclick="openRejectModal(' + a.id + ')">Reject</button>' : '') +
+              '<button type="button" class="btn btn-sm btn-secondary" style="color:var(--red);" onclick="deleteApplication(' + a.id + ')">Delete</button>' +
+            '</div>' +
+          '</td>' +
+        '</tr>';
+      });
+
+      tbody.innerHTML = html;
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function viewApplication(id) {
+      const app = allApplications.find(x => x.id === id);
+      if (!app) return;
+      activeApplication = app;
+
+      document.getElementById('v-app-num').textContent = app.applicationNo;
+      document.getElementById('v-submit-date').textContent = 'Submitted: ' + (app.submittedAt || '—');
+
+      const stBadge = document.getElementById('v-status-badge');
+      stBadge.className = 'badge ' + (app.status === 'approved' ? 'badge-approved' : app.status === 'rejected' ? 'badge-rejected' : 'badge-pending');
+      stBadge.textContent = (app.status || 'pending').toUpperCase();
+
+      const photoEl = document.getElementById('v-photo-view');
+      if (app.photo) {
+        photoEl.src = app.photo;
+        photoEl.style.display = 'block';
+      } else {
+        photoEl.style.display = 'none';
+      }
+
+      document.getElementById('dt-cls').textContent = app.cls;
+      document.getElementById('dt-group').textContent = app.group;
+      document.getElementById('dt-session').textContent = app.session || '—';
+      document.getElementById('dt-year').textContent = app.year || '—';
+      document.getElementById('dt-roll').textContent = app.roll || 'Pending Assignment';
+      document.getElementById('dt-section').textContent = app.section || '—';
+      document.getElementById('dt-opt').textContent = app.optionalSubjects || 'None';
+
+      const humRow = document.getElementById('dt-hum-row');
+      if (app.humanitiesMainSubjects) {
+        humRow.style.display = 'table-row';
+        document.getElementById('dt-hum').textContent = app.humanitiesMainSubjects;
+      } else {
+        humRow.style.display = 'none';
+      }
+
+      document.getElementById('dt-name').textContent = app.name;
+      document.getElementById('dt-father').textContent = app.father || '—';
+      document.getElementById('dt-mother').textContent = app.mother || '—';
+      document.getElementById('dt-dob').textContent = app.dob || '—';
+      document.getElementById('dt-phone').textContent = app.phone || '—';
+      document.getElementById('dt-rel-gen').textContent = (app.religion || '—') + ' / ' + (app.gender || '—');
+      document.getElementById('dt-blood').textContent = app.bloodGroup || '—';
+      document.getElementById('dt-guardian').textContent = (app.guardianName || '—') + (app.guardianPhone ? ' (' + app.guardianPhone + ')' : '');
+      document.getElementById('dt-address').textContent = app.address || '—';
+
+      document.getElementById('dt-ssc-roll').textContent = app.sscRoll || '—';
+      document.getElementById('dt-ssc-reg').textContent = app.sscReg || '—';
+      document.getElementById('dt-ssc-board').textContent = app.sscBoard || '—';
+      document.getElementById('dt-ssc-year').textContent = app.sscPassingYear || '—';
+      document.getElementById('dt-ssc-gpa').textContent = app.sscGpa || '—';
+      document.getElementById('dt-ssc-grp').textContent = app.sscGroup || '—';
+
+      const remBox = document.getElementById('v-remarks-block');
+      if (app.adminRemarks) {
+        remBox.style.display = 'block';
+        document.getElementById('dt-admin-remarks').textContent = ' ' + app.adminRemarks;
+      } else {
+        remBox.style.display = 'none';
+      }
+
+      // Barcode generation
+      if (window.JsBarcode) {
+        try {
+          JsBarcode('#view-barcode-svg', app.applicationNo, {
+            format: 'CODE128',
+            width: 2,
+            height: 44,
+            displayValue: true,
+            fontSize: 12,
+            textMargin: 3,
+            font: 'monospace',
+            lineColor: '#000',
+            background: '#ffffff'
+          });
+        } catch (e) {
+          console.error('Barcode render error:', e);
+        }
+      }
+
+      // Action buttons inside view modal
+      const apprBtn = document.getElementById('btn-view-approve');
+      if (app.status === 'approved') {
+        apprBtn.style.display = 'none';
+      } else {
+        apprBtn.style.display = 'inline-block';
+      }
+
+      openModal('modal-view');
+    }
+
+    function openEditFromView() {
+      closeModal('modal-view');
+      if (activeApplication) {
+        editApplication(activeApplication.id);
+      }
+    }
+
+    function openApproveFromView() {
+      closeModal('modal-view');
+      if (activeApplication) {
+        openApproveModal(activeApplication.id);
+      }
+    }
+
+    function editApplication(id) {
+      const app = allApplications.find(x => x.id === id);
+      if (!app) return;
+      activeApplication = app;
+
+      document.getElementById('edit-id').value = app.id;
+      document.getElementById('ed-name').value = app.name || '';
+      document.getElementById('ed-cls').value = app.cls || 'Class-XI';
+      document.getElementById('ed-group').value = app.group || 'Science';
+      document.getElementById('ed-session').value = app.session || '';
+      document.getElementById('ed-roll').value = app.roll || '';
+      document.getElementById('ed-section').value = app.section || '';
+      document.getElementById('ed-phone').value = app.phone || '';
+      document.getElementById('ed-father').value = app.father || '';
+      document.getElementById('ed-mother').value = app.mother || '';
+      document.getElementById('ed-dob').value = app.dob || '';
+      document.getElementById('ed-religion').value = app.religion || 'Islam';
+      document.getElementById('ed-gender').value = app.gender || 'Female';
+      document.getElementById('ed-blood').value = app.bloodGroup || '';
+      document.getElementById('ed-opt').value = app.optionalSubjects || '';
+      document.getElementById('ed-ssc-roll').value = app.sscRoll || '';
+      document.getElementById('ed-ssc-gpa').value = app.sscGpa || '';
+      document.getElementById('ed-address').value = app.address || '';
+      document.getElementById('ed-remarks').value = app.adminRemarks || '';
+      document.getElementById('ed-ssc-reg').value = app.sscReg || '';
+      document.getElementById('ed-ssc-board').value = app.sscBoard || '';
+      document.getElementById('ed-ssc-year').value = app.sscPassingYear || '';
+      document.getElementById('ed-ssc-group').value = app.sscGroup || '';
+      document.getElementById('ed-guardian-name').value = app.guardianName || '';
+      document.getElementById('ed-guardian-phone').value = app.guardianPhone || '';
+      document.getElementById('ed-year').value = app.year || '';
+      document.getElementById('ed-hum-main').value = app.humanitiesMainSubjects || '';
+
+      openModal('modal-edit');
+    }
+
+    async function saveEditedApplication(e) {
+      e.preventDefault();
+      const id = document.getElementById('edit-id').value;
+      const btn = document.getElementById('btn-save-edit');
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+
+      const payload = {
+        name: document.getElementById('ed-name').value.trim(),
+        cls: document.getElementById('ed-cls').value,
+        group: document.getElementById('ed-group').value,
+        session: document.getElementById('ed-session').value.trim(),
+        roll: document.getElementById('ed-roll').value.trim(),
+        section: document.getElementById('ed-section').value.trim(),
+        phone: document.getElementById('ed-phone').value.trim(),
+        father: document.getElementById('ed-father').value.trim(),
+        mother: document.getElementById('ed-mother').value.trim(),
+        dob: document.getElementById('ed-dob').value,
+        religion: document.getElementById('ed-religion').value,
+        gender: document.getElementById('ed-gender').value,
+        bloodGroup: document.getElementById('ed-blood').value,
+        optionalSubjects: document.getElementById('ed-opt').value.trim(),
+        sscRoll: document.getElementById('ed-ssc-roll').value.trim(),
+        sscGpa: document.getElementById('ed-ssc-gpa').value.trim(),
+        sscReg: document.getElementById('ed-ssc-reg').value.trim(),
+        sscBoard: document.getElementById('ed-ssc-board').value,
+        sscPassingYear: document.getElementById('ed-ssc-year').value.trim(),
+        sscGroup: document.getElementById('ed-ssc-group').value,
+        guardianName: document.getElementById('ed-guardian-name').value.trim(),
+        guardianPhone: document.getElementById('ed-guardian-phone').value.trim(),
+        year: document.getElementById('ed-year').value.trim(),
+        humanitiesMainSubjects: document.getElementById('ed-hum-main').value.trim(),
+        address: document.getElementById('ed-address').value.trim(),
+        adminRemarks: document.getElementById('ed-remarks').value.trim()
+      };
+
+      try {
+        const res = await fetch('/api/admission/applications/' + id, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const d = await res.json();
+        if (!res.ok || !d.ok) {
+          throw new Error(d.message || 'Failed to update application');
+        }
+
+        closeModal('modal-edit');
+        showAlert('Application updated successfully.', 'success');
+        loadApplications();
+      } catch (err) {
+        alert('Error: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Save Changes';
+      }
+    }
+
+    function openApproveModal(id) {
+      const app = allApplications.find(x => x.id === id);
+      if (!app) return;
+      activeApplication = app;
+
+      document.getElementById('appr-id').value = app.id;
+      document.getElementById('appr-candidate-name').textContent = app.name;
+      document.getElementById('appr-candidate-group').textContent = app.group;
+      document.getElementById('appr-candidate-cls-sess').textContent = app.cls + ' | Session: ' + (app.session || '—');
+
+      document.getElementById('appr-roll').value = 'Auto-generating...';
+      document.getElementById('appr-section').value = app.section || '';
+
+      openModal('modal-approve');
+
+      // Auto-fetch next serial roll for this candidate's class, group, and session
+      fetch('/api/admission/next-roll?cls=' + encodeURIComponent(app.cls) + '&group=' + encodeURIComponent(app.group) + '&session=' + encodeURIComponent(app.session || ''))
+        .then(r => r.json())
+        .then(d => {
+          if (d.ok && d.roll) {
+            document.getElementById('appr-roll').value = d.roll;
+          } else {
+            document.getElementById('appr-roll').value = app.roll || '';
+          }
+        })
+        .catch(() => {
+          document.getElementById('appr-roll').value = app.roll || '';
+        });
+    }
+
+    async function executeApproval(e) {
+      e.preventDefault();
+      const id = document.getElementById('appr-id').value;
+      const rollInput = document.getElementById('appr-roll').value.trim();
+      const roll = (rollInput === 'Auto-generating...' ? '' : rollInput);
+      const section = document.getElementById('appr-section').value.trim();
+
+      const btn = document.getElementById('btn-confirm-approve');
+      btn.disabled = true;
+      btn.textContent = 'Enrolling Student...';
+
+      try {
+        const res = await fetch('/api/admission/applications/' + id + '/approve', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ roll: roll, section: section })
+        });
+        const d = await res.json();
+        if (!res.ok || !d.ok) {
+          throw new Error(d.message || 'Failed to approve application');
+        }
+
+        closeModal('modal-approve');
+        showAlert(d.message || 'Student approved and enrolled successfully!', 'success');
+        loadApplications();
+      } catch (err) {
+        alert('Approval Error: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Confirm & Enroll Student';
+      }
+    }
+
+    function openRejectModal(id) {
+      const app = allApplications.find(x => x.id === id);
+      if (!app) return;
+      activeApplication = app;
+
+      document.getElementById('rej-id').value = app.id;
+      document.getElementById('rej-candidate-name').textContent = app.name;
+      document.getElementById('rej-remarks').value = app.adminRemarks || '';
+
+      openModal('modal-reject');
+    }
+
+    async function executeRejection(e) {
+      e.preventDefault();
+      const id = document.getElementById('rej-id').value;
+      const remarks = document.getElementById('rej-remarks').value.trim();
+
+      const btn = document.getElementById('btn-confirm-reject');
+      btn.disabled = true;
+      btn.textContent = 'Rejecting...';
+
+      try {
+        const res = await fetch('/api/admission/applications/' + id + '/reject', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ remarks: remarks })
+        });
+        const d = await res.json();
+        if (!res.ok || !d.ok) {
+          throw new Error(d.message || 'Failed to reject application');
+        }
+
+        closeModal('modal-reject');
+        showAlert('Application rejected successfully.', 'success');
+        loadApplications();
+      } catch (err) {
+        alert('Error: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Reject Application';
+      }
+    }
+
+    async function deleteApplication(id) {
+      const app = allApplications.find(x => x.id === id);
+      const name = app ? app.name : 'this application';
+      let msg = 'Are you sure you want to delete ' + name + ' (App: ' + (app ? app.applicationNo : id) + ')? This action cannot be undone.';
+      if (app && app.status === 'approved') {
+        msg = '⚠️ WARNING: This application has been APPROVED and the student "' + name + '" is enrolled in the database. Deleting will also remove the student record. Are you sure?';
+      }
+      if (!confirm(msg)) {
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/admission/applications/' + id, { method: 'DELETE' });
+        const d = await res.json();
+        if (!res.ok || !d.ok) {
+          throw new Error(d.message || 'Failed to delete application');
+        }
+        showAlert('Application deleted successfully.', 'success');
+        loadApplications();
+      } catch (err) {
+        alert('Delete Error: ' + err.message);
+      }
+    }
+
+    function exportToCSV() {
+      if (!allApplications || allApplications.length === 0) {
+        alert('No applications to export.');
+        return;
+      }
+
+      function csvQuote(val) {
+        val = String(val || '').replace(/"/g, '""');
+        return '"' + val + '"';
+      }
+
+      const headers = ['Application No', 'Name', 'Class', 'Group', 'Session', 'Roll', 'Section', 'Phone', 'Father', 'Mother', 'Status', 'SSC GPA', 'SSC Board', 'Submitted Date'];
+      const rows = allApplications.map(a => [
+        csvQuote(a.applicationNo),
+        csvQuote(a.name),
+        csvQuote(a.cls),
+        csvQuote(a.group),
+        csvQuote(a.session),
+        csvQuote(a.roll),
+        csvQuote(a.section),
+        csvQuote(a.phone),
+        csvQuote(a.father),
+        csvQuote(a.mother),
+        csvQuote(a.status),
+        csvQuote(a.sscGpa),
+        csvQuote(a.sscBoard),
+        csvQuote(a.submittedAt)
+      ]);
+
+      const csvStr = '\uFEFF' + [headers.map(h => csvQuote(h)).join(','), ...rows.map(r => r.join(','))].join('\n');
+      const blob = new Blob([csvStr], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'Admission_Applications_' + new Date().toISOString().slice(0, 10) + '.csv';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      checkAuth();
+      loadApplications();
+    });
+  </script>
+</body>
+</html>

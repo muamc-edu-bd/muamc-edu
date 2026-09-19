@@ -219,3 +219,91 @@ class PromotionLog(db.Model):
             'total_marks': self.total_marks,
             'promoted_at': self.promoted_at.isoformat() + 'Z' if self.promoted_at else '',
         }
+
+
+class AdmissionApplication(db.Model):
+    """Student admission applications before approval."""
+    __tablename__ = 'admission_applications'
+
+    id                       = db.Column(db.Integer,     primary_key=True, autoincrement=True)
+    application_no           = db.Column(db.String(50),  unique=True, nullable=False, index=True)
+    
+    # Core Student fields (for transfer to Student table upon approval)
+    name                     = db.Column(db.String(255), nullable=False)
+    roll                     = db.Column(db.String(50),  default='')
+    reg                      = db.Column(db.String(50),  default='')
+    cls                      = db.Column(db.String(50),  nullable=False)   # Class-XI / Class-XII
+    group                    = db.Column(db.String(50),  nullable=False)   # Science / Humanities / Business
+    section                  = db.Column(db.String(50),  default='')
+    father                   = db.Column(db.String(255), default='')
+    mother                   = db.Column(db.String(255), default='')
+    dob                      = db.Column(db.String(50),  default='')
+    phone                    = db.Column(db.String(20),  default='')
+    religion                 = db.Column(db.String(50),  default='')
+    year                     = db.Column(db.String(10),  default='')
+    session                  = db.Column(db.String(50),  default='')
+    photo                    = db.Column(db.Text,        default='')
+    photo_base64             = deferred(db.Column(db.Text, default=''))
+    optional_subjects        = db.Column(db.String(50),  default='')
+    humanities_main_subjects = db.Column(db.String(100), default='')
+
+    # Additional admission details
+    gender                   = db.Column(db.String(20),  default='')
+    blood_group              = db.Column(db.String(10),  default='')
+    nationality              = db.Column(db.String(50),  default='Bangladeshi')
+    address                  = db.Column(db.Text,        default='')
+    guardian_name            = db.Column(db.String(255), default='')
+    guardian_phone           = db.Column(db.String(20),  default='')
+    ssc_roll                 = db.Column(db.String(50),  default='')
+    ssc_reg                  = db.Column(db.String(50),  default='')
+    ssc_board                = db.Column(db.String(50),  default='')
+    ssc_gpa                  = db.Column(db.String(10),  default='')
+    ssc_passing_year         = db.Column(db.String(10),  default='')
+    ssc_group                = db.Column(db.String(50),  default='')
+
+    # Status & workflow
+    status                   = db.Column(db.String(20),  default='pending')  # pending / approved / rejected
+    admin_remarks            = db.Column(db.Text,        default='')
+    approved_student_id      = db.Column(db.String(50),  default='')
+    submitted_at             = db.Column(db.DateTime,    default=datetime.utcnow)
+    reviewed_at              = db.Column(db.DateTime,    nullable=True)
+
+    def to_dict(self):
+        return {
+            'id':                     self.id,
+            'applicationNo':          self.application_no,
+            'name':                   self.name,
+            'roll':                   self.roll or '',
+            'reg':                    self.reg or '',
+            'cls':                    self.cls,
+            'group':                  self.group,
+            'section':                self.section or '',
+            'father':                 self.father or '',
+            'mother':                 self.mother or '',
+            'dob':                    self.dob or '',
+            'phone':                  self.phone or '',
+            'religion':               self.religion or '',
+            'year':                   self.year or '',
+            'session':                self.session or '',
+            'photo':                  self.photo or '',
+            'optionalSubjects':       self.optional_subjects or '',
+            'humanitiesMainSubjects': self.humanities_main_subjects or '',
+            'gender':                 self.gender or '',
+            'bloodGroup':             self.blood_group or '',
+            'nationality':            self.nationality or 'Bangladeshi',
+            'address':                self.address or '',
+            'guardianName':           self.guardian_name or '',
+            'guardianPhone':          self.guardian_phone or '',
+            'sscRoll':                self.ssc_roll or '',
+            'sscReg':                 self.ssc_reg or '',
+            'sscBoard':               self.ssc_board or '',
+            'sscGpa':                 self.ssc_gpa or '',
+            'sscPassingYear':         self.ssc_passing_year or '',
+            'sscGroup':               self.ssc_group or '',
+            'status':                 self.status or 'pending',
+            'adminRemarks':           self.admin_remarks or '',
+            'approvedStudentId':      self.approved_student_id or '',
+            'submittedAt':            self.submitted_at.strftime('%d/%m/%Y %I:%M %p') if self.submitted_at else '',
+            'reviewedAt':             self.reviewed_at.strftime('%d/%m/%Y %I:%M %p') if self.reviewed_at else '',
+        }
+
