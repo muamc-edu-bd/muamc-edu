@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admission Form — Application Copy</title>
+  <style>
+    /* ═══════════ RESET & PRINT SETUP ═══════════ */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: #7a8288;
+      font-family: 'Times New Roman', 'Kalpurush', serif;
+      color: #000;
+      font-size: 13.5px;
+      line-height: 1.35;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    /* ═══════════ TOP SEARCH & ACTION TOOLBAR (screen only) ═══════════ */
+    .toolbar-screen {
+      max-width: 820px;
+      margin: 16px auto 0;
+      background: #1a252f;
+      color: #fff;
+      padding: 12px 18px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+    }
+    .toolbar-screen input {
+      flex: 1;
+      min-width: 220px;
+      padding: 8px 12px;
+      font-size: 14px;
+      border-radius: 4px;
+      border: 1px solid #4a5568;
+      background: #2d3748;
+      color: #fff;
+      font-family: inherit;
+    }
+    .toolbar-screen input:focus {
+      outline: none;
+      border-color: #63b3ed;
+    }
+    .toolbar-screen button {
+      padding: 8px 18px;
+      font-size: 13.5px;
+      font-weight: 600;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+    .btn-search {
+      background: #3182ce;
+      color: #fff;
+    }
+    .btn-search:hover { background: #2b6cb0; }
+    .btn-print-page {
+      background: #38a169;
+      color: #fff;
+    }
+    .btn-print-page:hover { background: #2f855a; }
+    .btn-back {
+      background: #4a5568;
+      color: #fff;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 14px;
+      font-size: 13px;
+      border-radius: 4px;
+    }
+    .btn-back:hover { background: #2d3748; }
+
+    .err-msg-banner {
+      width: 100%;
+      background: #fed7d7;
+      color: #9b2c2c;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-family: sans-serif;
+      display: none;
+    }
+
+    /* ═══════════ A4 PAPER CONTAINER ═══════════ */
+    .sheet-wrapper {
+      width: 820px;
+      margin: 18px auto 40px;
+      background: #fff;
+      padding: 30px 42px 35px 42px;
+      box-shadow: 0 5px 25px rgba(0,0,0,0.35);
+      position: relative;
+      display: block;
+    }
+
+    /* ═══════════ HEADER ═══════════ */
+    .header-layout {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 2px;
+    }
+
+    .header-logo-col {
+      width: 85px;
+      flex-shrink: 0;
+    }
+    .header-logo-img {
+      width: 78px;
+      height: 78px;
+      object-fit: contain;
+      border-radius: 50%;
+    }
+
+    .header-text-col {
+      flex: 1;
+      text-align: center;
+      padding: 0 10px;
+    }
+    .college-heading {
+      font-size: 19px;
+      font-weight: bold;
+      letter-spacing: 0.2px;
+      margin-bottom: 1px;
+    }
+    .college-website {
+      font-size: 12px;
+      color: #111;
+      margin-bottom: 3px;
+      font-family: Arial, sans-serif;
+    }
+    .form-heading {
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 2px;
+    }
+    .form-group-line {
+      font-size: 12.5px;
+      margin-bottom: 1px;
+    }
+    .form-session-line {
+      font-size: 12.5px;
+    }
+
+    .header-photo-col {
+      width: 85px;
+      flex-shrink: 0;
+      display: flex;
+      justify-content: flex-end;
+    }
+    .photo-frame {
+      width: 84px;
+      height: 102px;
+      border: 1px solid #333;
+      object-fit: cover;
+      background: #e2f1ff;
+      display: block;
+    }
+    .photo-placeholder {
+      width: 84px;
+      height: 102px;
+      border: 1px solid #666;
+      background: #eef5fc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10.5px;
+      color: #777;
+      text-align: center;
+      line-height: 1.2;
+    }
+
+    /* Track No */
+    .track-row {
+      margin-top: -8px;
+      margin-bottom: 5px;
+      font-size: 13px;
+      font-weight: normal;
+    }
+    .track-row strong {
+      font-weight: bold;
+    }
+
+    /* ═══════════ INFO BAR (TABLE WITH 1PX SOLID BLACK BORDER) ═══════════ */
+    .info-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 10px;
+      font-size: 12.5px;
+    }
+    .info-table td {
+      border: 1px solid #000;
+      padding: 3.5px 8px;
+      vertical-align: middle;
+    }
+    .info-table td.col-eiin {
+      width: 33.33%;
+      font-weight: bold;
+    }
+    .info-table td.col-class-roll {
+      width: 33.33%;
+    }
+    .info-table td.col-adm-roll {
+      width: 33.34%;
+    }
+    .info-table td.row2 {
+      font-size: 11.5px;
+      font-weight: normal;
+    }
+
+    /* ═══════════ NUMBERED STUDENT DETAILS (01 - 13) ═══════════ */
+    /* Exactly matching the image: pure text layout, no box border! */
+    .details-list {
+      margin-bottom: 10px;
+      font-size: 13px;
+      line-height: 1.42;
+    }
+
+    .det-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 1px;
+    }
+    .det-item-full {
+      margin-bottom: 1px;
+    }
+    .det-item-indent {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 1px;
+      padding-left: 23px;
+    }
+
+    .det-left {
+      display: flex;
+      flex: 1;
+    }
+    .det-right {
+      display: flex;
+      min-width: 310px;
+      padding-left: 10px;
+    }
+
+    .lbl-title {
+      min-width: 200px;
+      display: inline-block;
+    }
+    .lbl-title-short {
+      min-width: 177px;
+      display: inline-block;
+    }
+    .colon {
+      margin-right: 5px;
+    }
+    .val-text {
+      font-weight: normal;
+    }
+
+    .space-sep {
+      height: 7px;
+    }
+
+    /* Grid for items 07 - 13 */
+    .grid-7-13 {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 2px;
+      margin-bottom: 8px;
+      font-size: 13px;
+      line-height: 1.42;
+    }
+    .grid-col-left {
+      flex: 1;
+    }
+    .grid-col-right {
+      flex: 1;
+      padding-left: 55px;
+    }
+
+    /* ═══════════ 14. LAST EXAMINATIONS DETAIL ═══════════ */
+    .sec-14-title {
+      font-size: 13px;
+      font-weight: bold;
+      margin-bottom: 3px;
+    }
+    .exam-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 12px;
+      font-size: 12px;
+    }
+    .exam-table th, .exam-table td {
+      border: 1px solid #000;
+      padding: 3px 6px;
+      text-align: left;
+    }
+    .exam-table th {
+      font-weight: bold;
+      background: #fff;
+    }
+    .exam-table td {
+      height: 18px;
+    }
+
+    /* ═══════════ 15. SUBJECT LIST ═══════════ */
+    .sec-15-wrap {
+      margin-bottom: 14px;
+      font-size: 12.5px;
+    }
+    .sec-15-title {
+      font-size: 13px;
+      font-weight: bold;
+      margin-bottom: 2px;
+    }
+    .subject-tbl {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .subject-tbl th {
+      text-align: left;
+      font-weight: bold;
+      padding: 2px 0;
+      font-size: 12.5px;
+    }
+    .subject-tbl th.th-type,
+    .subject-tbl td.td-type {
+      text-align: right;
+      width: 110px;
+    }
+    .subject-tbl td {
+      padding: 1px 0;
+      vertical-align: top;
+      font-size: 12px;
+    }
+    .subject-tbl td.td-1st {
+      width: 44%;
+    }
+    .subject-tbl td.td-2nd {
+      width: 44%;
+    }
+
+    /* ═══════════ 16. DECLARATION (BANGLA) ═══════════ */
+    .sec-16-wrap {
+      margin-top: 14px;
+      margin-bottom: 14px;
+      font-size: 12px;
+      line-height: 1.5;
+      font-family: 'Kalpurush', 'Times New Roman', serif;
+    }
+    .sec-16-title {
+      font-weight: bold;
+      margin-bottom: 2px;
+    }
+    .sec-16-body {
+      text-align: justify;
+      color: #000;
+    }
+
+    /* ═══════════ 17. ADMISSION FEE ═══════════ */
+    .sec-17-wrap {
+      font-size: 13px;
+      font-weight: bold;
+      margin-bottom: 38px;
+    }
+
+    /* ═══════════ SIGNATURES ═══════════ */
+    .signatures-row {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 25px;
+      padding: 0 10px;
+    }
+    .sig-col {
+      text-align: center;
+      width: 200px;
+    }
+    .sig-hr {
+      border: none;
+      border-top: 1px solid #000;
+      margin-bottom: 4px;
+    }
+    .sig-label {
+      font-size: 12.5px;
+      font-weight: normal;
+    }
+
+    /* ═══════════ PRINT MEDIA STYLES ═══════════ */
+    @media print {
+      body {
+        background: #fff !important;
+        color: #000 !important;
+        font-size: 13px !important;
+      }
+      .toolbar-screen {
+        display: none !important;
+      }
+      .sheet-wrapper {
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 15px 25px 20px 25px !important;
+        box-shadow: none !important;
+        border: none !important;
+        page-break-after: avoid;
+        page-break-inside: avoid;
+      }
+      @page {
+        size: A4 portrait;
+        margin: 8mm 10mm 8mm 10mm;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ═══════════ TOP SCREEN TOOLBAR (NOT PRINTED) ═══════════ -->
+  <div class="toolbar-screen no-print" id="toolbar">
+    <a href="/admission.html" class="btn-back">← Back to Admission Portal</a>
+    <input type="text" id="app-search-input" placeholder="Enter Application No (e.g. ADM-2026-0003)" style="text-transform:uppercase;">
+    <button type="button" class="btn-search" onclick="fetchAndDisplayApplication()">Load Application</button>
+    <button type="button" class="btn-print-page" onclick="window.print()">Print Form</button>
+    <div class="err-msg-banner" id="err-banner"></div>
+  </div>
+
+  <!-- ═══════════ A4 PRINTABLE DOCUMENT ═══════════ -->
+  <div class="sheet-wrapper" id="sheet-page">
+
+    <!-- HEADER BLOCK -->
+    <div class="header-layout">
+      <!-- Left Logo -->
+      <div class="header-logo-col">
+        <img class="header-logo-img" id="college-logo" src="https://www.muamc.edu.bd/wp-content/uploads/2025/01/logo-muam-scaled.jpeg" alt="Logo" onerror="this.src='/static/favicon.ico';">
+      </div>
+
+      <!-- Center College Details -->
+      <div class="header-text-col">
+        <div class="college-heading" id="c-name">Sylhet Govt. College</div>
+        <div class="college-website" id="c-url">https://www.sgcsyl.edu.bd</div>
+        <div class="form-heading">Admission Form</div>
+        <div class="form-group-line">Group: <span id="c-group">HSC - Humanities</span></div>
+        <div class="form-session-line">Session: <span id="c-session">2026-2027</span></div>
+      </div>
+
+      <!-- Right Candidate Photo -->
+      <div class="header-photo-col">
+        <img class="photo-frame" id="c-photo" style="display:none;" alt="Student Photo">
+        <div class="photo-placeholder" id="c-photo-blank">Candidate<br>Photo</div>
+      </div>
+    </div>
+
+    <!-- Track No -->
+    <div class="track-row">
+      Track No: &nbsp;<strong id="f-track-no">2434</strong>
+    </div>
+
+    <!-- INFO BAR TABLE -->
+    <table class="info-table">
+      <tr>
+        <td class="col-eiin">EIIN: <span id="f-eiin">130450</span></td>
+        <td class="col-class-roll">Class Roll: <strong id="f-class-roll"></strong></td>
+        <td class="col-adm-roll">Admission Roll: <strong id="f-adm-roll">100693</strong></td>
+      </tr>
+      <tr class="row2">
+        <td>Transaction No: <span id="f-trans-no"></span></td>
+        <td>Payment Mode: <span id="f-pay-mode"></span></td>
+        <td>Application Date: <span id="f-app-date">20-Sep-2026</span></td>
+      </tr>
+    </table>
+
+    <!-- NUMBERED STUDENT DETAILS (01 - 13) -->
+    <div class="details-list">
+
+      <!-- 01. Student Name -->
+      <div class="det-item">
+        <div class="det-left">
+          <span class="lbl-title">01. Student Name (English)</span>
+          <span class="colon">:</span>
+          <span class="val-text" id="f-name-en">MD FOYEZ AHMED FAHAD</span>
+        </div>
+        <div class="det-right">
+          (বাংলা) : &nbsp;<span id="f-name-bn">মোঃ ফয়েজ আহমদ ফাহাদ</span>
+        </div>
+      </div>
+
+      <div class="det-item-indent">
+        <div class="det-left">
+          <span class="lbl-title-short">Student's NID/Birth Reg.</span>
+          <span class="colon">:</span>
+          <span class="val-text" id="f-nid">20089195010828340</span>
+        </div>
+        <div class="det-right">
+          Gender : &nbsp;<span id="f-gender">Male</span>
+        </div>
+      </div>
+
+      <div class="det-item-indent">
+        <div class="det-left">
+          <span class="lbl-title-short">Student's Phone</span>
+          <span class="colon">:</span>
+          <span class="val-text" id="f-phone">01351088414</span>
+        </div>
+      </div>
+
+      <div class="det-item-indent">
+        <div class="det-left">
+          <span class="lbl-title-short">Student's E-mail</span>
+          <span class="colon">:</span>
+          <span class="val-text" id="f-email"></span>
+        </div>
+      </div>
+
+      <div class="space-sep"></div>
+
+      <!-- 02. Father's Name -->
+      <div class="det-item">
+        <div class="det-left">
+          <span class="lbl-title">02. Father's Name</span>
+          <span class="colon">:</span>
+          <span class="val-text" id="f-father-en">Md Suleman Ahmed Harkan</span>
+        </div>
+        <div class="det-right">
+          (বাংলা) : &nbsp;<span id="f-father-bn">মোঃ সুলেমান আহমদ হারকান</span>
+        </div>
+      </div>
+
+      <div class="det-item-indent">
+        <div class="det-left">
+          <span class="lbl-title-short">Father's/Guardian's NID</span>
+          <span class="colon">:</span>
+          <span class="val-text" id="f-father-nid">9149585805</span>
+        </div>
+      </div>
+
+      <div class="det-item-indent">
+        <div class="det-left">
+          <span class="lbl-title-short">Father's/Guardian's Phone</span>
+          <span class="colon">:</span>
+          <span class="val-text" id="f-guardian-phone">01351088414</span>
+        </div>
+      </div>
+
+      <div class="space-sep"></div>
+
+      <!-- 03. Mother's Name -->
+      <div class="det-item">
+        <div class="det-left">
+          <span class="lbl-title">03. Mother's Name</span>
+          <span class="colon">:</span>
+          <span class="val-text" id="f-mother-en">Mst Jamina Begum</span>
+        </div>
+        <div class="det-right">
+          (বাংলা) : &nbsp;<span id="f-mother-bn">মোছাঃ জামিনা বেগম</span>
+        </div>
+      </div>
+
+      <div class="det-item-indent">
+        <div class="det-left">
+          <span class="lbl-title-short">Mother's NID</span>
+          <span class="colon">:</span>
+          <span class="val-text" id="f-mother-nid"></span>
+        </div>
+      </div>
+
+      <div class="det-item-indent">
+        <div class="det-left">
+          <span class="lbl-title-short">Mother's Phone</span>
+          <span class="colon">:</span>
+          <span class="val-text" id="f-mother-phone"></span>
+        </div>
+      </div>
+
+      <div class="space-sep"></div>
+
+      <!-- 04. Permanent Address -->
+      <div class="det-item">
+        <div class="det-left" style="flex:2.2;">
+          <span class="lbl-title">04. Permanent Address</span>
+          <span class="colon">:</span>
+          <span class="val-text" id="f-perm-addr">Sobujsena Block A/81, Ghasitula, 10 No. Ward</span>
+        </div>
+        <div class="det-right" style="min-width:200px; padding-left:15px;">
+          District: &nbsp;<span id="f-perm-dist">Sylhet</span>
+        </div>
+      </div>
+
+      <div class="space-sep"></div>
+
+      <!-- 05. Present Address -->
+      <div class="det-item">
+        <div class="det-left" style="flex:2.2;">
+          <span class="lbl-title">05. Present Address</span>
+          <span class="colon">:</span>
+          <span class="val-text" id="f-pres-addr">Sobujsena Block A/81, Ghasitula, 10 No. Ward</span>
+        </div>
+        <div class="det-right" style="min-width:200px; padding-left:15px;">
+          District: &nbsp;<span id="f-pres-dist">Sylhet</span>
+        </div>
+      </div>
+
+      <div class="space-sep"></div>
+
+      <!-- 06. Local Guardian -->
+      <div class="det-item-full">
+        <span class="lbl-title" style="min-width:auto;">06. Local Guardian Name, Address &amp; Phone :</span>
+        <span class="val-text" id="f-local-guard"></span>
+      </div>
+
+    </div><!-- /.details-list -->
+
+    <!-- 07 - 13 TWO-COLUMN GRID -->
+    <div class="grid-7-13">
+      <div class="grid-col-left">
+        <div style="display:flex; margin-bottom:1px;">
+          <span style="min-width:185px;">07. Nationality</span>
+          <span class="colon">:</span>
+          <span id="f-nationality">Bangladeshi</span>
+        </div>
+        <div style="display:flex; margin-bottom:1px;">
+          <span style="min-width:185px;">08. Father's Occupation</span>
+          <span class="colon">:</span>
+          <span id="f-father-occ"></span>
+        </div>
+        <div style="display:flex; margin-bottom:1px;">
+          <span style="min-width:185px;">09. Date of Birth</span>
+          <span class="colon">:</span>
+          <span id="f-dob">20-Oct-2008</span>
+        </div>
+        <div style="display:flex; margin-bottom:1px;">
+          <span style="min-width:185px;">10. Religion</span>
+          <span class="colon">:</span>
+          <span id="f-religion">Islam</span>
+        </div>
+      </div>
+
+      <div class="grid-col-right">
+        <div style="display:flex; margin-bottom:1px;">
+          <span style="min-width:175px;">11. Father's Annual Income</span>
+          <span class="colon">:</span>
+          <span id="f-income">0</span>
+        </div>
+        <div style="display:flex; margin-bottom:1px;">
+          <span style="min-width:175px;">12. Quota</span>
+          <span class="colon">:</span>
+          <span id="f-quota"></span>
+        </div>
+        <div style="display:flex; margin-bottom:1px;">
+          <span style="min-width:175px;">13. Blood Group</span>
+          <span class="colon">:</span>
+          <span id="f-blood">O+</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 14. LAST EXAMINATIONS DETAIL -->
+    <div class="sec-14-title">14. Last Examinations Detail :</div>
+    <table class="exam-table">
+      <thead>
+        <tr>
+          <th style="width:13%;">Exam Name</th>
+          <th style="width:12%;">Exam Roll</th>
+          <th style="width:15%;">Reg No</th>
+          <th style="width:13%;">Session</th>
+          <th style="width:16%;">Division</th>
+          <th style="width:11%;">Exam Year</th>
+          <th style="width:12%;">Board/Instit.</th>
+          <th style="width:8%;">GPA</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td id="ex-name">SSC</td>
+          <td id="ex-roll">100693</td>
+          <td id="ex-reg">2316723309</td>
+          <td id="ex-session">2026-2027</td>
+          <td id="ex-div">SSC - Science</td>
+          <td id="ex-year">2026</td>
+          <td id="ex-board">Sylhet</td>
+          <td id="ex-gpa">4.44</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- 15. SUBJECT LIST -->
+    <div class="sec-15-wrap">
+      <div class="sec-15-title">15. Subject List</div>
+      <table class="subject-tbl">
+        <thead>
+          <tr>
+            <th class="td-1st">1st Paper</th>
+            <th class="td-2nd">2nd Paper</th>
+            <th class="th-type">Subject Type</th>
+          </tr>
+        </thead>
+        <tbody id="subject-tbody">
+          <!-- Populated dynamically -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 16. DECLARATION (BANGLA) -->
+    <div class="sec-16-wrap">
+      <div class="sec-16-title">16. আমি অঙ্গীকার করছি যে,</div>
+      <div class="sec-16-body">
+        ক) উপরে বর্ণিত তথ্যসমূহ সত্য ও সঠিক। খ) কলেজের ন্যূনতম ৮০% ক্লাসে উপস্থিত থাকতে বাধ্য থাকব। গ) আমি কলেজের বিধান সমূহ মেনে চলতে বাধ্য থাকব এবং কলেজের শান্তি-শৃঙ্খলা ও নিয়ম পরিপন্থী কাজে জড়িত থাকলে বা ভুল তথ্য প্রদান করলে কর্তৃপক্ষ প্রদত্ত যে কোন শাস্তি গ্রহণে বাধ্য থাকব।
+      </div>
+    </div>
+
+    <!-- 17. ADMISSION FEE -->
+    <div class="sec-17-wrap">
+      17. Admission Fee: <span id="f-fee">TK.3504/=</span>
+    </div>
+
+    <!-- SIGNATURES -->
+    <div class="signatures-row">
+      <div class="sig-col">
+        <hr class="sig-hr">
+        <div class="sig-label">Student's Signature</div>
+      </div>
+      <div class="sig-col">
+        <hr class="sig-hr">
+        <div class="sig-label">Signature of Convenor</div>
+      </div>
+      <div class="sig-col">
+        <hr class="sig-hr">
+        <div class="sig-label">Signature of Principal</div>
+      </div>
+    </div>
+
+  </div><!-- /.sheet-wrapper -->
+
+
+  <script>
+    // Canonical subjects mapped by academic group matching Sylhet Board HSC curriculum
+    const GROUP_SUBJECTS = {
+      'Humanities': [
+        { c1: '101', n1: 'Bangla 1st paper', c2: '102', n2: 'Bangla 2nd paper', type: 'mandatory' },
+        { c1: '107', n1: 'English 1st paper', c2: '108', n2: 'English 2nd paper', type: 'mandatory' },
+        { c1: '275', n1: 'ICT', c2: '', n2: '', type: 'mandatory' },
+        { c1: '267', n1: 'Islamic History and Culture 1st paper', c2: '268', n2: 'Islamic History and Culture  2nd paper', type: 'elective', group: '267' },
+        { c1: '269', n1: 'Civics 1st paper', c2: '270', n2: 'Civics 2nd paper', type: 'elective', group: '269' },
+        { c1: '109', n1: 'Economics 1st paper', c2: '110', n2: 'Economics 2nd paper', type: 'elective', group: '109' },
+        { c1: '271', n1: 'Social Work 1st paper', c2: '272', n2: 'Social Work 2nd paper', type: 'elective', group: '271' },
+        { c1: '116', n1: 'Sociology 1st paper', c2: '116', n2: 'Sociology 2nd paper', type: 'elective', group: '116' },
+        { c1: '121', n1: 'Logic 1st paper', c2: '122', n2: 'Logic 2nd paper', type: 'fourth', optCode: '121/122' },
+        { c1: '273', n1: 'Home Science 1st paper', c2: '274', n2: 'Home Science 2nd paper', type: 'fourth', optCode: '273/274' },
+        { c1: '249', n1: 'Islam Shikha 1st paper', c2: '250', n2: 'Islam Shikha 2nd paper', type: 'fourth', optCode: '249/250' }
+      ],
+      'Science': [
+        { c1: '101', n1: 'Bangla 1st paper', c2: '102', n2: 'Bangla 2nd paper', type: 'mandatory' },
+        { c1: '107', n1: 'English 1st paper', c2: '108', n2: 'English 2nd paper', type: 'mandatory' },
+        { c1: '275', n1: 'ICT', c2: '', n2: '', type: 'mandatory' },
+        { c1: '174', n1: 'Physics 1st paper', c2: '175', n2: 'Physics 2nd paper', type: 'mandatory' },
+        { c1: '176', n1: 'Chemistry 1st paper', c2: '177', n2: 'Chemistry 2nd paper', type: 'mandatory' },
+        { c1: '178', n1: 'Biology 1st paper', c2: '179', n2: 'Biology 2nd paper', type: 'elective', optCode: '178/179' },
+        { c1: '265', n1: 'Higher Math 1st paper', c2: '266', n2: 'Higher Math 2nd paper', type: 'fourth', optCode: '265/266' }
+      ],
+      'Business': [
+        { c1: '101', n1: 'Bangla 1st paper', c2: '102', n2: 'Bangla 2nd paper', type: 'mandatory' },
+        { c1: '107', n1: 'English 1st paper', c2: '108', n2: 'English 2nd paper', type: 'mandatory' },
+        { c1: '275', n1: 'ICT', c2: '', n2: '', type: 'mandatory' },
+        { c1: '253', n1: 'Accounting 1st paper', c2: '254', n2: 'Accounting 2nd paper', type: 'mandatory' },
+        { c1: '277', n1: 'Business Org. & Mgmt 1st paper', c2: '278', n2: 'Business Org. & Mgmt 2nd paper', type: 'mandatory' },
+        { c1: '292', n1: 'Finance, Banking & Insurance 1st', c2: '293', n2: 'Finance, Banking & Insurance 2nd', type: 'mandatory' },
+        { c1: '109', n1: 'Economics 1st paper', c2: '110', n2: 'Economics 2nd paper', type: 'fourth', optCode: '109/110' },
+        { c1: '273', n1: 'Home Science 1st paper', c2: '274', n2: 'Home Science 2nd paper', type: 'fourth', optCode: '273/274' }
+      ]
+    };
+
+    function showError(msg) {
+      const b = document.getElementById('err-banner');
+      b.textContent = msg;
+      b.style.display = 'block';
+    }
+    function hideError() {
+      document.getElementById('err-banner').style.display = 'none';
+    }
+
+    function formatDate(raw) {
+      if (!raw) return '—';
+      // Expected formats: "20/09/2026 06:45 AM" or "2026-09-20"
+      if (raw.includes('/')) {
+        const parts = raw.split(' ')[0].split('/');
+        if (parts.length === 3) {
+          const mNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+          const mIdx = parseInt(parts[1], 10) - 1;
+          return `${parts[0]}-${mNames[mIdx] || parts[1]}-${parts[2]}`;
+        }
+      } else if (raw.includes('-')) {
+        const parts = raw.split('-');
+        if (parts.length === 3 && parts[0].length === 4) {
+          const mNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+          const mIdx = parseInt(parts[1], 10) - 1;
+          return `${parts[2]}-${mNames[mIdx] || parts[1]}-${parts[0]}`;
+        }
+      }
+      return raw;
+    }
+
+    function renderSubjectRows(group, optSub, humMain) {
+      const tbody = document.getElementById('subject-tbody');
+      tbody.innerHTML = '';
+
+      const list = GROUP_SUBJECTS[group] || GROUP_SUBJECTS['Humanities'];
+      const optStr = (optSub || '').trim();
+      const humMainCodes = (humMain || '').split('/').map(s => s.trim()).filter(Boolean);
+
+      list.forEach(item => {
+        let isIncluded = false;
+        let finalType = item.type;
+
+        if (item.type === 'mandatory') {
+          isIncluded = true;
+        } else if (group === 'Humanities') {
+          if (humMainCodes.length > 0) {
+            if (item.group && humMainCodes.includes(item.group)) {
+              isIncluded = true;
+              finalType = 'elective';
+            }
+            if (item.optCode && item.optCode === optStr) {
+              isIncluded = true;
+              finalType = 'fourth';
+            }
+          } else {
+            // Default specimen matches the image if no specific assignment
+            if (item.c1 === '267' || item.c1 === '269' || item.c1 === '109') {
+              isIncluded = true;
+              finalType = 'elective';
+            } else if (item.c1 === '249' || (item.optCode && item.optCode === optStr)) {
+              isIncluded = true;
+              finalType = 'fourth';
+            }
+          }
+        } else if (group === 'Science') {
+          if (item.optCode === optStr) {
+            isIncluded = true;
+            finalType = 'fourth';
+          } else if (item.type === 'elective' || item.type === 'fourth') {
+            isIncluded = true;
+            finalType = (item.optCode === optStr) ? 'fourth' : 'elective';
+          }
+        } else if (group === 'Business') {
+          if (item.optCode === optStr || item.type === 'fourth') {
+            isIncluded = true;
+            finalType = 'fourth';
+          }
+        }
+
+        if (isIncluded) {
+          const tr = document.createElement('tr');
+          const td1 = document.createElement('td');
+          td1.className = 'td-1st';
+          td1.textContent = `${item.c1} - ${item.n1}`;
+
+          const td2 = document.createElement('td');
+          td2.className = 'td-2nd';
+          td2.textContent = item.c2 ? `${item.c2} - ${item.n2}` : '';
+
+          const td3 = document.createElement('td');
+          td3.className = 'td-type';
+          td3.textContent = finalType;
+
+          tr.appendChild(td1);
+          tr.appendChild(td2);
+          tr.appendChild(td3);
+          tbody.appendChild(tr);
+        }
+      });
+    }
+
+    async function fetchAndDisplayApplication(targetAppNo) {
+      hideError();
+      const appNo = targetAppNo || document.getElementById('app-search-input').value.trim().toUpperCase();
+      if (!appNo) {
+        showError('Please enter an Application Number.');
+        return;
+      }
+
+      try {
+        const resp = await fetch('/api/admission/status/' + encodeURIComponent(appNo));
+        const json = await resp.json();
+        if (!resp.ok || !json.ok || !json.data) {
+          throw new Error(json.message || 'Application not found with number: ' + appNo);
+        }
+
+        const data = json.data;
+
+        // Group & Session Header
+        const grp = data.group || 'Humanities';
+        document.getElementById('c-group').textContent = 'HSC - ' + grp;
+        document.getElementById('c-session').textContent = data.session || '2026-2027';
+
+        // Track No (Numeric portion or full number)
+        const trackDigits = (data.applicationNo || '').replace(/\D/g, '').slice(-4) || data.id || '2434';
+        document.getElementById('f-track-no').textContent = trackDigits;
+
+        // Info bar
+        document.getElementById('f-class-roll').textContent = data.roll || '';
+        document.getElementById('f-adm-roll').textContent = data.roll || data.sscRoll || trackDigits;
+        document.getElementById('f-app-date').textContent = formatDate(data.submittedAt);
+
+        // Photo
+        const photoEl = document.getElementById('c-photo');
+        const blankEl = document.getElementById('c-photo-blank');
+        if (data.photo) {
+          photoEl.src = data.photo;
+          photoEl.style.display = 'block';
+          blankEl.style.display = 'none';
+        } else {
+          photoEl.style.display = 'none';
+          blankEl.style.display = 'flex';
+        }
+
+        // 01. Student Name & NID
+        document.getElementById('f-name-en').textContent = (data.name || '').toUpperCase();
+        document.getElementById('f-nid').textContent = data.reg || data.sscReg || '';
+        document.getElementById('f-gender').textContent = data.gender || 'Female';
+        document.getElementById('f-phone').textContent = data.phone || '';
+
+        // 02. Father
+        document.getElementById('f-father-en').textContent = data.father || '';
+        document.getElementById('f-guardian-phone').textContent = data.guardianPhone || data.phone || '';
+
+        // 03. Mother
+        document.getElementById('f-mother-en').textContent = data.mother || '';
+
+        // 04 & 05. Addresses
+        const addr = data.address || '';
+        document.getElementById('f-perm-addr').textContent = addr;
+        document.getElementById('f-pres-addr').textContent = addr;
+
+        // 06. Local Guardian
+        const gName = data.guardianName || '';
+        const gPhone = data.guardianPhone || '';
+        document.getElementById('f-local-guard').textContent = [gName, gPhone].filter(Boolean).join(', ');
+
+        // 07 - 13
+        document.getElementById('f-nationality').textContent = data.nationality || 'Bangladeshi';
+        document.getElementById('f-dob').textContent = formatDate(data.dob);
+        document.getElementById('f-religion').textContent = data.religion || 'Islam';
+        document.getElementById('f-blood').textContent = data.bloodGroup || 'O+';
+
+        // 14. SSC Records
+        document.getElementById('ex-roll').textContent = data.sscRoll || data.roll || '';
+        document.getElementById('ex-reg').textContent = data.sscReg || data.reg || '';
+        document.getElementById('ex-session').textContent = data.session || '2026-2027';
+        document.getElementById('ex-div').textContent = 'SSC - ' + (data.sscGroup || data.group || 'Science');
+        document.getElementById('ex-year').textContent = data.sscPassingYear || data.year || '2026';
+        document.getElementById('ex-board').textContent = data.sscBoard || 'Sylhet';
+        document.getElementById('ex-gpa').textContent = data.sscGpa || '5.00';
+
+        // 15. Subjects
+        renderSubjectRows(grp, data.optionalSubjects, data.humanitiesMainSubjects);
+
+      } catch (err) {
+        showError(err.message);
+      }
+    }
+
+    // Auto-execute if query string has ?app=...
+    document.addEventListener('DOMContentLoaded', () => {
+      const params = new URLSearchParams(window.location.search);
+      const target = params.get('app') || params.get('applicationNo');
+      if (target) {
+        document.getElementById('app-search-input').value = target;
+        fetchAndDisplayApplication(target);
+      } else {
+        // Fallback default demonstration specimen (matching image exactly)
+        renderSubjectRows('Humanities', '249/250', '267/269/109');
+      }
+    });
+
+    document.getElementById('app-search-input').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') fetchAndDisplayApplication();
+    });
+  </script>
+</body>
+</html>

@@ -481,13 +481,19 @@ def admission_admin_page():
         return redirect('/login')
     return _serve_html('admission-admin.html', inject_api=True)
 
+@app.route('/application-copy')
+@app.route('/application-copy.html')
+def application_copy_page():
+    """Public printable admission application copy — student can view/print their admission form."""
+    return _serve_html('application-copy.html', inject_api=True)
+
 @app.route('/<path:page>')
 def html_pages(page):
     # Only serve .html files from BASE_DIR; prevent directory traversal
     if not page.endswith('.html') or '/' in page or '..' in page:
         abort(404)
     # Auth-gate any .html page that is not the login or student-portal page
-    if page not in ('login.html', 'student-portal.html', 'result_summery.html', 'std_result_view.html', 'admission.html') and not session.get('authenticated'):
+    if page not in ('login.html', 'student-portal.html', 'result_summery.html', 'std_result_view.html', 'admission.html', 'application-copy.html') and not session.get('authenticated'):
         return redirect('/login')
     # Use _serve_html to ensure the global font and API scripts are correctly injected
     return _serve_html(page, inject_api=(page not in ('login.html', 'student-portal.html', 'result_summery.html', 'std_result_view.html')))

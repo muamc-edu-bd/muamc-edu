@@ -1050,6 +1050,7 @@
 
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" onclick="closeModal('modal-view')">Close</button>
+        <button type="button" class="btn btn-outline" onclick="if(activeApplication)window.open('/application-copy?app='+encodeURIComponent(activeApplication.applicationNo),'_blank')">Print Application Copy</button>
         <button type="button" class="btn btn-outline" id="btn-view-edit" onclick="openEditFromView()">Edit Details</button>
         <button type="button" class="btn btn-success" id="btn-view-approve" onclick="openApproveFromView()">Approve & Enroll</button>
       </div>

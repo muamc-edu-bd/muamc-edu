@@ -1096,7 +1096,7 @@
             </table>
 
             <div style="display:flex; gap:12px; justify-content:flex-end;">
-              <button type="button" class="btn btn-primary" onclick="viewVoucherFromStatus()">View & Print Admission Voucher</button>
+              <button type="button" class="btn btn-primary" onclick="openApplicationCopy()">View Application Copy</button>
             </div>
           </div>
         </div>
@@ -1109,6 +1109,7 @@
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;" class="no-print">
         <button type="button" class="btn btn-secondary" onclick="returnToNewApplication()">Submit Another Application</button>
         <div style="display:flex; gap:10px;">
+          <button type="button" class="btn btn-outline" onclick="openApplicationCopy()">View Application Copy</button>
           <button type="button" class="btn btn-primary" onclick="window.print()">Print Application Form</button>
         </div>
       </div>
@@ -1584,6 +1585,12 @@
     function viewVoucherFromStatus() {
       if (currentApplicationData) {
         displayConfirmationVoucher(currentApplicationData);
+      }
+    }
+
+    function openApplicationCopy() {
+      if (currentApplicationData && currentApplicationData.applicationNo) {
+        window.open('/application-copy?app=' + encodeURIComponent(currentApplicationData.applicationNo), '_blank');
       }
     }
 
